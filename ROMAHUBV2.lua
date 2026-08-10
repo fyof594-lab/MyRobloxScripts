@@ -22,6 +22,7 @@ local connections = {}
 local speedAmount = 120
 local flySpeed = 80
 local isMinimized = false
+local ScreenGui = nil
 
 -- ============================================
 -- 🛠️ دوال الوظائف
@@ -198,9 +199,9 @@ local function showTeleportMenu()
     
     if not TeleportFrame then
         TeleportFrame = Instance.new("Frame")
-        TeleportFrame.Parent = ScreenGui
-        TeleportFrame.Size = UDim2.new(0, 200, 0, 220)
-        TeleportFrame.Position = UDim2.new(0.5, -100, 0.5, -110)
+        TeleportFrame.Parent = ScreenGui  -- ✅ تأكد أن ScreenGui موجود
+        TeleportFrame.Size = UDim2.new(0, 220, 0, 250)
+        TeleportFrame.Position = UDim2.new(0.5, -110, 0.5, -125)
         TeleportFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
         TeleportFrame.BackgroundTransparency = 0.1
         TeleportFrame.BorderSizePixel = 0
@@ -219,7 +220,7 @@ local function showTeleportMenu()
         TTitle.Parent = TeleportFrame
         TTitle.Size = UDim2.new(1, 0, 0, 30)
         TTitle.BackgroundTransparency = 1
-        TTitle.Text = "🌐 التيليبورت"
+        TTitle.Text = "🌐 قائمة اللاعبين"
         TTitle.TextColor3 = Color3.fromRGB(240, 240, 245)
         TTitle.TextSize = 13
         TTitle.Font = Enum.Font.GothamBold
@@ -254,37 +255,45 @@ local function showTeleportMenu()
     end
     
     local yOff = 0
+    local playerCount = 0
+    
     for _, plr in pairs(Players:GetPlayers()) do
         if plr ~= Player then
+            playerCount = playerCount + 1
+            
+            -- زر اللاعب الكامل
             local btn = Instance.new("TextButton")
             btn.Parent = PlayersList
-            btn.Size = UDim2.new(1, 0, 0, 35)
+            btn.Size = UDim2.new(1, 0, 0, 40)
             btn.Position = UDim2.new(0, 0, 0, yOff)
             btn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
             btn.BorderSizePixel = 0
+            btn.ClipsDescendants = true
             
             local btnCorner = Instance.new("UICorner")
             btnCorner.CornerRadius = UDim.new(0, 6)
             btnCorner.Parent = btn
             
+            -- اسم اللاعب
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Parent = btn
-            nameLabel.Size = UDim2.new(0.5, 0, 1, 0)
+            nameLabel.Size = UDim2.new(0.4, 0, 1, 0)
             nameLabel.Position = UDim2.new(0, 8, 0, 0)
             nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "🌐 " .. plr.Name
+            nameLabel.Text = "👤 " .. plr.Name
             nameLabel.TextColor3 = Color3.fromRGB(200, 200, 215)
             nameLabel.TextSize = 11
             nameLabel.Font = Enum.Font.GothamMedium
             nameLabel.TextXAlignment = Enum.TextXAlignment.Left
             
+            -- زر الانتقال
             local tpBtn = Instance.new("TextButton")
             tpBtn.Parent = btn
-            tpBtn.Size = UDim2.new(0, 50, 0, 25)
-            tpBtn.Position = UDim2.new(0.5, 0, 0.5, -12.5)
+            tpBtn.Size = UDim2.new(0, 55, 0, 28)
+            tpBtn.Position = UDim2.new(0.5, -60, 0.5, -14)
             tpBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
             tpBtn.BackgroundTransparency = 0.3
-            tpBtn.Text = "انتقال"
+            tpBtn.Text = "🚀 انتقال"
             tpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
             tpBtn.TextSize = 10
             tpBtn.Font = Enum.Font.GothamBold
@@ -301,14 +310,13 @@ local function showTeleportMenu()
                 tpBtn.BackgroundTransparency = 0.3
             end)
             
-            -- ✅ إصلاح: الانتقال إلى اللاعب
             tpBtn.MouseButton1Click:Connect(function()
                 local targetChar = plr.Character
                 if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
                     local myChar = Player.Character
                     if myChar and myChar:FindFirstChild("HumanoidRootPart") then
                         local myRoot = myChar.HumanoidRootPart
-                        -- تعطيل التصادم مؤقتاً لتجنب الدفع
+                        -- تعطيل التصادم مؤقتاً
                         local noclipState = states.noclip
                         if not noclipState then
                             toggleNoclip(true)
@@ -326,13 +334,14 @@ local function showTeleportMenu()
                 end
             end)
             
+            -- زر الجلب
             local pullBtn = Instance.new("TextButton")
             pullBtn.Parent = btn
-            pullBtn.Size = UDim2.new(0, 40, 0, 25)
-            pullBtn.Position = UDim2.new(0.75, 0, 0.5, -12.5)
+            pullBtn.Size = UDim2.new(0, 45, 0, 28)
+            pullBtn.Position = UDim2.new(0.8, -15, 0.5, -14)
             pullBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
             pullBtn.BackgroundTransparency = 0.3
-            pullBtn.Text = "جلب"
+            pullBtn.Text = "📥 جلب"
             pullBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
             pullBtn.TextSize = 10
             pullBtn.Font = Enum.Font.GothamBold
@@ -349,14 +358,13 @@ local function showTeleportMenu()
                 pullBtn.BackgroundTransparency = 0.3
             end)
             
-            -- ✅ إصلاح: جلب اللاعب
             pullBtn.MouseButton1Click:Connect(function()
                 local targetChar = plr.Character
                 if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
                     local myChar = Player.Character
                     if myChar and myChar:FindFirstChild("HumanoidRootPart") then
                         local myRoot = myChar.HumanoidRootPart
-                        -- تعطيل التصادم مؤقتاً لتجنب الدفع
+                        -- تعطيل التصادم مؤقتاً
                         local noclipState = states.noclip
                         if not noclipState then
                             toggleNoclip(true)
@@ -374,11 +382,25 @@ local function showTeleportMenu()
                 end
             end)
             
-            yOff = yOff + 40
+            yOff = yOff + 45
         end
     end
-    PlayersList.CanvasSize = UDim2.new(0, 0, 0, yOff + 10)
     
+    -- إذا لم يوجد لاعبين
+    if playerCount == 0 then
+        local noPlayers = Instance.new("TextLabel")
+        noPlayers.Parent = PlayersList
+        noPlayers.Size = UDim2.new(1, 0, 0, 30)
+        noPlayers.Position = UDim2.new(0, 0, 0, 10)
+        noPlayers.BackgroundTransparency = 1
+        noPlayers.Text = "❌ لا يوجد لاعبين آخرين"
+        noPlayers.TextColor3 = Color3.fromRGB(160, 160, 175)
+        noPlayers.TextSize = 12
+        noPlayers.Font = Enum.Font.GothamMedium
+        yOff = 50
+    end
+    
+    PlayersList.CanvasSize = UDim2.new(0, 0, 0, yOff + 10)
     TeleportFrame.Visible = true
 end
 
@@ -386,6 +408,7 @@ end
 -- 💬 دالة الإشعار
 -- ============================================
 function showNotification(text, color)
+    if not ScreenGui then return end
     local notif = Instance.new("TextLabel")
     notif.Parent = ScreenGui
     notif.Size = UDim2.new(0, 280, 0, 35)
@@ -443,11 +466,13 @@ end
 -- ============================================
 -- 🎨 الواجهة الرئيسية
 -- ============================================
-local ScreenGui = nil
 local MainFrame = nil
 local MinBtn = nil
+local CloseBtn = nil
+local isGUIVisible = true
 
 function createGUI()
+    -- ✅ حفظ ScreenGui في متغير عام
     ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "RomaAxelHub"
     ScreenGui.ResetOnSpawn = false
@@ -490,7 +515,7 @@ function createGUI()
     LogoLabel.Font = Enum.Font.GothamBold
     LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- زر تصغير (دائرة)
+    -- ✅ زر التصغير (يخلي القائمة تختفي وتتحول لزر دائري)
     MinBtn = Instance.new("TextButton")
     MinBtn.Parent = TopBar
     MinBtn.Size = UDim2.new(0, 22, 0, 22)
@@ -507,8 +532,8 @@ function createGUI()
     MinCorner.CornerRadius = UDim.new(1, 0)
     MinCorner.Parent = MinBtn
 
-    -- ✅ إصلاح: زر الإغلاق أصبح يصغر القائمة بدلاً من إغلاقها
-    local CloseBtn = Instance.new("TextButton")
+    -- ✅ زر الإغلاق (يخلي القائمة تختفي وتتحول لزر دائري برمز ⚡)
+    CloseBtn = Instance.new("TextButton")
     CloseBtn.Parent = TopBar
     CloseBtn.Size = UDim2.new(0, 22, 0, 22)
     CloseBtn.Position = UDim2.new(1, -26, 0.5, -11)
@@ -524,37 +549,50 @@ function createGUI()
     CloseCorner.CornerRadius = UDim.new(1, 0)
     CloseCorner.Parent = CloseBtn
 
-    -- ✅ إصلاح: زر الإغلاق الآن يصغر القائمة
+    -- ✅ دالة التصغير
+    local function minimizeGUI()
+        isMinimized = true
+        MainFrame.Visible = false  -- القائمة تختفي
+        
+        -- نصنع زر دائري صغير مكانها
+        local miniButton = Instance.new("TextButton")
+        miniButton.Name = "MiniButton"
+        miniButton.Parent = ScreenGui
+        miniButton.Size = UDim2.new(0, 40, 0, 40)
+        miniButton.Position = UDim2.new(0, 10, 0.5, -20)
+        miniButton.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+        miniButton.BackgroundTransparency = 0.1
+        miniButton.Text = "⚡"
+        miniButton.TextColor3 = Color3.fromRGB(240, 240, 245)
+        miniButton.TextSize = 20
+        miniButton.Font = Enum.Font.GothamBold
+        miniButton.BorderSizePixel = 0
+        
+        local miniCorner = Instance.new("UICorner")
+        miniCorner.CornerRadius = UDim.new(1, 0)
+        miniCorner.Parent = miniButton
+        
+        local miniStroke = Instance.new("UIStroke")
+        miniStroke.Parent = miniButton
+        miniStroke.Color = Color3.fromRGB(45, 45, 55)
+        miniStroke.Thickness = 1
+        
+        -- عند الضغط على الزر الدائري ترجع القائمة
+        miniButton.MouseButton1Click:Connect(function()
+            isMinimized = false
+            MainFrame.Visible = true
+            miniButton:Destroy()
+        end)
+    end
+
+    -- ✅ زر التصغير
+    MinBtn.MouseButton1Click:Connect(function()
+        minimizeGUI()
+    end)
+
+    -- ✅ زر الإغلاق (نفس وظيفة التصغير)
     CloseBtn.MouseButton1Click:Connect(function()
-        -- نفس وظيفة زر التصغير
-        isMinimized = not isMinimized
-        if isMinimized then
-            MainFrame.Size = UDim2.new(0, 40, 0, 32)
-            MainFrame.Position = UDim2.new(0, 10, 0.5, -16)
-            MinBtn.Size = UDim2.new(0, 30, 0, 30)
-            MinBtn.Position = UDim2.new(0, 5, 0, 1)
-            MinBtn.Text = "⚡"
-            MinBtn.TextSize = 16
-            CloseBtn.Visible = false
-            for _, child in pairs(MainFrame:GetChildren()) do
-                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
-                    child.Visible = false
-                end
-            end
-        else
-            MainFrame.Size = UDim2.new(0, 260, 0, 230)
-            MainFrame.Position = UDim2.new(0.5, -130, 0.5, -115)
-            MinBtn.Size = UDim2.new(0, 22, 0, 22)
-            MinBtn.Position = UDim2.new(1, -50, 0.5, -11)
-            MinBtn.Text = "−"
-            MinBtn.TextSize = 16
-            CloseBtn.Visible = true
-            for _, child in pairs(MainFrame:GetChildren()) do
-                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
-                    child.Visible = true
-                end
-            end
-        end
+        minimizeGUI()
     end)
 
     -- القائمة الجانبية
@@ -708,11 +746,11 @@ function createGUI()
         
         local teleportBtn = Instance.new("TextButton")
         teleportBtn.Parent = panel
-        teleportBtn.Size = UDim2.new(1, -5, 0, 30)
+        teleportBtn.Size = UDim2.new(1, -5, 0, 35)
         teleportBtn.Position = UDim2.new(0, 2, 0, 5)
         teleportBtn.Text = "🌐 فتح قائمة التيليبورت"
         teleportBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
-        teleportBtn.TextSize = 11
+        teleportBtn.TextSize = 12
         teleportBtn.Font = Enum.Font.GothamMedium
         teleportBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
         teleportBtn.BorderSizePixel = 0
@@ -738,11 +776,11 @@ function createGUI()
         
         local stopBtn = Instance.new("TextButton")
         stopBtn.Parent = panel
-        stopBtn.Size = UDim2.new(1, -5, 0, 30)
+        stopBtn.Size = UDim2.new(1, -5, 0, 35)
         stopBtn.Position = UDim2.new(0, 2, 0, 5)
         stopBtn.Text = "🔄 إيقاف الكل"
         stopBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
-        stopBtn.TextSize = 11
+        stopBtn.TextSize = 12
         stopBtn.Font = Enum.Font.GothamMedium
         stopBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
         stopBtn.BorderSizePixel = 0
@@ -808,47 +846,17 @@ function createGUI()
     tab1.MouseButton1Click()
 
     -- ============================================
-    -- 🔄 زر التصغير (يتحول لدائرة)
-    -- ============================================
-    MinBtn.MouseButton1Click:Connect(function()
-        isMinimized = not isMinimized
-        if isMinimized then
-            MainFrame.Size = UDim2.new(0, 40, 0, 32)
-            MainFrame.Position = UDim2.new(0, 10, 0.5, -16)
-            MinBtn.Size = UDim2.new(0, 30, 0, 30)
-            MinBtn.Position = UDim2.new(0, 5, 0, 1)
-            MinBtn.Text = "⚡"
-            MinBtn.TextSize = 16
-            CloseBtn.Visible = false
-            for _, child in pairs(MainFrame:GetChildren()) do
-                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
-                    child.Visible = false
-                end
-            end
-        else
-            MainFrame.Size = UDim2.new(0, 260, 0, 230)
-            MainFrame.Position = UDim2.new(0.5, -130, 0.5, -115)
-            MinBtn.Size = UDim2.new(0, 22, 0, 22)
-            MinBtn.Position = UDim2.new(1, -50, 0.5, -11)
-            MinBtn.Text = "−"
-            MinBtn.TextSize = 16
-            CloseBtn.Visible = true
-            for _, child in pairs(MainFrame:GetChildren()) do
-                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
-                    child.Visible = true
-                end
-            end
-        end
-    end)
-
-    -- ============================================
     -- ⌨️ اختصارات
     -- ============================================
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.F1 then
             if isMinimized then
+                -- إذا كانت مصغرة، نرجع القائمة
+                isMinimized = false
                 MainFrame.Visible = true
+                local miniBtn = ScreenGui:FindFirstChild("MiniButton")
+                if miniBtn then miniBtn:Destroy() end
             else
                 MainFrame.Visible = not MainFrame.Visible
             end
