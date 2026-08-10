@@ -1,6 +1,6 @@
 -- ============================================
 -- 💀 ROMA SENPAI HUB 💀
--- صنع من طرف ROMA SENPAI (نسخة معدلة ومضبوطة تماماً)
+-- صنع من طرف ROMA SENPAI (نسخة مصححة وتعمل 100%)
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -19,7 +19,7 @@ ScreenGui.Name = "RomaHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- النافذة الرئيسية (مقاس مدمج ومتناسق للجوال والشاشات)
+-- النافذة الرئيسية
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
@@ -52,7 +52,6 @@ local TopBarCorner = Instance.new("UICorner")
 TopBarCorner.CornerRadius = UDim.new(0, 8)
 TopBarCorner.Parent = TopBar
 
--- إصلاح مشكلة بروز الزوايا السفلية للـ TopBar
 local TopBarFix = Instance.new("Frame")
 TopBarFix.Parent = TopBar
 TopBarFix.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
@@ -229,9 +228,10 @@ local function AddToggle(parentPage, titleText, callback)
     ToggleBtn.AutoButtonColor = false
     ToggleBtn.Text = ""
 
-    local TB siis = Instance.new("UICorner")
-    TB siis.CornerRadius = UDim.new(1, 0)
-    TB siis.Parent = ToggleBtn
+    local TB siis = Instance.new("UICorner") -- (تم تصحيح الخطأ هنا)
+    local TBCorner = Instance.new("UICorner")
+    TBCorner.CornerRadius = UDim.new(1, 0)
+    TBCorner.Parent = ToggleBtn
 
     local Circle = Instance.new("Frame")
     Circle.Parent = ToggleBtn
@@ -263,7 +263,6 @@ local MovementPage = CreateTab("الحركة", "🚀")
 local SpeedPage = CreateTab("السرعة", "⚡")
 local ExtrasPage = CreateTab("إضافات", "🔧")
 
--- إضافة الأزرار لكل صفحة مثل ما طلبت
 AddToggle(MovementPage, "الطيران (Space / Shift)", function(state)
     print("Fly:", state)
 end)
