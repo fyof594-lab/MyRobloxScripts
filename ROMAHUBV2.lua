@@ -1,6 +1,6 @@
 -- ============================================
 -- 💀 ROMA SENPAI HUB 💀
--- صنع من طرف ROMA SENPAI (نسخة محسنة وأسطورية)
+-- صنع من طرف ROMA SENPAI (نسخة معدلة ومضبوطة تماماً)
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -9,7 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
--- إزالة النسخة القديمة إن وجدت لمنع التكرار
+-- إزالة النسخة القديمة لمنع التكرار
 if PlayerGui:FindFirstChild("RomaHub") then
     PlayerGui.RomaHub:Destroy()
 end
@@ -19,111 +19,134 @@ ScreenGui.Name = "RomaHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- النافذة الرئيسية (حجم متناسق ومناسب للشاشات)
+-- النافذة الرئيسية (مقاس مدمج ومتناسق للجوال والشاشات)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
 MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.5, -230, 0.5, -155)
-MainFrame.Size = UDim2.new(0, 460, 0, 310)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -140)
+MainFrame.Size = UDim2.new(0, 420, 0, 280)
 MainFrame.ClipsDescendants = true
 
 local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.CornerRadius = UDim.new(0, 8)
 MainCorner.Parent = MainFrame
 
--- تأثير حدود خفيفة للنافذة (Stroke)
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Parent = MainFrame
-MainStroke.Color = Color3.fromRGB(45, 45, 55)
+MainStroke.Color = Color3.fromRGB(50, 50, 65)
 MainStroke.Thickness = 1.5
+
+-- ============================================
+-- 🔝 شريط العنوان العلوي (TopBar)
+-- ============================================
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
+TopBar.BorderSizePixel = 0
+TopBar.Size = UDim2.new(1, 0, 0, 35)
+
+local TopBarCorner = Instance.new("UICorner")
+TopBarCorner.CornerRadius = UDim.new(0, 8)
+TopBarCorner.Parent = TopBar
+
+-- إصلاح مشكلة بروز الزوايا السفلية للـ TopBar
+local TopBarFix = Instance.new("Frame")
+TopBarFix.Parent = TopBar
+TopBarFix.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
+TopBarFix.BorderSizePixel = 0
+TopBarFix.Position = UDim2.new(0, 0, 1, -5)
+TopBarFix.Size = UDim2.new(1, 0, 0, 5)
+
+local TitleText = Instance.new("TextLabel")
+TitleText.Parent = TopBar
+TitleText.BackgroundTransparency = 1
+TitleText.Position = UDim2.new(0, 10, 0, 0)
+TitleText.Size = UDim2.new(0, 250, 1, 0)
+TitleText.Font = Enum.Font.GothamBold
+TitleText.Text = "💀 ROMA SENPAI HUB"
+TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleText.TextSize = 13
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+
+-- زر إغلاق الهب
+local CloseButton = Instance.new("TextButton")
+CloseButton.Parent = TopBar
+CloseButton.BackgroundColor3 = Color3.fromRGB(210, 50, 50)
+CloseButton.Position = UDim2.new(1, -28, 0.5, -10)
+CloseButton.Size = UDim2.new(0, 20, 0, 20)
+CloseButton.AutoButtonColor = false
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 10
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 4)
+CloseCorner.Parent = CloseButton
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
 
 -- ============================================
 -- 📂 القائمة الجانبية (Sidebar)
 -- ============================================
-local Sidebar = Instance.new("Frame")
+local Sidebar = Instance.new("ScrollingFrame")
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
-Sidebar.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
+Sidebar.Active = true
+Sidebar.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
 Sidebar.BorderSizePixel = 0
-Sidebar.Size = UDim2.new(0, 140, 1, 0)
+Sidebar.Position = UDim2.new(0, 0, 0, 35)
+Sidebar.Size = UDim2.new(0, 125, 1, -35)
+Sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
+Sidebar.ScrollBarThickness = 0
+Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-local SidebarCorner = Instance.new("UICorner")
-SidebarCorner.CornerRadius = UDim.new(0, 10)
-SidebarCorner.Parent = Sidebar
+local SidebarLayout = Instance.new("UIListLayout")
+SidebarLayout.Parent = Sidebar
+SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+SidebarLayout.Padding = UDim.new(0, 4)
 
--- العنوان في القائمة الجانبية
-local HubTitle = Instance.new("TextLabel")
-HubTitle.Parent = Sidebar
-HubTitle.BackgroundTransparency = 1
-HubTitle.Position = UDim2.new(0, 12, 0, 12)
-HubTitle.Size = UDim2.new(1, -24, 0, 25)
-HubTitle.Font = Enum.Font.GothamBold
-HubTitle.Text = "Roma Hub"
-HubTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-HubTitle.TextSize = 15
-HubTitle.TextXAlignment = Enum.TextXAlignment.Left
-
-local HubSubtitle = Instance.new("TextLabel")
-HubSubtitle.Parent = Sidebar
-HubSubtitle.BackgroundTransparency = 1
-HubSubtitle.Position = UDim2.new(0, 12, 0, 32)
-HubSubtitle.Size = UDim2.new(1, -24, 0, 15)
-HubSubtitle.Font = Enum.Font.Gotham
-HubSubtitle.Text = "by Roma Senpai"
-HubSubtitle.TextColor3 = Color3.fromRGB(140, 140, 150)
-HubSubtitle.TextSize = 10
-HubSubtitle.TextXAlignment = Enum.TextXAlignment.Left
-
--- حاوية الأزرار الجانبية
-local TabsContainer = Instance.new("ScrollingFrame")
-TabsContainer.Parent = Sidebar
-TabsContainer.Active = true
-TabsContainer.BackgroundTransparency = 1
-TabsContainer.Position = UDim2.new(0, 0, 0, 60)
-TabsContainer.Size = UDim2.new(1, 0, 1, -60)
-TabsContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
-TabsContainer.ScrollBarThickness = 0
-TabsContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
-
-local TabsLayout = Instance.new("UIListLayout")
-TabsLayout.Parent = TabsContainer
-TabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-TabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-TabsLayout.Padding = UDim.new(0, 4)
+local SidebarPadding = Instance.new("UIPadding")
+SidebarPadding.Parent = Sidebar
+SidebarPadding.TopPadding = UDim.new(0, 6)
 
 -- ============================================
--- 🖥️ حاوية الصفحات (Container)
+-- 🖥️ حاوية الصفحات (Pages Container)
 -- ============================================
 local PagesContainer = Instance.new("Frame")
 PagesContainer.Name = "PagesContainer"
 PagesContainer.Parent = MainFrame
 PagesContainer.BackgroundTransparency = 1
-PagesContainer.Position = UDim2.new(0, 145, 0, 0)
-PagesContainer.Size = UDim2.new(1, -145, 1, 0)
+PagesContainer.Position = UDim2.new(0, 130, 0, 40)
+PagesContainer.Size = UDim2.new(1, -135, 1, -45)
 
 -- ============================================
--- ⚙️ نظام التنقل بين التبويبات (Tabs System)
+-- ⚙️ نظام التبويبات الديناميكي
 -- ============================================
 local CurrentTab = nil
 local Pages = {}
 
-local function CreateTab(name, iconText)
+local function CreateTab(name, icon)
     local TabButton = Instance.new("TextButton")
-    TabButton.Parent = TabsContainer
-    TabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+    TabButton.Parent = Sidebar
+    TabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
     TabButton.BackgroundTransparency = 1
-    TabButton.Size = UDim2.new(0, 126, 0, 32)
+    TabButton.Size = UDim2.new(0, 113, 0, 30)
     TabButton.AutoButtonColor = false
     TabButton.Font = Enum.Font.GothamMedium
-    TabButton.Text = "   " .. name
-    TabButton.TextColor3 = Color3.fromRGB(160, 160, 170)
-    TabButton.TextSize = 12
+    TabButton.Text = "  " .. icon .. "  " .. name
+    TabButton.TextColor3 = Color3.fromRGB(150, 150, 165)
+    TabButton.TextSize = 11
     TabButton.TextXAlignment = Enum.TextXAlignment.Left
 
     local BtnCorner = Instance.new("UICorner")
-    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.CornerRadius = UDim.new(0, 5)
     BtnCorner.Parent = TabButton
 
     local Page = Instance.new("ScrollingFrame")
@@ -131,18 +154,17 @@ local function CreateTab(name, iconText)
     Page.Parent = PagesContainer
     Page.Active = true
     Page.BackgroundTransparency = 1
-    Page.Position = UDim2.new(0, 10, 0, 10)
-    Page.Size = UDim2.new(1, -20, 1, -20)
+    Page.Size = UDim2.new(1, 0, 1, 0)
     Page.CanvasSize = UDim2.new(0, 0, 0, 0)
-    Page.ScrollBarThickness = 3
-    Page.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 75)
+    Page.ScrollBarThickness = 2
+    Page.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 80)
     Page.Visible = false
     Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
     local PageLayout = Instance.new("UIListLayout")
     PageLayout.Parent = Page
     PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    PageLayout.Padding = UDim.new(0, 8)
+    PageLayout.Padding = UDim.new(0, 6)
 
     Pages[name] = Page
 
@@ -150,16 +172,16 @@ local function CreateTab(name, iconText)
         for _, p in pairs(Pages) do
             p.Visible = false
         end
-        for _, b in pairs(TabsContainer:GetChildren()) do
+        for _, b in pairs(Sidebar:GetChildren()) do
             if b:IsA("TextButton") then
-                TweenService:Create(b, TweenInfo.new(0.2), {
+                TweenService:Create(b, TweenInfo.new(0.15), {
                     BackgroundTransparency = 1,
-                    TextColor3 = Color3.fromRGB(160, 160, 170)
+                    TextColor3 = Color3.fromRGB(150, 150, 165)
                 }):Play()
             end
         end
         Page.Visible = true
-        TweenService:Create(TabButton, TweenInfo.new(0.2), {
+        TweenService:Create(TabButton, TweenInfo.new(0.15), {
             BackgroundTransparency = 0,
             TextColor3 = Color3.fromRGB(255, 255, 255)
         }):Play()
@@ -176,34 +198,34 @@ local function CreateTab(name, iconText)
 end
 
 -- ============================================
--- 🛠️ دالة إضافة خيار Toggle (زر تفعيل)
+-- 🛠️ دالة إضافة أزرار التفعيل (Toggles)
 -- ============================================
 local function AddToggle(parentPage, titleText, callback)
     local ToggleFrame = Instance.new("Frame")
     ToggleFrame.Parent = parentPage
-    ToggleFrame.BackgroundColor3 = Color3.fromRGB(26, 26, 33)
-    ToggleFrame.Size = UDim2.new(1, -5, 0, 38)
+    ToggleFrame.BackgroundColor3 = Color3.fromRGB(26, 26, 35)
+    ToggleFrame.Size = UDim2.new(1, -6, 0, 32)
 
     local TFCorner = Instance.new("UICorner")
-    TFCorner.CornerRadius = UDim.new(0, 6)
+    TFCorner.CornerRadius = UDim.new(0, 5)
     TFCorner.Parent = ToggleFrame
 
     local Label = Instance.new("TextLabel")
     Label.Parent = ToggleFrame
     Label.BackgroundTransparency = 1
-    Label.Position = UDim2.new(0, 12, 0, 0)
-    Label.Size = UDim2.new(1, -60, 1, 0)
+    Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.Size = UDim2.new(1, -50, 1, 0)
     Label.Font = Enum.Font.GothamMedium
     Label.Text = titleText
-    Label.TextColor3 = Color3.fromRGB(220, 220, 230)
-    Label.TextSize = 12
+    Label.TextColor3 = Color3.fromRGB(210, 210, 225)
+    Label.TextSize = 11
     Label.TextXAlignment = Enum.TextXAlignment.Left
 
     local ToggleBtn = Instance.new("TextButton")
     ToggleBtn.Parent = ToggleFrame
-    ToggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-    ToggleBtn.Position = UDim2.new(1, -45, 0.5, -10)
-    ToggleBtn.Size = UDim2.new(0, 36, 0, 20)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+    ToggleBtn.Position = UDim2.new(1, -40, 0.5, -8)
+    ToggleBtn.Size = UDim2.new(0, 32, 0, 16)
     ToggleBtn.AutoButtonColor = false
     ToggleBtn.Text = ""
 
@@ -214,8 +236,8 @@ local function AddToggle(parentPage, titleText, callback)
     local Circle = Instance.new("Frame")
     Circle.Parent = ToggleBtn
     Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Circle.Position = UDim2.new(0, 2, 0.5, -8)
-    Circle.Size = UDim2.new(0, 16, 0, 16)
+    Circle.Position = UDim2.new(0, 2, 0.5, -6)
+    Circle.Size = UDim2.new(0, 12, 0, 12)
 
     local CC = Instance.new("UICorner")
     CC.CornerRadius = UDim.new(1, 0)
@@ -224,38 +246,46 @@ local function AddToggle(parentPage, titleText, callback)
     local toggled = false
     ToggleBtn.MouseButton1Click:Connect(function()
         toggled = not toggled
-        local goalCirclePos = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-        local goalColor = toggled and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(45, 45, 55)
+        local goalCirclePos = toggled and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
+        local goalColor = toggled and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(45, 45, 60)
         
-        TweenService:Create(Circle, TweenInfo.new(0.2), {Position = goalCirclePos}):Play()
-        TweenService:Create(ToggleBtn, TweenInfo.new(0.2), {BackgroundColor3 = goalColor}):Play()
+        TweenService:Create(Circle, TweenInfo.new(0.15), {Position = goalCirclePos}):Play()
+        TweenService:Create(ToggleBtn, TweenInfo.new(0.15), {BackgroundColor3 = goalColor}):Play()
         
         pcall(callback, toggled)
     end)
 end
 
 -- ============================================
--- 📱 إضافة التبويبات والأزرار (تجربة الواجهة)
+-- 📱 بناء الأقسام (Tabs & Options)
 -- ============================================
-local MainPage = CreateTab("Main", "🏠")
-local FarmPage = CreateTab("Auto Farm", "⚔️")
-local SettingsPage = CreateTab("Settings", "⚙️")
+local MovementPage = CreateTab("الحركة", "🚀")
+local SpeedPage = CreateTab("السرعة", "⚡")
+local ExtrasPage = CreateTab("إضافات", "🔧")
 
--- أمثلة للأزرار داخل صفحة Main
-AddToggle(MainPage, "Auto Farm Level", function(state)
-    print("Auto Farm Level:", state)
+-- إضافة الأزرار لكل صفحة مثل ما طلبت
+AddToggle(MovementPage, "الطيران (Space / Shift)", function(state)
+    print("Fly:", state)
 end)
 
-AddToggle(MainPage, "Bypass Teleport", function(state)
-    print("Bypass TP:", state)
+AddToggle(MovementPage, "اختراق الجدران", function(state)
+    print("Noclip:", state)
 end)
 
-AddToggle(MainPage, "Auto Quest Complete", function(state)
-    print("Auto Quest:", state)
+AddToggle(MovementPage, "اختفاء", function(state)
+    print("Invisible:", state)
+end)
+
+AddToggle(SpeedPage, "زيادة السرعة الخارقة", function(state)
+    print("Speed Boost:", state)
+end)
+
+AddToggle(ExtrasPage, "التيليبورت العشوائي", function(state)
+    print("Teleport:", state)
 end)
 
 -- ============================================
--- 🖱️ خاصية تحريك النافذة (Draggable للأجهزة والكمبيوتر)
+-- 🖱️ خاصية السحب للموبايل والكمبيوتر (Draggable)
 -- ============================================
 local dragging, dragInput, dragStart, startPos
 
