@@ -1,33 +1,46 @@
 -- ============================================
--- ⚽ BALL PULL LOOP ⚽
--- يجلب الكرة إليك بقوة (حتى لو متحكمة)
+-- ⚽ BALL PULL ONE CLICK ⚽
+-- جلب الكرة بضغطة زر واحدة
 -- ============================================
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 
 -- ============================================
--- 🔍 إيجاد الكرة
+-- 🔍 إيجاد الكرة (أحدث طريقة)
 -- ============================================
 local Ball = nil
 
 local function findBall()
-    for _, child in pairs(Workspace:GetChildren()) do
-        if child:IsA("BasePart") and child.Name:lower():find("ball") then
-            return child
+    -- البحث في Workspace كامل
+    local allParts = Workspace:GetDescendants()
+    for _, part in pairs(allParts) do
+        if part:IsA("BasePart") and part.Name:lower():find("ball") then
+            return part
         end
     end
+    
+    -- البحث المباشر بأسماء معروفة
+    local ballNames = {"Ball", "ball", "Football", "SoccerBall", "BALL"}
+    for _, name in ipairs(ballNames) do
+        local found = Workspace:FindFirstChild(name)
+        if found and found:IsA("BasePart") then
+            return found
+        end
+    end
+    
     return nil
 end
 
+-- تحديث الكرة
 Ball = findBall()
 
 -- ============================================
--- 🎨 الواجهة (مختصرة للسرعة)
+-- 🎨 الواجهة
 -- ============================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "BallPullGUI"
@@ -153,78 +166,89 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 🔥 وظيفة جلب الكرة (باستخدام Loop)
+-- 🔥 وظيفة جلب الكرة (ضغطة واحدة)
 -- ============================================
-local isPulling = false
-local pullConnection = nil
-
-local function startPulling()
-    if isPulling then
-        -- إيقاف الجلب
-        isPulling = false
-        if pullConnection then
-            pullConnection:Disconnect()
-            pullConnection = nil
-        end
-        PullBtn.Text = "🔄 جلب الكرة"
-        PullBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-        showNotification("⏹ تم إيقاف جلب الكرة", Color3.fromRGB(255, 200, 0))
-        return
-    end
-    
+local function pullBall()
+    -- البحث عن الكرة
     Ball = findBall()
+    
     if not Ball then
         showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
         return
     end
     
-    isPulling = true
-    PullBtn.Text = "⏹ إيقاف الجلب"
-    PullBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-    showNotification("⚽ جاري جلب الكرة بقوة!", Color3.fromRGB(0, 200, 255))
+    local char = Player.Character
+    if not char then
+        showNotification("❌ شخصيتك غير موجودة!", Color3.fromRGB(255, 0, 0))
+        return
+    end
     
-    -- 🔄 الضغط المستمر على مكان الكرة
-    pullConnection = RunService.Heartbeat:Connect(function()
-        if not isPulling then return end
-        
-        -- تحديث الكرة باستمرار
-        Ball = findBall()
-        if not Ball then return end
-        
-        local char = Player.Character
-        if not char then return end
-        
-        local root = char:FindFirstChild("HumanoidRootPart")
-        if not root then return end
-        
-        local targetPos = root.Position + Vector3.new(0, 3, 0)
-        
-        -- 🔥 تغيير مكان الكرة بقوة (كل إطار)
-        pcall(function()
-            Ball.Position = targetPos
-            Ball.CFrame = CFrame.new(targetPos)
-            Ball.Velocity = Vector3.new(0, 0, 0)
-            Ball.RotVelocity = Vector3.new(0, 0, 0)
-        end)
-        
-        -- إزالة أي وصلات (Welds) بشكل مستمر
-        pcall(function()
-            for _, child in pairs(Ball:GetChildren()) do
-                if child:IsA("Weld") or child:IsA("WeldConstraint") or child:IsA("Attachment") then
-                    child:Destroy()
-                end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then
+        showNotification("❌ Root غير موجود!", Color3.fromRGB(255, 0, 0))
+        return
+    end
+    
+    -- موقع الكرة الجديد (عند اللاعب)
+    local targetPos = root.Position + Vector3.new(0, 3, 0)
+    
+    -- 🛠️ إزالة القيود (Weld, Attachment, Constraints)
+    pcall(function()
+        for _, child in pairs(Ball:GetChildren()) do
+            if child:IsA("Weld") or child:IsA("Attachment") or child:IsA("Constraint") or child:IsA("WeldConstraint") then
+                child:Destroy()
             end
-        end)
-        
-        -- فك Anchored
-        pcall(function()
-            Ball.Anchored = false
-            Ball.CanCollide = true
-        end)
+        end
     end)
+    
+    -- تحرير الكرة
+    pcall(function()
+        Ball.Anchored = false
+        Ball.CanCollide = true
+        Ball.Parent = Workspace
+    end)
+    
+    -- 🎯 تغيير موقع الكرة بثلاث طرق مختلفة
+    local success = false
+    
+    -- الطريقة 1: تغيير الموقع مباشرة
+    pcall(function()
+        Ball.Position = targetPos
+        success = true
+    end)
+    
+    -- الطريقة 2: تغيير CFrame
+    pcall(function()
+        Ball.CFrame = CFrame.new(targetPos)
+        success = true
+    end)
+    
+    -- الطريقة 3: Tween (حركة سلسة)
+    pcall(function()
+        TweenService:Create(Ball, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Position = targetPos
+        }):Play()
+        success = true
+    end)
+    
+    -- الطريقة 4: BodyVelocity (دفع الكرة)
+    pcall(function()
+        local bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(1, 1, 1) * 100000
+        bv.Velocity = (targetPos - Ball.Position).Unit * 100
+        bv.Parent = Ball
+        game:GetService("Debris"):AddItem(bv, 0.5)
+        success = true
+    end)
+    
+    if success then
+        showNotification("✅ تم جلب الكرة!", Color3.fromRGB(0, 200, 100))
+    else
+        showNotification("❌ فشل جلب الكرة!", Color3.fromRGB(255, 0, 0))
+    end
 end
 
-PullBtn.MouseButton1Click:Connect(startPulling)
+PullBtn.MouseButton1Click:Connect(pullBall)
 
 -- ============================================
 -- ⌨️ اختصارات
@@ -237,7 +261,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
     
     if input.KeyCode == Enum.KeyCode.G then
-        startPulling()
+        pullBall()
     end
 end)
 
@@ -246,11 +270,11 @@ end)
 -- ============================================
 Ball = findBall()
 if Ball then
-    print("⚽ Ball Pull Loop Loaded! Ball found: " .. Ball.Name)
-    showNotification("✅ اضغط G لجلب الكرة بقوة", Color3.fromRGB(0, 200, 100))
+    print("⚽ Ball Pull One Click Loaded! Ball found: " .. Ball.Name)
+    showNotification("✅ جاهز! اضغط G لجلب الكرة", Color3.fromRGB(0, 200, 100))
 else
-    print("⚽ Ball Pull Loop Loaded! Ball not found.")
+    print("⚽ Ball Pull One Click Loaded! Ball not found.")
     showNotification("⚠️ الكرة غير موجودة!", Color3.fromRGB(255, 200, 0))
 end
-print("📌 Press G to start/stop pulling ball")
+print("📌 Press G to pull ball")
 print("📌 Press F1 to toggle GUI")
