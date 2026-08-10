@@ -10,20 +10,20 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local Mouse = Player:GetMouse()
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- ============================================
--- 🎨 الواجهة السوداء الزجاجية (مثل Axel Hub)
+-- 🎨 الواجهة الرئيسية (مستطيل أفقي + أقسام جانبية)
 -- ============================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "RomaHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = Player.PlayerGui
 
+-- النافذة الرئيسية (أفقية)
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 400, 0, 500)
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+MainFrame.Size = UDim2.new(0, 700, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -350, 0.5, -175)
 MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
@@ -42,11 +42,11 @@ Stroke.Thickness = 1
 Stroke.Transparency = 0.5
 
 -- ============================================
--- 📌 العنوان
+-- 📌 شريط العنوان
 -- ============================================
 local TitleBar = Instance.new("Frame")
 TitleBar.Parent = MainFrame
-TitleBar.Size = UDim2.new(1, 0, 0, 45)
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
 TitleBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 TitleBar.BackgroundTransparency = 0.3
 
@@ -56,7 +56,7 @@ TitleBarCorner.Parent = TitleBar
 
 local Title = Instance.new("TextLabel")
 Title.Parent = TitleBar
-Title.Size = UDim2.new(1, -50, 1, 0)
+Title.Size = UDim2.new(1, -60, 1, 0)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "💀 ROMA SENPAI HUB"
@@ -67,8 +67,8 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 
 local SubTitle = Instance.new("TextLabel")
 SubTitle.Parent = TitleBar
-SubTitle.Size = UDim2.new(0, 120, 0, 15)
-SubTitle.Position = UDim2.new(0, 10, 0, 28)
+SubTitle.Size = UDim2.new(0, 150, 0, 15)
+SubTitle.Position = UDim2.new(0, 10, 0, 24)
 SubTitle.BackgroundTransparency = 1
 SubTitle.Text = "صنع من طرف ROMA SENPAI"
 SubTitle.TextColor3 = Color3.fromRGB(150, 150, 255)
@@ -114,8 +114,8 @@ local function toggleMinimize()
         SubTitle.Visible = false
     else
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 400, 0, 500),
-            Position = UDim2.new(0.5, -200, 0.5, -250),
+            Size = UDim2.new(0, 700, 0, 350),
+            Position = UDim2.new(0.5, -350, 0.5, -175),
             BackgroundTransparency = 0.15
         }):Play()
         CloseBtn.Text = "✕"
@@ -134,17 +134,42 @@ end
 CloseBtn.MouseButton1Click:Connect(toggleMinimize)
 
 -- ============================================
--- 📜 أقسام الواجهة
+-- 📂 القائمة الجانبية (Vertical Tabs)
 -- ============================================
-local ScrollFrame = Instance.new("ScrollingFrame")
-ScrollFrame.Parent = MainFrame
-ScrollFrame.Size = UDim2.new(1, -10, 1, -55)
-ScrollFrame.Position = UDim2.new(0, 5, 0, 50)
-ScrollFrame.BackgroundTransparency = 1
-ScrollFrame.BorderSizePixel = 0
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-ScrollFrame.ScrollBarThickness = 4
-ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
+local Sidebar = Instance.new("Frame")
+Sidebar.Parent = MainFrame
+Sidebar.Size = UDim2.new(0, 120, 1, -45)
+Sidebar.Position = UDim2.new(0, 0, 0, 45)
+Sidebar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Sidebar.BackgroundTransparency = 0.3
+Sidebar.BorderSizePixel = 0
+Sidebar.ClipsDescendants = true
+
+local SidebarCorner = Instance.new("UICorner")
+SidebarCorner.CornerRadius = UDim.new(0, 0)
+SidebarCorner.Parent = Sidebar
+
+local SidebarLayout = Instance.new("UIListLayout")
+SidebarLayout.Parent = Sidebar
+SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+SidebarLayout.Padding = UDim.new(0, 5)
+
+local SidebarPadding = Instance.new("UIPadding")
+SidebarPadding.Parent = Sidebar
+SidebarPadding.PaddingTop = UDim.new(0, 10)
+SidebarPadding.PaddingLeft = UDim.new(0, 5)
+SidebarPadding.PaddingRight = UDim.new(0, 5)
+
+-- ============================================
+-- 📄 المحتوى (يظهر حسب التاب)
+-- ============================================
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Parent = MainFrame
+ContentFrame.Size = UDim2.new(1, -125, 1, -50)
+ContentFrame.Position = UDim2.new(0, 125, 0, 45)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.BorderSizePixel = 0
+ContentFrame.ClipsDescendants = true
 
 -- ============================================
 -- 🔥 دالة الإشعار
@@ -168,47 +193,66 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 📦 دالة إنشاء قسم
+-- 🔥 المتغيرات والحالات
 -- ============================================
-local yOffset = 5
-local function createSection(title, color)
-    local section = Instance.new("Frame")
-    section.Parent = ScrollFrame
-    section.Size = UDim2.new(1, 0, 0, 0)
-    section.Position = UDim2.new(0, 0, 0, yOffset)
-    section.BackgroundTransparency = 1
+local states = {fly = false, noclip = false, invisible = false, speed = false}
+local connections = {}
+local speedAmount = 120
+local currentTab = nil
+
+-- ============================================
+-- 📦 دالة إنشاء تاب جانبي
+-- ============================================
+function createTab(name, icon, callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = Sidebar
+    btn.Size = UDim2.new(1, -10, 0, 40)
+    btn.Text = icon .. " " .. name
+    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    btn.TextScaled = true
+    btn.Font = Enum.Font.GothamSemibold
+    btn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    btn.BackgroundTransparency = 0.3
+    btn.BorderSizePixel = 0
+    btn.LayoutOrder = 1
     
-    local sectionTitle = Instance.new("TextLabel")
-    sectionTitle.Parent = section
-    sectionTitle.Size = UDim2.new(1, -10, 0, 25)
-    sectionTitle.Position = UDim2.new(0, 5, 0, 0)
-    sectionTitle.BackgroundTransparency = 1
-    sectionTitle.Text = title
-    sectionTitle.TextColor3 = color or Color3.fromRGB(150, 150, 255)
-    sectionTitle.TextScaled = true
-    sectionTitle.Font = Enum.Font.GothamBold
-    sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 8)
+    btnCorner.Parent = btn
     
-    local sectionLine = Instance.new("Frame")
-    sectionLine.Parent = section
-    sectionLine.Size = UDim2.new(0.95, 0, 0, 1.5)
-    sectionLine.Position = UDim2.new(0.025, 0, 0, 28)
-    sectionLine.BackgroundColor3 = color or Color3.fromRGB(150, 150, 255)
-    sectionLine.BackgroundTransparency = 0.5
-    sectionLine.BorderSizePixel = 0
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundTransparency = 0
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    btn.MouseLeave:Connect(function()
+        if currentTab ~= btn then
+            btn.BackgroundTransparency = 0.3
+            btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        end
+    end)
     
-    yOffset = yOffset + 35
-    return section
+    btn.MouseButton1Click:Connect(function()
+        if currentTab then
+            currentTab.BackgroundTransparency = 0.3
+            currentTab.TextColor3 = Color3.fromRGB(200, 200, 200)
+        end
+        currentTab = btn
+        btn.BackgroundTransparency = 0
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        callback()
+    end)
+    
+    return btn
 end
 
 -- ============================================
--- 📦 دالة إنشاء زر
+-- 📦 دالة إنشاء زر في المحتوى
 -- ============================================
-local function addButton(text, callback, color)
+function addContentButton(parent, text, callback, color, yPos)
     local btn = Instance.new("TextButton")
-    btn.Parent = ScrollFrame
+    btn.Parent = parent
     btn.Size = UDim2.new(0.9, 0, 0, 35)
-    btn.Position = UDim2.new(0.05, 0, 0, yOffset)
+    btn.Position = UDim2.new(0.05, 0, 0, yPos or 5)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.TextScaled = true
@@ -233,23 +277,12 @@ local function addButton(text, callback, color)
     end)
     
     btn.MouseButton1Click:Connect(callback)
-    yOffset = yOffset + 42
-    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 10)
     return btn
 end
 
 -- ============================================
--- 🔥 المتغيرات والحالات
+-- 🚀 الطيران
 -- ============================================
-local states = {fly = false, noclip = false, invisible = false, speed = false}
-local connections = {}
-local speedAmount = 120
-
--- ============================================
--- 🚀 1️⃣ قسم الطيران والحركة
--- ============================================
-local sec1 = createSection("🚀 الطيران والحركة", Color3.fromRGB(0, 150, 255))
-
 local function toggleFly()
     states.fly = not states.fly
     local char = Player.Character
@@ -282,6 +315,9 @@ local function toggleFly()
     end
 end
 
+-- ============================================
+-- 🧱 اختراق الجدران
+-- ============================================
 local function toggleNoclip()
     states.noclip = not states.noclip
     if states.noclip then
@@ -312,6 +348,9 @@ local function toggleNoclip()
     end
 end
 
+-- ============================================
+-- 👻 اختفاء
+-- ============================================
 local function toggleInvisible()
     states.invisible = not states.invisible
     local char = Player.Character
@@ -348,15 +387,9 @@ local function toggleInvisible()
     end
 end
 
-addButton("🚀 طيران", toggleFly, Color3.fromRGB(0, 150, 255))
-addButton("🧱 اختراق الجدران", toggleNoclip, Color3.fromRGB(150, 100, 255))
-addButton("👻 اختفاء", toggleInvisible, Color3.fromRGB(200, 100, 255))
-
 -- ============================================
--- ⚡ 2️⃣ قسم السرعة
+-- ⚡ السرعة
 -- ============================================
-local sec2 = createSection("⚡ السرعة", Color3.fromRGB(0, 255, 200))
-
 local function toggleSpeed()
     states.speed = not states.speed
     local h = Player.Character and Player.Character:FindFirstChild("Humanoid")
@@ -391,16 +424,9 @@ local function decreaseSpeed()
     showNotification("⚡ السرعة: " .. speedAmount, Color3.fromRGB(0, 255, 200))
 end
 
-addButton("⚡ تفعيل السرعة", toggleSpeed, Color3.fromRGB(0, 255, 200))
-addButton("⬆️ زيادة السرعة +10", increaseSpeed, Color3.fromRGB(50, 200, 100))
-addButton("⬇️ خفض السرعة -10", decreaseSpeed, Color3.fromRGB(200, 150, 50))
-
 -- ============================================
--- 🌐 3️⃣ قسم التيليبورت
+-- 🌐 تيليبورت للاعبين
 -- ============================================
-local sec3 = createSection("🌐 التيليبورت", Color3.fromRGB(100, 150, 255))
-
--- تيليبورت للاعبين
 local TeleportFrame = nil
 local function showTeleportMenu()
     if TeleportFrame and TeleportFrame.Visible then
@@ -411,8 +437,8 @@ local function showTeleportMenu()
     if not TeleportFrame then
         TeleportFrame = Instance.new("Frame")
         TeleportFrame.Parent = MainFrame
-        TeleportFrame.Size = UDim2.new(0.9, 0, 0, 150)
-        TeleportFrame.Position = UDim2.new(0.05, 0, 0, 50)
+        TeleportFrame.Size = UDim2.new(0.8, 0, 0, 180)
+        TeleportFrame.Position = UDim2.new(0.1, 0, 0, 50)
         TeleportFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         TeleportFrame.BackgroundTransparency = 0.3
         TeleportFrame.BorderSizePixel = 0
@@ -430,7 +456,6 @@ local function showTeleportMenu()
         TScroll.BorderSizePixel = 0
         TScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
         TScroll.ScrollBarThickness = 3
-        TScroll.ScrollBarImageColor3 = Color3.fromRGB(100, 150, 255)
         
         local yOff = 0
         for _, plr in pairs(Players:GetPlayers()) do
@@ -500,8 +525,6 @@ local function showTeleportMenu()
     TeleportFrame.Visible = true
 end
 
-addButton("🌐 تيليبورت للاعب", showTeleportMenu, Color3.fromRGB(100, 150, 255))
-
 -- ============================================
 -- 🗺️ تيليبورت للخريطة
 -- ============================================
@@ -515,8 +538,8 @@ local function showMapTeleport()
     if not MapFrame then
         MapFrame = Instance.new("Frame")
         MapFrame.Parent = MainFrame
-        MapFrame.Size = UDim2.new(0.9, 0, 0, 150)
-        MapFrame.Position = UDim2.new(0.05, 0, 0, 50)
+        MapFrame.Size = UDim2.new(0.8, 0, 0, 180)
+        MapFrame.Position = UDim2.new(0.1, 0, 0, 50)
         MapFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         MapFrame.BackgroundTransparency = 0.3
         MapFrame.BorderSizePixel = 0
@@ -580,14 +603,9 @@ local function showMapTeleport()
     MapFrame.Visible = true
 end
 
-addButton("🗺️ تيليبورت للخريطة", showMapTeleport, Color3.fromRGB(255, 200, 50))
-
 -- ============================================
--- 🔧 4️⃣ قسم الأوامر الإضافية
+-- 🔧 أوامر إضافية
 -- ============================================
-local sec4 = createSection("🔧 أوامر إضافية", Color3.fromRGB(255, 200, 100))
-
--- جلب الكرة
 local function pullBall()
     local ball = nil
     for _, child in pairs(Workspace:GetChildren()) do
@@ -609,7 +627,6 @@ local function pullBall()
     end
 end
 
--- قتل الكل
 local function killAll()
     for _, plr in pairs(Players:GetPlayers()) do
         if plr ~= Player then
@@ -622,7 +639,6 @@ local function killAll()
     showNotification("💀 تم قتل الكل!", Color3.fromRGB(255, 0, 0))
 end
 
--- إيقاف الكل
 local function stopAll()
     for _, conn in pairs(connections) do
         if conn then
@@ -664,9 +680,55 @@ local function stopAll()
     showNotification("⏹ تم إيقاف الكل!", Color3.fromRGB(255, 200, 0))
 end
 
-addButton("⚽ جلب الكرة", pullBall, Color3.fromRGB(0, 200, 255))
-addButton("💀 قتل الكل", killAll, Color3.fromRGB(255, 0, 0))
-addButton("🔄 إيقاف الكل", stopAll, Color3.fromRGB(200, 50, 50))
+-- ============================================
+-- 📂 إنشاء الأقسام والمحتوى
+-- ============================================
+
+-- 🔥 Tab 1: الطيران والحركة
+local function showTab1()
+    for _, child in pairs(ContentFrame:GetChildren()) do child:Destroy() end
+    local yPos = 5
+    addContentButton(ContentFrame, "🚀 طيران", toggleFly, Color3.fromRGB(0, 150, 255), yPos); yPos = yPos + 45
+    addContentButton(ContentFrame, "🧱 اختراق الجدران", toggleNoclip, Color3.fromRGB(150, 100, 255), yPos); yPos = yPos + 45
+    addContentButton(ContentFrame, "👻 اختفاء", toggleInvisible, Color3.fromRGB(200, 100, 255), yPos)
+end
+
+-- ⚡ Tab 2: السرعة
+local function showTab2()
+    for _, child in pairs(ContentFrame:GetChildren()) do child:Destroy() end
+    local yPos = 5
+    addContentButton(ContentFrame, "⚡ تفعيل السرعة", toggleSpeed, Color3.fromRGB(0, 255, 200), yPos); yPos = yPos + 45
+    addContentButton(ContentFrame, "⬆️ زيادة السرعة +10", increaseSpeed, Color3.fromRGB(50, 200, 100), yPos); yPos = yPos + 45
+    addContentButton(ContentFrame, "⬇️ خفض السرعة -10", decreaseSpeed, Color3.fromRGB(200, 150, 50), yPos)
+end
+
+-- 🌐 Tab 3: التيليبورت
+local function showTab3()
+    for _, child in pairs(ContentFrame:GetChildren()) do child:Destroy() end
+    local yPos = 5
+    addContentButton(ContentFrame, "🌐 تيليبورت للاعب", showTeleportMenu, Color3.fromRGB(100, 150, 255), yPos); yPos = yPos + 45
+    addContentButton(ContentFrame, "🗺️ تيليبورت للخريطة", showMapTeleport, Color3.fromRGB(255, 200, 50), yPos)
+end
+
+-- 🔧 Tab 4: أوامر إضافية
+local function showTab4()
+    for _, child in pairs(ContentFrame:GetChildren()) do child:Destroy() end
+    local yPos = 5
+    addContentButton(ContentFrame, "⚽ جلب الكرة", pullBall, Color3.fromRGB(0, 200, 255), yPos); yPos = yPos + 45
+    addContentButton(ContentFrame, "💀 قتل الكل", killAll, Color3.fromRGB(255, 0, 0), yPos); yPos = yPos + 45
+    addContentButton(ContentFrame, "🔄 إيقاف الكل", stopAll, Color3.fromRGB(200, 50, 50), yPos)
+end
+
+-- ============================================
+-- 📋 إنشاء الأزرار الجانبية
+-- ============================================
+createTab("الحركة", "🚀", showTab1)
+createTab("السرعة", "⚡", showTab2)
+createTab("التيليبورت", "🌐", showTab3)
+createTab("إضافات", "🔧", showTab4)
+
+-- تفعيل التاب الأول افتراضياً
+showTab1()
 
 -- ============================================
 -- ⌨️ اختصارات
