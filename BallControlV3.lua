@@ -1,5 +1,5 @@
 -- ============================================
--- ⚽ BALL CONTROL SCRIPT ⚽
+-- ⚽ BALL CONTROL SCRIPT v3 ⚽
 -- تتحكم بالكرة بنفسك وتطير فيها
 -- ============================================
 
@@ -9,14 +9,14 @@ local Mouse = Player:GetMouse()
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
 
 -- ============================================
 -- 🎯 إعدادات التحكم
 -- ============================================
 local Settings = {
-    ControlSpeed = 1.5,     -- سرعة تحرك الكرة
-    FollowMouse = true,     -- تتبع الفأرة
-    FlyHeight = 15,         -- ارتفاع الطيران
+    ControlSpeed = 50,      -- سرعة تحرك الكرة
+    FlyHeight = 10,         -- ارتفاع الطيران
 }
 
 -- ============================================
@@ -25,16 +25,18 @@ local Settings = {
 local Ball = nil
 
 local function findBall()
-    local ballNames = {"Ball", "ball", "Football", "SoccerBall"}
+    -- أسماء محتملة للكرة
+    local ballNames = {"Ball", "ball", "Football", "SoccerBall", "BALL"}
     for _, name in ipairs(ballNames) do
-        local found = workspace:FindFirstChild(name)
-        if found then
+        local found = Workspace:FindFirstChild(name)
+        if found and found:IsA("BasePart") then
             return found
         end
     end
+    
     -- البحث العميق
-    for _, child in pairs(workspace:GetChildren()) do
-        if child:IsA("Part") and child.Name:lower():find("ball") then
+    for _, child in pairs(Workspace:GetChildren()) do
+        if child:IsA("BasePart") and child.Name:lower():find("ball") then
             return child
         end
     end
@@ -44,7 +46,7 @@ end
 Ball = findBall()
 
 -- ============================================
--- 🎨 إنشاء الواجهة
+-- 🎨 إنشاء الواجهة الزجاجية
 -- ============================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "BallControlGUI"
@@ -174,13 +176,17 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 🎯 التحكم بالكرة (الميزة الرئيسية)
+-- 🎯 التحكم بالكرة (تتحكم فيها بنفسك)
 -- ============================================
 
 local isControlling = false
 local controlConnection = nil
+local originalBallPosition = nil
+local originalBallParent = nil
+local playerRoot = nil
+local playerHumanoid = nil
 
--- دالة جلب الكرة وتثبيتها عندك
+-- دالة جلب الكرة وتثبيتها على اللاعب (تخليها تتبعك)
 local function grabBall()
     if not Ball then
         Ball = findBall()
@@ -190,76 +196,98 @@ local function grabBall()
         end
     end
     
-    -- ننسخ الكرة عشان نتحكم فيها (نخليها تتبعنا)
-    local newBall = Ball:Clone()
-    newBall.Parent = workspace
-    newBall.Name = "ControlledBall"
-    newBall.Anchored = false
-    newBall.CanCollide = true
+    -- حفظ موقع الكرة الأصلي
+    originalBallPosition = Ball.Position
+    originalBallParent = Ball.Parent
     
-    -- نضيف BodyVelocity عشان تتحرك معانا
-    local bv = Instance.new("BodyVelocity")
-    bv.MaxForce = Vector3.new(1, 1, 1) * 100000
-    bv.Parent = newBall
+    -- نقل الكرة إلى اللاعب
+    Ball.Parent = workspace
+    Ball.Anchored = false
+    Ball.CanCollide = true
     
-    return newBall, bv
+    -- نجيب الـ HumanoidRootPart حق اللاعب
+    local char = Player.Character
+    if char then
+        playerRoot = char:FindFirstChild("HumanoidRootPart")
+        playerHumanoid = char:FindFirstChild("Humanoid")
+    end
+    
+    return true
 end
 
+-- دالة بدء التحكم
 local function startControl()
     if isControlling then
         return
     end
     
-    local controlledBall, bv = grabBall()
-    if not controlledBall then
+    if not grabBall() then
         return
     end
     
     isControlling = true
-    showNotification("⚽ جاري التحكم بالكرة! حرك الماوس", Color3.fromRGB(0, 200, 255))
+    showNotification("⚽ جاري التحكم بالكرة! استخدم WASD للتحرك", Color3.fromRGB(0, 200, 255))
     
+    -- نضيف BodyVelocity عشان تتحرك الكرة معانا
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(1, 1, 1) * 100000
+    bv.Parent = Ball
+    
+    -- نربط حركة الكرة بحركة اللاعب
     controlConnection = RunService.Heartbeat:Connect(function()
-        if not isControlling or not controlledBall or not controlledBall.Parent then
+        if not isControlling or not Ball or not Ball.Parent then
             return
         end
         
-        -- تحديث موقع الكرة لتتبع الفأرة
-        local targetPos
-        if Settings.FollowMouse then
-            -- الكرة تتبع الفأرة مع ارتفاع ثابت
-            targetPos = Mouse.Hit.Position + Vector3.new(0, Settings.FlyHeight, 0)
-        else
-            -- الكرة تتبع شخصيتك
-            local char = Player.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                targetPos = char.HumanoidRootPart.Position + Vector3.new(0, Settings.FlyHeight, 0)
+        -- نحرك الكرة مع اللاعب
+        if playerRoot and playerHumanoid then
+            -- ناخذ اتجاه حركة اللاعب
+            local moveDirection = playerHumanoid.MoveDirection
+            if moveDirection.Magnitude > 0 then
+                -- تحريك الكرة في اتجاه حركة اللاعب
+                local targetPos = Ball.Position + (moveDirection * Settings.ControlSpeed * 0.1)
+                targetPos = Vector3.new(targetPos.X, Ball.Position.Y, targetPos.Z)
+                local direction = (targetPos - Ball.Position)
+                bv.Velocity = direction * 5
+                
+                -- تدوير الكرة
+                Ball.CFrame = CFrame.new(Ball.Position, Ball.Position + moveDirection)
+            else
+                -- إيقاف الكرة إذا كان اللاعب واقف
+                bv.Velocity = Vector3.new(0, 0, 0)
             end
-        end
-        
-        if targetPos then
-            -- تحريك الكرة بسلاسة
-            local direction = (targetPos - controlledBall.Position)
-            local velocity = direction.Unit * math.min(direction.Magnitude * Settings.ControlSpeed, 150)
-            bv.Velocity = velocity
             
-            -- تدوير الكرة
-            controlledBall.CFrame = CFrame.new(controlledBall.Position, targetPos)
+            -- نحرك الكرة مع اللاعب (تتبع اللاعب)
+            if playerRoot then
+                local rootPos = playerRoot.Position
+                local ballPos = Ball.Position
+                local distance = (rootPos - ballPos).Magnitude
+                
+                if distance > 5 then
+                    -- إذا ابتعدت الكرة كثيراً، نعيدها للاعب
+                    Ball.Position = rootPos + Vector3.new(0, Settings.FlyHeight, 0)
+                end
+            end
         end
     end)
 end
 
+-- دالة إيقاف التحكم
 local function stopControl()
     isControlling = false
+    
     if controlConnection then
         controlConnection:Disconnect()
         controlConnection = nil
     end
     
-    -- حذف الكرة المسيطر عليها
-    local controlledBall = workspace:FindFirstChild("ControlledBall")
-    if controlledBall then
-        controlledBall:Destroy()
+    -- نرجع الكرة لمكانها الأصلي
+    if Ball and Ball.Parent then
+        Ball:Destroy()
     end
+    
+    -- نعيد الكرة الأصلية
+    Ball = findBall()
     
     showNotification("⏹ تم إيقاف التحكم بالكرة", Color3.fromRGB(255, 200, 0))
 end
@@ -283,12 +311,12 @@ local Commands = {
             showNotification("❌ لم يتم العثور على الكرة!", Color3.fromRGB(255, 0, 0))
         end
     end},
-    {Text = "🔄 تبديل وضع المتابعة", Callback = function()
-        Settings.FollowMouse = not Settings.FollowMouse
-        showNotification("🔄 وضع المتابعة: " .. (Settings.FollowMouse and "الفأرة" or "الشخصية"), Color3.fromRGB(0, 200, 255))
-    end},
     {Text = "⬆️ زيادة سرعة التحكم", Callback = function()
-        Settings.ControlSpeed = Settings.ControlSpeed + 0.5
+        Settings.ControlSpeed = Settings.ControlSpeed + 10
+        showNotification("⚡ سرعة التحكم: " .. Settings.ControlSpeed, Color3.fromRGB(0, 200, 255))
+    end},
+    {Text = "⬇️ خفض سرعة التحكم", Callback = function()
+        Settings.ControlSpeed = math.max(10, Settings.ControlSpeed - 10)
         showNotification("⚡ سرعة التحكم: " .. Settings.ControlSpeed, Color3.fromRGB(0, 200, 255))
     end},
 }
@@ -373,10 +401,10 @@ end)
 -- ============================================
 Ball = findBall()
 if Ball then
-    print("⚽ Ball Control Script Loaded! Ball found: " .. Ball.Name)
+    print("⚽ Ball Control Script v3 Loaded! Ball found: " .. Ball.Name)
     showNotification("✅ تم العثور على الكرة! اضغط Space للتحكم", Color3.fromRGB(0, 200, 100))
 else
-    print("⚽ Ball Control Script Loaded! Ball not found.")
+    print("⚽ Ball Control Script v3 Loaded! Ball not found.")
     showNotification("⚠️ لم يتم العثور على الكرة! استخدم 'البحث عن الكرة'", Color3.fromRGB(255, 200, 0))
 end
 print("📌 Press F1 to toggle GUI")
