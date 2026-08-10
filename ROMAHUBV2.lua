@@ -21,6 +21,7 @@ local states = {
 local connections = {}
 local speedAmount = 120
 local flySpeed = 80
+local isMinimized = false
 local isGUIVisible = false
 
 -- ============================================
@@ -198,8 +199,8 @@ local function showTeleportMenu()
     if not TeleportFrame then
         TeleportFrame = Instance.new("Frame")
         TeleportFrame.Parent = ScreenGui
-        TeleportFrame.Size = UDim2.new(0, 200, 0, 200)
-        TeleportFrame.Position = UDim2.new(0.5, -100, 0.5, -100)
+        TeleportFrame.Size = UDim2.new(0, 180, 0, 180)
+        TeleportFrame.Position = UDim2.new(0.5, -90, 0.5, -90)
         TeleportFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
         TeleportFrame.BackgroundTransparency = 0.1
         TeleportFrame.BorderSizePixel = 0
@@ -220,7 +221,7 @@ local function showTeleportMenu()
         TTitle.BackgroundTransparency = 1
         TTitle.Text = "🌐 التيليبورت"
         TTitle.TextColor3 = Color3.fromRGB(240, 240, 245)
-        TTitle.TextSize = 14
+        TTitle.TextSize = 13
         TTitle.Font = Enum.Font.GothamBold
         
         local closeT = Instance.new("TextButton")
@@ -251,11 +252,11 @@ local function showTeleportMenu()
             if plr ~= Player then
                 local btn = Instance.new("TextButton")
                 btn.Parent = TScroll
-                btn.Size = UDim2.new(1, 0, 0, 30)
+                btn.Size = UDim2.new(1, 0, 0, 28)
                 btn.Position = UDim2.new(0, 0, 0, yOff)
                 btn.Text = "🌐 " .. plr.Name
                 btn.TextColor3 = Color3.fromRGB(200, 200, 215)
-                btn.TextSize = 12
+                btn.TextSize = 11
                 btn.Font = Enum.Font.GothamMedium
                 btn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
                 btn.BorderSizePixel = 0
@@ -284,7 +285,7 @@ local function showTeleportMenu()
                     end
                     TeleportFrame.Visible = false
                 end)
-                yOff = yOff + 35
+                yOff = yOff + 33
             end
         end
         TScroll.CanvasSize = UDim2.new(0, 0, 0, yOff + 10)
@@ -305,7 +306,7 @@ function showNotification(text, color)
     notif.BackgroundTransparency = 0.3
     notif.Text = text
     notif.TextColor3 = Color3.fromRGB(255, 255, 255)
-    notif.TextSize = 14
+    notif.TextSize = 13
     notif.Font = Enum.Font.GothamBold
     notif.BorderSizePixel = 0
     local notifCorner = Instance.new("UICorner")
@@ -327,8 +328,8 @@ local function showIntro()
     
     local text = Instance.new("TextLabel")
     text.Parent = intro
-    text.Size = UDim2.new(0, 400, 0, 80)
-    text.Position = UDim2.new(0.5, -200, 0.5, -40)
+    text.Size = UDim2.new(0, 350, 0, 70)
+    text.Position = UDim2.new(0.5, -175, 0.5, -35)
     text.BackgroundTransparency = 1
     text.Text = "⚡ ROMA SENPAI\nصنع من طرف ROMA SENPAI"
     text.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -338,8 +339,8 @@ local function showIntro()
     
     local subText = Instance.new("TextLabel")
     subText.Parent = intro
-    subText.Size = UDim2.new(0, 300, 0, 30)
-    subText.Position = UDim2.new(0.5, -150, 0.5, 60)
+    subText.Size = UDim2.new(0, 250, 0, 25)
+    subText.Position = UDim2.new(0.5, -125, 0.5, 50)
     subText.BackgroundTransparency = 1
     subText.Text = "جاري التحميل..."
     subText.TextColor3 = Color3.fromRGB(150, 150, 255)
@@ -353,10 +354,11 @@ local function showIntro()
 end
 
 -- ============================================
--- 🎨 الواجهة الرئيسية (مصغرة)
+-- 🎨 الواجهة الرئيسية (مصغرة جداً)
 -- ============================================
 local ScreenGui = nil
 local MainFrame = nil
+local MinBtn = nil
 
 function createGUI()
     ScreenGui = Instance.new("ScreenGui")
@@ -366,8 +368,8 @@ function createGUI()
 
     MainFrame = Instance.new("Frame")
     MainFrame.Parent = ScreenGui
-    MainFrame.Size = UDim2.new(0, 300, 0, 280)
-    MainFrame.Position = UDim2.new(0.5, -150, 0.5, -140)
+    MainFrame.Size = UDim2.new(0, 260, 0, 230)
+    MainFrame.Position = UDim2.new(0.5, -130, 0.5, -115)
     MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
     MainFrame.BackgroundTransparency = 0.1
     MainFrame.BorderSizePixel = 0
@@ -385,71 +387,57 @@ function createGUI()
     MainStroke.Thickness = 1
 
     -- ============================================
-    -- 📌 شريط العنوان مع زر تصغير
+    -- 📌 شريط العنوان
     -- ============================================
     local TopBar = Instance.new("Frame")
     TopBar.Parent = MainFrame
-    TopBar.Size = UDim2.new(1, 0, 0, 35)
+    TopBar.Size = UDim2.new(1, 0, 0, 32)
     TopBar.BackgroundTransparency = 1
 
     local LogoLabel = Instance.new("TextLabel")
     LogoLabel.Parent = TopBar
-    LogoLabel.Size = UDim2.new(0, 120, 1, 0)
-    LogoLabel.Position = UDim2.new(0, 10, 0, 0)
+    LogoLabel.Size = UDim2.new(0, 100, 1, 0)
+    LogoLabel.Position = UDim2.new(0, 8, 0, 0)
     LogoLabel.BackgroundTransparency = 1
     LogoLabel.Text = "⚡ ROMA HUB"
     LogoLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
-    LogoLabel.TextSize = 13
+    LogoLabel.TextSize = 12
     LogoLabel.Font = Enum.Font.GothamBold
     LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- زر تصغير (Minimize)
-    local MinBtn = Instance.new("TextButton")
+    -- زر تصغير (Minimize) - يتحول لدائرة
+    MinBtn = Instance.new("TextButton")
     MinBtn.Parent = TopBar
-    MinBtn.Size = UDim2.new(0, 25, 0, 25)
-    MinBtn.Position = UDim2.new(1, -60, 0.5, -12.5)
-    MinBtn.BackgroundTransparency = 1
+    MinBtn.Size = UDim2.new(0, 22, 0, 22)
+    MinBtn.Position = UDim2.new(1, -50, 0.5, -11)
+    MinBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    MinBtn.BackgroundTransparency = 0.3
     MinBtn.Text = "−"
-    MinBtn.TextColor3 = Color3.fromRGB(160, 160, 175)
-    MinBtn.TextSize = 18
+    MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MinBtn.TextSize = 16
     MinBtn.Font = Enum.Font.GothamBold
-
-    local isMinimized = false
-    MinBtn.MouseButton1Click:Connect(function()
-        isMinimized = not isMinimized
-        if isMinimized then
-            MainFrame.Size = UDim2.new(0, 40, 0, 35)
-            MainFrame.Position = UDim2.new(0, 10, 0.5, -17.5)
-            MinBtn.Text = "+"
-            MinBtn.Position = UDim2.new(0, 10, 0.5, -12.5)
-            for _, child in pairs(MainFrame:GetChildren()) do
-                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
-                    child.Visible = false
-                end
-            end
-        else
-            MainFrame.Size = UDim2.new(0, 300, 0, 280)
-            MainFrame.Position = UDim2.new(0.5, -150, 0.5, -140)
-            MinBtn.Text = "−"
-            MinBtn.Position = UDim2.new(1, -60, 0.5, -12.5)
-            for _, child in pairs(MainFrame:GetChildren()) do
-                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
-                    child.Visible = true
-                end
-            end
-        end
-    end)
+    MinBtn.BorderSizePixel = 0
+    
+    local MinCorner = Instance.new("UICorner")
+    MinCorner.CornerRadius = UDim.new(1, 0)
+    MinCorner.Parent = MinBtn
 
     -- زر إغلاق
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Parent = TopBar
-    CloseBtn.Size = UDim2.new(0, 25, 0, 25)
-    CloseBtn.Position = UDim2.new(1, -32, 0.5, -12.5)
-    CloseBtn.BackgroundTransparency = 1
+    CloseBtn.Size = UDim2.new(0, 22, 0, 22)
+    CloseBtn.Position = UDim2.new(1, -26, 0.5, -11)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+    CloseBtn.BackgroundTransparency = 0.3
     CloseBtn.Text = "✕"
-    CloseBtn.TextColor3 = Color3.fromRGB(160, 160, 175)
-    CloseBtn.TextSize = 14
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.TextSize = 12
     CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.BorderSizePixel = 0
+    
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(1, 0)
+    CloseCorner.Parent = CloseBtn
 
     CloseBtn.MouseButton1Click:Connect(function()
         ScreenGui:Destroy()
@@ -460,12 +448,12 @@ function createGUI()
     -- ============================================
     local Sidebar = Instance.new("ScrollingFrame")
     Sidebar.Parent = MainFrame
-    Sidebar.Size = UDim2.new(0, 110, 1, -35)
-    Sidebar.Position = UDim2.new(0, 0, 0, 35)
+    Sidebar.Size = UDim2.new(0, 100, 1, -32)
+    Sidebar.Position = UDim2.new(0, 0, 0, 32)
     Sidebar.BackgroundTransparency = 1
     Sidebar.BorderSizePixel = 0
     Sidebar.ScrollBarThickness = 0
-    Sidebar.CanvasSize = UDim2.new(0, 0, 0, 250)
+    Sidebar.CanvasSize = UDim2.new(0, 0, 0, 200)
 
     local SidebarLayout = Instance.new("UIListLayout")
     SidebarLayout.Parent = Sidebar
@@ -474,16 +462,16 @@ function createGUI()
 
     local SidebarPadding = Instance.new("UIPadding")
     SidebarPadding.Parent = Sidebar
-    SidebarPadding.PaddingLeft = UDim.new(0, 8)
-    SidebarPadding.PaddingRight = UDim.new(0, 8)
+    SidebarPadding.PaddingLeft = UDim.new(0, 6)
+    SidebarPadding.PaddingRight = UDim.new(0, 6)
 
     -- ============================================
     -- 🖥️ حاوية المحتوى
     -- ============================================
     local ContentContainer = Instance.new("Frame")
     ContentContainer.Parent = MainFrame
-    ContentContainer.Size = UDim2.new(1, -115, 1, -45)
-    ContentContainer.Position = UDim2.new(0, 115, 0, 40)
+    ContentContainer.Size = UDim2.new(1, -105, 1, -40)
+    ContentContainer.Position = UDim2.new(0, 105, 0, 36)
     ContentContainer.BackgroundTransparency = 1
 
     local currentTabBtn = nil
@@ -491,11 +479,11 @@ function createGUI()
     local function createTabButton(name, icon)
         local btn = Instance.new("TextButton")
         btn.Parent = Sidebar
-        btn.Size = UDim2.new(1, 0, 0, 28)
+        btn.Size = UDim2.new(1, 0, 0, 26)
         btn.BackgroundTransparency = 1
         btn.Text = "   " .. icon .. "  " .. name
         btn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        btn.TextSize = 11
+        btn.TextSize = 10
         btn.Font = Enum.Font.GothamSemibold
         btn.TextXAlignment = Enum.TextXAlignment.Left
         
@@ -524,20 +512,20 @@ function createGUI()
         panel.BackgroundTransparency = 1
         panel.BorderSizePixel = 0
         panel.ScrollBarThickness = 2
-        panel.CanvasSize = UDim2.new(0, 0, 0, 250)
+        panel.CanvasSize = UDim2.new(0, 0, 0, 200)
         
         local layout = Instance.new("UIListLayout")
         layout.Parent = panel
         layout.SortOrder = Enum.SortOrder.LayoutOrder
-        layout.Padding = UDim.new(0, 6)
+        layout.Padding = UDim.new(0, 5)
         
         local title = Instance.new("TextLabel")
         title.Parent = panel
-        title.Size = UDim2.new(1, 0, 0, 22)
+        title.Size = UDim2.new(1, 0, 0, 20)
         title.BackgroundTransparency = 1
         title.Text = titleText
         title.TextColor3 = Color3.fromRGB(240, 240, 250)
-        title.TextSize = 13
+        title.TextSize = 12
         title.Font = Enum.Font.GothamBold
         title.TextXAlignment = Enum.TextXAlignment.Left
         
@@ -547,7 +535,7 @@ function createGUI()
     local function addToggle(parent, titleText, callback)
         local toggle = Instance.new("Frame")
         toggle.Parent = parent
-        toggle.Size = UDim2.new(1, -5, 0, 30)
+        toggle.Size = UDim2.new(1, -5, 0, 28)
         toggle.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
         toggle.BorderSizePixel = 0
         
@@ -557,12 +545,12 @@ function createGUI()
         
         local label = Instance.new("TextLabel")
         label.Parent = toggle
-        label.Size = UDim2.new(1, -45, 1, 0)
-        label.Position = UDim2.new(0, 10, 0, 0)
+        label.Size = UDim2.new(1, -42, 1, 0)
+        label.Position = UDim2.new(0, 8, 0, 0)
         label.BackgroundTransparency = 1
         label.Text = titleText
         label.TextColor3 = Color3.fromRGB(200, 200, 215)
-        label.TextSize = 11
+        label.TextSize = 10
         label.Font = Enum.Font.GothamMedium
         label.TextXAlignment = Enum.TextXAlignment.Left
         
@@ -575,8 +563,8 @@ function createGUI()
         local active = false
         local indicator = Instance.new("Frame")
         indicator.Parent = toggle
-        indicator.Size = UDim2.new(0, 14, 0, 14)
-        indicator.Position = UDim2.new(1, -20, 0.5, -7)
+        indicator.Size = UDim2.new(0, 12, 0, 12)
+        indicator.Position = UDim2.new(1, -18, 0.5, -6)
         indicator.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
         
         local indCorner = Instance.new("UICorner")
@@ -621,11 +609,11 @@ function createGUI()
         
         local teleportBtn = Instance.new("TextButton")
         teleportBtn.Parent = panel
-        teleportBtn.Size = UDim2.new(1, -5, 0, 32)
+        teleportBtn.Size = UDim2.new(1, -5, 0, 30)
         teleportBtn.Position = UDim2.new(0, 2, 0, 5)
         teleportBtn.Text = "🌐 فتح قائمة التيليبورت"
         teleportBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
-        teleportBtn.TextSize = 12
+        teleportBtn.TextSize = 11
         teleportBtn.Font = Enum.Font.GothamMedium
         teleportBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
         teleportBtn.BorderSizePixel = 0
@@ -651,11 +639,11 @@ function createGUI()
         
         local stopBtn = Instance.new("TextButton")
         stopBtn.Parent = panel
-        stopBtn.Size = UDim2.new(1, -5, 0, 32)
+        stopBtn.Size = UDim2.new(1, -5, 0, 30)
         stopBtn.Position = UDim2.new(0, 2, 0, 5)
         stopBtn.Text = "🔄 إيقاف الكل"
         stopBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
-        stopBtn.TextSize = 12
+        stopBtn.TextSize = 11
         stopBtn.Font = Enum.Font.GothamMedium
         stopBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
         stopBtn.BorderSizePixel = 0
@@ -725,11 +713,48 @@ function createGUI()
     tab1.MouseButton1Click()
 
     -- ============================================
+    -- 🔄 زر التصغير (يتحول لدائرة)
+    -- ============================================
+    MinBtn.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+        if isMinimized then
+            MainFrame.Size = UDim2.new(0, 40, 0, 32)
+            MainFrame.Position = UDim2.new(0, 10, 0.5, -16)
+            MinBtn.Size = UDim2.new(0, 30, 0, 30)
+            MinBtn.Position = UDim2.new(0, 5, 0, 1)
+            MinBtn.Text = "⚡"
+            MinBtn.TextSize = 16
+            for _, child in pairs(MainFrame:GetChildren()) do
+                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
+                    child.Visible = false
+                end
+            end
+            CloseBtn.Visible = false
+        else
+            MainFrame.Size = UDim2.new(0, 260, 0, 230)
+            MainFrame.Position = UDim2.new(0.5, -130, 0.5, -115)
+            MinBtn.Size = UDim2.new(0, 22, 0, 22)
+            MinBtn.Position = UDim2.new(1, -50, 0.5, -11)
+            MinBtn.Text = "−"
+            MinBtn.TextSize = 16
+            for _, child in pairs(MainFrame:GetChildren()) do
+                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
+                    child.Visible = true
+                end
+            end
+            CloseBtn.Visible = true
+        end
+    end)
+
+    -- ============================================
     -- ⌨️ اختصارات
     -- ============================================
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.F1 then
+            if isMinimized then
+                MinBtn.MouseButton1Click()
+            end
             MainFrame.Visible = not MainFrame.Visible
         end
     end)
