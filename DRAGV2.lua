@@ -21,10 +21,10 @@ ScreenGui.Parent = Player.PlayerGui
 -- النافذة الرئيسية (مستطيل صغير)
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 520, 0, 170)
-MainFrame.Position = UDim2.new(0.5, -260, 0.5, -85)
+MainFrame.Size = UDim2.new(0, 480, 0, 155)
+MainFrame.Position = UDim2.new(0.5, -240, 0.5, -77)
 MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-MainFrame.BackgroundTransparency = 0.2
+MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
 MainFrame.Active = true
@@ -52,7 +52,7 @@ Stroke.Transparency = 0.3
 -- ============================================
 local TitleBar = Instance.new("Frame")
 TitleBar.Parent = MainFrame
-TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.Size = UDim2.new(1, 0, 0, 35)
 TitleBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 TitleBar.BackgroundTransparency = 0.3
 TitleBar.BorderSizePixel = 0
@@ -113,9 +113,9 @@ local function toggleMinimize()
         Title.Visible = false
     else
         TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 520, 0, 170),
-            Position = UDim2.new(0.5, -260, 0.5, -85),
-            BackgroundTransparency = 0.2
+            Size = UDim2.new(0, 480, 0, 155),
+            Position = UDim2.new(0.5, -240, 0.5, -77),
+            BackgroundTransparency = 0.15
         }):Play()
         CloseBtn.Text = "✕"
         CloseBtn.Size = UDim2.new(0, 32, 0, 32)
@@ -135,7 +135,7 @@ CloseBtn.MouseButton1Click:Connect(toggleMinimize)
 local Line = Instance.new("Frame")
 Line.Parent = MainFrame
 Line.Size = UDim2.new(0.9, 0, 0, 1.5)
-Line.Position = UDim2.new(0.05, 0, 0, 42)
+Line.Position = UDim2.new(0.05, 0, 0, 38)
 Line.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
 Line.BackgroundTransparency = 0.5
 Line.BorderSizePixel = 0
@@ -145,8 +145,8 @@ Line.BorderSizePixel = 0
 -- ============================================
 local container = Instance.new("Frame")
 container.Parent = MainFrame
-container.Size = UDim2.new(1, -10, 0, 110)
-container.Position = UDim2.new(0, 5, 0, 48)
+container.Size = UDim2.new(1, -10, 0, 105)
+container.Position = UDim2.new(0, 5, 0, 43)
 container.BackgroundTransparency = 1
 
 -- ============================================
@@ -210,7 +210,7 @@ local function toggleFly()
 end
 
 -- ============================================
--- 🧱 نوكليب
+-- 🧱 اختراق الجدران
 -- ============================================
 local function toggleNoclip()
     states.noclip = not states.noclip
@@ -224,7 +224,7 @@ local function toggleNoclip()
                 end
             end
         end)
-        showNotification("🧱 نوكليب ON", Color3.fromRGB(150, 100, 255))
+        showNotification("🧱 اختراق الجدران ON", Color3.fromRGB(150, 100, 255))
     else
         if connections.noclip then
             connections.noclip:Disconnect()
@@ -238,7 +238,7 @@ local function toggleNoclip()
                 end
             end
         end
-        showNotification("⏹ نوكليب OFF", Color3.fromRGB(255, 200, 0))
+        showNotification("⏹ اختراق الجدران OFF", Color3.fromRGB(255, 200, 0))
     end
 end
 
@@ -333,7 +333,7 @@ local function showTeleportMenu()
         TeleportFrame = Instance.new("Frame")
         TeleportFrame.Parent = MainFrame
         TeleportFrame.Size = UDim2.new(0.9, 0, 0, 120)
-        TeleportFrame.Position = UDim2.new(0.05, 0, 0, 45)
+        TeleportFrame.Position = UDim2.new(0.05, 0, 0, 42)
         TeleportFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         TeleportFrame.BackgroundTransparency = 0.3
         TeleportFrame.BorderSizePixel = 0
@@ -436,7 +436,7 @@ local function showMapTeleport()
         MapFrame = Instance.new("Frame")
         MapFrame.Parent = MainFrame
         MapFrame.Size = UDim2.new(0.9, 0, 0, 120)
-        MapFrame.Position = UDim2.new(0.05, 0, 0, 45)
+        MapFrame.Position = UDim2.new(0.05, 0, 0, 42)
         MapFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         MapFrame.BackgroundTransparency = 0.3
         MapFrame.BorderSizePixel = 0
@@ -446,7 +446,6 @@ local function showMapTeleport()
         MCorner.CornerRadius = UDim.new(0, 12)
         MCorner.Parent = MapFrame
         
-        -- خريطة مبسطة
         local MapImage = Instance.new("ImageLabel")
         MapImage.Parent = MapFrame
         MapImage.Size = UDim2.new(1, -10, 1, -10)
@@ -459,7 +458,6 @@ local function showMapTeleport()
         MCorner2.CornerRadius = UDim.new(0, 8)
         MCorner2.Parent = MapImage
         
-        -- زر إغلاق
         local closeMap = Instance.new("TextButton")
         closeMap.Parent = MapFrame
         closeMap.Size = UDim2.new(0, 28, 0, 28)
@@ -480,7 +478,6 @@ local function showMapTeleport()
             MapFrame.Visible = false
         end)
         
-        -- الضغط على الخريطة
         MapImage.MouseButton1Click:Connect(function(x, y)
             local absSize = MapImage.AbsoluteSize
             local absPos = MapImage.AbsolutePosition
@@ -508,7 +505,7 @@ end
 -- ============================================
 local buttons = {
     {Text = "🚀 طيران", Callback = toggleFly, Color = Color3.fromRGB(0, 150, 255)},
-    {Text = "🧱 نوكليب", Callback = toggleNoclip, Color = Color3.fromRGB(150, 100, 255)},
+    {Text = "🧱 اختراق الجدران", Callback = toggleNoclip, Color = Color3.fromRGB(150, 100, 255)},
     {Text = "👻 اختفاء", Callback = toggleInvisible, Color = Color3.fromRGB(200, 100, 255)},
     {Text = "⚡ سرعة", Callback = toggleSpeed, Color = Color3.fromRGB(0, 255, 200)},
     {Text = "⬆️ +10", Callback = increaseSpeed, Color = Color3.fromRGB(50, 200, 100)},
@@ -563,31 +560,30 @@ for i, btnData in ipairs(buttons) do
     btn.Parent = container
     local row = math.floor((i-1) / 3)
     local col = (i-1) % 3
-    btn.Size = UDim2.new(0.31, 0, 0, 32)
-    btn.Position = UDim2.new(0.01 + col * 0.33, 0, 0.03 + row * 37, 0)
+    btn.Size = UDim2.new(0.31, 0, 0, 30)
+    btn.Position = UDim2.new(0.01 + col * 0.33, 0, 0.02 + row * 35, 0)
     btn.Text = btnData.Text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.TextScaled = true
     btn.Font = Enum.Font.GothamBold
     btn.BackgroundColor3 = btnData.Color or Color3.fromRGB(40, 40, 70)
-    btn.BackgroundTransparency = 0.3
+    btn.BackgroundTransparency = 0.25
     btn.BorderSizePixel = 0
     
     local btnCorner = Instance.new("UICorner")
     btnCorner.CornerRadius = UDim.new(0, 8)
     btnCorner.Parent = btn
     
-    -- تأثير الإضاءة عند التمرير
     btn.MouseEnter:Connect(function()
         btn.BackgroundTransparency = 0
-        TweenService:Create(btn, TweenInfo.new(0.2), {
+        TweenService:Create(btn, TweenInfo.new(0.15), {
             BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         }):Play()
         btn.TextColor3 = Color3.fromRGB(0, 0, 0)
     end)
     btn.MouseLeave:Connect(function()
-        btn.BackgroundTransparency = 0.3
-        TweenService:Create(btn, TweenInfo.new(0.2), {
+        btn.BackgroundTransparency = 0.25
+        TweenService:Create(btn, TweenInfo.new(0.15), {
             BackgroundColor3 = btnData.Color or Color3.fromRGB(40, 40, 70)
         }):Play()
         btn.TextColor3 = Color3.fromRGB(255, 255, 255)
