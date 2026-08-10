@@ -1,45 +1,63 @@
 -- ============================================
--- 👹 ANKLE BREAKER v5 - NO SPAM 👹
--- أوامر فورية بدون سبام (تجنب الطرد)
+-- ⚽ BALL CONTROL SCRIPT ⚽
+-- يوجه الكرة نحو المرمى عبر Remote Event
 -- ============================================
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 -- ============================================
--- 🔍 جمع Remote Events
+-- 🎯 إعدادات الكود
 -- ============================================
-local allRemotes = {}
-for _, container in pairs({ReplicatedStorage, game:GetService("ReplicatedStorage")}) do
-    for _, child in pairs(container:GetChildren()) do
+local Settings = {
+    ShootPower = 80,
+    AimMode = "Goal",
+    Team = "Blue"
+}
+
+-- ============================================
+-- 🔍 العثور على Remote Event الخاص بالتسديد
+-- ============================================
+local ShootRemote = nil
+
+local possibleRemoteNames = {
+    "Shoot", "Kick", "Shot", "Goal", "ShootGoal",
+    "BallShoot", "KickBall", "RemoteEvent"
+}
+
+local function findShootRemote()
+    for _, child in pairs(ReplicatedStorage:GetChildren()) do
         if child:IsA("RemoteEvent") then
-            table.insert(allRemotes, child)
+            for _, name in ipairs(possibleRemoteNames) do
+                if child.Name:find(name) then
+                    return child
+                end
+            end
         end
     end
+    return nil
 end
 
-print("🔍 تم العثور على " .. #allRemotes .. " Remote Events")
-for i, remote in ipairs(allRemotes) do
-    print(i .. ". " .. remote.Name)
-end
+ShootRemote = findShootRemote()
 
 -- ============================================
--- 🎨 الواجهة الزجاجية
+-- 🎨 إنشاء الواجهة
 -- ============================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "AnkleGUI"
+ScreenGui.Name = "BallControlGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = Player.PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 220, 0, 320)
-MainFrame.Position = UDim2.new(0.5, -110, 0.5, -160)
-MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-MainFrame.BackgroundTransparency = 0.15
+MainFrame.Size = UDim2.new(0, 200, 0, 280)
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -140)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
+MainFrame.BackgroundTransparency = 0.2
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
 MainFrame.Active = true
@@ -51,13 +69,10 @@ Corner.Parent = MainFrame
 
 local Stroke = Instance.new("UIStroke")
 Stroke.Parent = MainFrame
-Stroke.Color = Color3.fromRGB(255, 50, 50)
+Stroke.Color = Color3.fromRGB(255, 200, 0)
 Stroke.Thickness = 1.5
 Stroke.Transparency = 0.5
 
--- ============================================
--- 📌 شريط العنوان
--- ============================================
 local TitleBar = Instance.new("Frame")
 TitleBar.Parent = MainFrame
 TitleBar.Size = UDim2.new(1, 0, 0, 32)
@@ -68,7 +83,7 @@ Title.Parent = TitleBar
 Title.Size = UDim2.new(1, -45, 1, 0)
 Title.Position = UDim2.new(0, 8, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "👹 ANKLE BREAKER"
+Title.Text = "⚽ BALL CONTROL"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
@@ -95,8 +110,8 @@ CloseBtn.MouseButton1Click:Connect(function()
     isVisible = not isVisible
     if isVisible then
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 220, 0, 320),
-            BackgroundTransparency = 0.15
+            Size = UDim2.new(0, 200, 0, 280),
+            BackgroundTransparency = 0.2
         }):Play()
         CloseBtn.Text = "✕"
         for _, child in pairs(MainFrame:GetChildren()) do
@@ -105,7 +120,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     else
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, 45, 0, 45),
-            BackgroundTransparency = 0.3
+            BackgroundTransparency = 0.4
         }):Play()
         CloseBtn.Text = "⊕"
         for _, child in pairs(MainFrame:GetChildren()) do
@@ -118,13 +133,10 @@ local Line = Instance.new("Frame")
 Line.Parent = MainFrame
 Line.Size = UDim2.new(0.85, 0, 0, 1.5)
 Line.Position = UDim2.new(0.075, 0, 0, 35)
-Line.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Line.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
 Line.BackgroundTransparency = 0.5
 Line.BorderSizePixel = 0
 
--- ============================================
--- 📜 إطار التمرير
--- ============================================
 local ScrollFrame = Instance.new("ScrollingFrame")
 ScrollFrame.Parent = MainFrame
 ScrollFrame.Size = UDim2.new(1, -10, 1, -45)
@@ -133,17 +145,17 @@ ScrollFrame.BackgroundTransparency = 1
 ScrollFrame.BorderSizePixel = 0
 ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 ScrollFrame.ScrollBarThickness = 3
-ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 50, 50)
+ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 200, 0)
 
 -- ============================================
--- 💀 دالة الإشعارات
+-- 💀 دوال الإشعار
 -- ============================================
 function showNotification(text, color)
     local notif = Instance.new("TextLabel")
     notif.Parent = ScreenGui
     notif.Size = UDim2.new(0, 280, 0, 35)
     notif.Position = UDim2.new(0.5, -140, 0.05, 0)
-    notif.BackgroundColor3 = color or Color3.fromRGB(255, 50, 50)
+    notif.BackgroundColor3 = color or Color3.fromRGB(255, 200, 0)
     notif.BackgroundTransparency = 0.2
     notif.Text = text
     notif.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -159,60 +171,51 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 🔥 أمر الأنكل بريكر (مرة واحدة)
+-- 🎯 وظيفة التسديد
 -- ============================================
-
-local function sendAnkleBreaker()
-    if #allRemotes == 0 then
-        showNotification("❌ لا يوجد Remote Events!", Color3.fromRGB(255, 0, 0))
+local function performShoot()
+    if not ShootRemote then
+        showNotification("❌ لم يتم العثور على Remote!", Color3.fromRGB(255, 0, 0))
         return
     end
     
-    -- اختيار Remote عشوائي
-    local remote = allRemotes[math.random(1, #allRemotes)]
+    local char = Player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then
+        showNotification("❌ لم يتم العثور على شخصيتك!", Color3.fromRGB(255, 0, 0))
+        return
+    end
     
-    -- اختيار لاعب عشوائي
-    local players = {}
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= Player then
-            table.insert(players, plr)
+    local targetPosition
+    if Settings.AimMode == "Goal" then
+        local goalPart
+        if Settings.Team == "Blue" then
+            goalPart = workspace:FindFirstChild("RedGoal") or workspace:FindFirstChild("GoalRed")
+        else
+            goalPart = workspace:FindFirstChild("BlueGoal") or workspace:FindFirstChild("GoalBlue")
         end
+        
+        if goalPart then
+            targetPosition = goalPart.Position
+        else
+            targetPosition = root.Position + (root.CFrame.LookVector * 80) + Vector3.new(0, 5, 0)
+        end
+    else
+        local mouse = Player:GetMouse()
+        targetPosition = mouse.Hit.Position
     end
     
-    if #players == 0 then
-        showNotification("❌ لا يوجد لاعبين آخرين!", Color3.fromRGB(255, 0, 0))
-        return
-    end
-    
-    local target = players[math.random(1, #players)]
-    
-    -- محاولة إرسال الأمر بطرق مختلفة
-    local success = false
-    
-    -- الطريقة الأولى
-    pcall(function()
-        remote:FireServer(target)
-        success = true
+    local success = pcall(function()
+        ShootRemote:FireServer(targetPosition, Settings.ShootPower)
     end)
     
-    if not success then
-        pcall(function()
-            remote:FireServer("Use", target)
-            success = true
-        end)
-    end
-    
-    if not success then
-        pcall(function()
-            remote:FireServer(target, "Use")
-            success = true
-        end)
-    end
-    
     if success then
-        showNotification("✅ تم إرسال الأنكل بريكر للاعب: " .. target.Name, Color3.fromRGB(0, 200, 100))
+        showNotification("✅ تم تسديد الكرة!", Color3.fromRGB(0, 200, 100))
     else
-        showNotification("❌ فشل الإرسال!", Color3.fromRGB(255, 0, 0))
+        pcall(function()
+            ShootRemote:FireServer((targetPosition - root.Position).Unit * Settings.ShootPower)
+        end)
+        showNotification("⚽ محاولة تسديد بديلة...", Color3.fromRGB(255, 200, 0))
     end
 end
 
@@ -220,20 +223,29 @@ end
 -- 📋 قائمة الأوامر
 -- ============================================
 local Commands = {
-    {Text = "👹 أنكل بريكر (مرة واحدة)", Callback = sendAnkleBreaker},
-    {Text = "📡 عرض الـ Remotes", Callback = function()
-        print("📡 قائمة Remote Events:")
-        for i, remote in ipairs(allRemotes) do
-            print(i .. ". " .. remote.Name)
+    {Text = "⚽ تسديد نحو المرمى", Callback = performShoot},
+    {Text = "🔄 تبديل وضع التسديد", Callback = function()
+        if Settings.AimMode == "Goal" then
+            Settings.AimMode = "Mouse"
+            showNotification("🔄 وضع التسديد: اتجاه الماوس", Color3.fromRGB(0, 200, 255))
+        else
+            Settings.AimMode = "Goal"
+            showNotification("🔄 وضع التسديد: المرمى", Color3.fromRGB(0, 200, 255))
         end
-        showNotification("✅ تم عرض " .. #allRemotes .. " Remote في Console!", Color3.fromRGB(0, 200, 100))
+    end},
+    {Text = "📡 عرض الـ Remote", Callback = function()
+        if ShootRemote then
+            showNotification("✅ الـ Remote: " .. ShootRemote.Name, Color3.fromRGB(0, 200, 100))
+        else
+            showNotification("❌ لم يتم العثور على Remote!", Color3.fromRGB(255, 0, 0))
+        end
     end},
 }
 
 -- ============================================
 -- 🎨 إنشاء الأزرار
 -- ============================================
-local buttonHeight = 45
+local buttonHeight = 40
 local spacing = 6
 local canvasHeight = #Commands * (buttonHeight + spacing) + 10
 
@@ -248,7 +260,7 @@ for i, cmdData in ipairs(Commands) do
     Button.TextColor3 = Color3.fromRGB(255, 255, 255)
     Button.TextScaled = true
     Button.Font = Enum.Font.GothamBold
-    Button.BackgroundColor3 = Color3.fromRGB(60, 30, 60)
+    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
     Button.BackgroundTransparency = 0.3
     Button.BorderSizePixel = 0
     
@@ -276,8 +288,8 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         isVisible = not isVisible
         if isVisible then
             TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 220, 0, 320),
-                BackgroundTransparency = 0.15
+                Size = UDim2.new(0, 200, 0, 280),
+                BackgroundTransparency = 0.2
             }):Play()
             CloseBtn.Text = "✕"
             for _, child in pairs(MainFrame:GetChildren()) do
@@ -286,7 +298,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         else
             TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 45, 0, 45),
-                BackgroundTransparency = 0.3
+                BackgroundTransparency = 0.4
             }):Play()
             CloseBtn.Text = "⊕"
             for _, child in pairs(MainFrame:GetChildren()) do
@@ -299,7 +311,11 @@ end)
 -- ============================================
 -- 💬 رسالة ترحيب
 -- ============================================
-print("👹 Ankle Breaker v5 (No Spam) Loaded!")
+if ShootRemote then
+    print("⚽ Ball Control Script Loaded! Remote: " .. ShootRemote.Name)
+    showNotification("✅ تم العثور على Remote: " .. ShootRemote.Name, Color3.fromRGB(0, 200, 100))
+else
+    print("⚽ Ball Control Script Loaded! No Remote found.")
+    showNotification("⚠️ لم يتم العثور على Remote", Color3.fromRGB(255, 200, 0))
+end
 print("📌 Press F1 to toggle GUI")
-print("📡 تم العثور على " .. #allRemotes .. " Remote Events")
-showNotification("✅ جاهز! اضغط 'أنكل بريكر' للإرسال", Color3.fromRGB(0, 200, 100))
