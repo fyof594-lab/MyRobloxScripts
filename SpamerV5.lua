@@ -1,38 +1,13 @@
 -- ============================================
--- 👹 ANKLE BREAKER v4 - ENCRYPTED 👹
--- مع تشويش عشان يخفي السبام
+-- 👹 ANKLE BREAKER v5 - NO SPAM 👹
+-- أوامر فورية بدون سبام (تجنب الطرد)
 -- ============================================
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local HttpService = game:GetService("HttpService")
-
--- ============================================
--- 🔐 تشفير البيانات (تمويه)
--- ============================================
-local function encrypt(data)
-    local encoded = ""
-    for i = 1, #data do
-        local char = string.byte(data, i)
-        char = char + 3
-        encoded = encoded .. string.char(char)
-    end
-    return encoded
-end
-
-local function decrypt(data)
-    local decoded = ""
-    for i = 1, #data do
-        local char = string.byte(data, i)
-        char = char - 3
-        decoded = decoded .. string.char(char)
-    end
-    return decoded
-end
 
 -- ============================================
 -- 🔍 جمع Remote Events
@@ -184,79 +159,60 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 🔥 سبام الأنكل بريكر (مشفر ومخفي)
+-- 🔥 أمر الأنكل بريكر (مرة واحدة)
 -- ============================================
 
-local isSpamming = false
-local spamConnection = nil
-local randomDelay = 0
-
--- دالة لإرسال Remote بشكل عشوائي ومخفي
-local function sendHiddenRemote(remote, target)
-    -- تمويه: نرسل أوامر فارغة عشان نشوش
-    for i = 1, math.random(1, 3) do
+local function sendAnkleBreaker()
+    if #allRemotes == 0 then
+        showNotification("❌ لا يوجد Remote Events!", Color3.fromRGB(255, 0, 0))
+        return
+    end
+    
+    -- اختيار Remote عشوائي
+    local remote = allRemotes[math.random(1, #allRemotes)]
+    
+    -- اختيار لاعب عشوائي
+    local players = {}
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= Player then
+            table.insert(players, plr)
+        end
+    end
+    
+    if #players == 0 then
+        showNotification("❌ لا يوجد لاعبين آخرين!", Color3.fromRGB(255, 0, 0))
+        return
+    end
+    
+    local target = players[math.random(1, #players)]
+    
+    -- محاولة إرسال الأمر بطرق مختلفة
+    local success = false
+    
+    -- الطريقة الأولى
+    pcall(function()
+        remote:FireServer(target)
+        success = true
+    end)
+    
+    if not success then
         pcall(function()
-            local fakeRemote = allRemotes[math.random(1, #allRemotes)]
-            if fakeRemote and fakeRemote ~= remote then
-                fakeRemote:FireServer()
-            end
+            remote:FireServer("Use", target)
+            success = true
         end)
     end
     
-    -- إرسال الأمر الحقيقي ولكن بتأخير عشوائي
-    task.wait(math.random(1, 5) / 100)
-    pcall(function()
-        remote:FireServer(target)
-    end)
-end
-
-local function spamAnkleBreaker()
-    isSpamming = not isSpamming
-    
-    if isSpamming then
-        if #allRemotes == 0 then
-            showNotification("❌ لا يوجد Remote Events!", Color3.fromRGB(255, 0, 0))
-            isSpamming = false
-            return
-        end
-        
-        showNotification("👹 جاري السبام المشفر...", Color3.fromRGB(255, 50, 50))
-        randomDelay = 0.5 + math.random() * 0.3
-        
-        spamConnection = RunService.Heartbeat:Connect(function()
-            -- تأخير عشوائي بين الإرسال
-            if math.random() < 0.3 then
-                local remote = allRemotes[math.random(1, #allRemotes)]
-                
-                -- اختيار لاعب عشوائي
-                local players = {}
-                for _, plr in pairs(Players:GetPlayers()) do
-                    if plr ~= Player then
-                        table.insert(players, plr)
-                    end
-                end
-                
-                if #players > 0 then
-                    local target = players[math.random(1, #players)]
-                    sendHiddenRemote(remote, target)
-                    
-                    -- إرسال لعدد من اللاعبين بشكل عشوائي
-                    if math.random() < 0.2 then
-                        local secondTarget = players[math.random(1, #players)]
-                        if secondTarget ~= target then
-                            task.wait(math.random(1, 3) / 100)
-                            sendHiddenRemote(remote, secondTarget)
-                        end
-                    end
-                end
-            end
+    if not success then
+        pcall(function()
+            remote:FireServer(target, "Use")
+            success = true
         end)
+    end
+    
+    if success then
+        showNotification("✅ تم إرسال الأنكل بريكر للاعب: " .. target.Name, Color3.fromRGB(0, 200, 100))
     else
-        if spamConnection then
-            spamConnection:Disconnect()
-            spamConnection = nil
-        end
-        showNotification("⏹ تم إيقاف السبام!", Color3.fromRGB(255, 200, 0))
+        showNotification("❌ فشل الإرسال!", Color3.fromRGB(255, 0, 0))
     end
 end
 
@@ -264,7 +220,7 @@ end
 -- 📋 قائمة الأوامر
 -- ============================================
 local Commands = {
-    {Text = "👹 سبام مشفر", Callback = spamAnkleBreaker},
+    {Text = "👹 أنكل بريكر (مرة واحدة)", Callback = sendAnkleBreaker},
     {Text = "📡 عرض الـ Remotes", Callback = function()
         print("📡 قائمة Remote Events:")
         for i, remote in ipairs(allRemotes) do
@@ -343,7 +299,7 @@ end)
 -- ============================================
 -- 💬 رسالة ترحيب
 -- ============================================
-print("👹 Ankle Breaker v4 (Encrypted) Loaded!")
+print("👹 Ankle Breaker v5 (No Spam) Loaded!")
 print("📌 Press F1 to toggle GUI")
 print("📡 تم العثور على " .. #allRemotes .. " Remote Events")
-showNotification("✅ جاهز! سبام مشفر وآمن", Color3.fromRGB(0, 200, 100))
+showNotification("✅ جاهز! اضغط 'أنكل بريكر' للإرسال", Color3.fromRGB(0, 200, 100))
