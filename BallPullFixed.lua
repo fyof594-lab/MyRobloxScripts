@@ -1,6 +1,6 @@
 -- ============================================
--- ⚽ BALL CONTROL V6 ⚽
--- جلب الكرة + تصغير القائمة لدائرة (نسخة محسنة)
+-- ⚽ BALL PULL FIXED ⚽
+-- يجلب الكرة إليك مع تحديث مستمر للكرة
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -8,12 +8,15 @@ local Player = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
 
 -- ============================================
--- 🔍 دالة البحث عن الكرة (تُستدعى في كل مرة)
+-- 🔍 إيجاد الكرة (أحدث طريقة)
 -- ============================================
+local Ball = nil
+
 local function findBall()
-    -- قائمة بأسماء الكرة المحتملة
+    -- البحث عن الكرة بأسماء متعددة
     local ballNames = {"Ball", "ball", "Football", "SoccerBall", "BALL"}
     for _, name in ipairs(ballNames) do
         local found = Workspace:FindFirstChild(name)
@@ -21,24 +24,43 @@ local function findBall()
             return found
         end
     end
-    -- بحث أعمق عن أي قطعة تحمل اسم "ball"
+    
+    -- البحث العميق عن أي قطعة فيها "ball"
     for _, child in pairs(Workspace:GetChildren()) do
         if child:IsA("BasePart") and child.Name:lower():find("ball") then
             return child
         end
     end
+    
+    -- البحث في الـ Workspace كامل
+    local allParts = Workspace:GetDescendants()
+    for _, part in pairs(allParts) do
+        if part:IsA("BasePart") and part.Name:lower():find("ball") then
+            return part
+        end
+    end
+    
     return nil
 end
 
+-- تحديث الكرة كل 0.5 ثانية عشان نضمن وجودها
+task.spawn(function()
+    while task.wait(0.5) do
+        Ball = findBall()
+    end
+end)
+
+-- أول تحديث
+Ball = findBall()
+
 -- ============================================
--- 🎨 الواجهة الزجاجية مع زر X دائري
+-- 🎨 الواجهة
 -- ============================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BallTeleportGUI"
+ScreenGui.Name = "BallPullGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = Player.PlayerGui
 
--- النافذة الرئيسية
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
 MainFrame.Size = UDim2.new(0, 180, 0, 100)
@@ -60,19 +82,17 @@ Stroke.Color = Color3.fromRGB(255, 200, 0)
 Stroke.Thickness = 1.5
 Stroke.Transparency = 0.5
 
--- العنوان
 local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
 Title.Size = UDim2.new(1, -40, 0, 30)
 Title.Position = UDim2.new(0, 5, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "⚽ BALL"
+Title.Text = "⚽ PULL BALL"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- زر X دائري
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = MainFrame
 CloseBtn.Size = UDim2.new(0, 28, 0, 28)
@@ -89,15 +109,11 @@ local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(1, 0)
 CloseCorner.Parent = CloseBtn
 
--- متغير الحالة
 local isMinimized = false
 
--- وظيفة تبديل القائمة (تصغير/تكبير)
 local function toggleMinimize()
     isMinimized = not isMinimized
-    
     if isMinimized then
-        -- تصغير إلى دائرة
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, 45, 0, 45),
             Position = UDim2.new(0, 10, 0.5, -22.5),
@@ -107,9 +123,8 @@ local function toggleMinimize()
         CloseBtn.Size = UDim2.new(0, 35, 0, 35)
         CloseBtn.Position = UDim2.new(0, 5, 0, 5)
         Title.Visible = false
-        TeleportBtn.Visible = false
+        PullBtn.Visible = false
     else
-        -- تكبير للشكل الطبيعي
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, 180, 0, 100),
             Position = UDim2.new(0.5, -90, 0.5, -50),
@@ -119,28 +134,27 @@ local function toggleMinimize()
         CloseBtn.Size = UDim2.new(0, 28, 0, 28)
         CloseBtn.Position = UDim2.new(1, -34, 0, 3)
         Title.Visible = true
-        TeleportBtn.Visible = true
+        PullBtn.Visible = true
     end
 end
 
 CloseBtn.MouseButton1Click:Connect(toggleMinimize)
 
--- زر جلب الكرة
-local TeleportBtn = Instance.new("TextButton")
-TeleportBtn.Parent = MainFrame
-TeleportBtn.Size = UDim2.new(0.8, 0, 0, 40)
-TeleportBtn.Position = UDim2.new(0.1, 0, 0, 45)
-TeleportBtn.Text = "🔄 جلب الكرة"
-TeleportBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-TeleportBtn.TextScaled = true
-TeleportBtn.Font = Enum.Font.GothamBold
-TeleportBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-TeleportBtn.BackgroundTransparency = 0.3
-TeleportBtn.BorderSizePixel = 0
+local PullBtn = Instance.new("TextButton")
+PullBtn.Parent = MainFrame
+PullBtn.Size = UDim2.new(0.8, 0, 0, 40)
+PullBtn.Position = UDim2.new(0.1, 0, 0, 45)
+PullBtn.Text = "🔄 جلب الكرة"
+PullBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+PullBtn.TextScaled = true
+PullBtn.Font = Enum.Font.GothamBold
+PullBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+PullBtn.BackgroundTransparency = 0.3
+PullBtn.BorderSizePixel = 0
 
 local BtnCorner = Instance.new("UICorner")
 BtnCorner.CornerRadius = UDim.new(0, 8)
-BtnCorner.Parent = TeleportBtn
+BtnCorner.Parent = PullBtn
 
 -- ============================================
 -- 💀 دالة الإشعار
@@ -166,48 +180,79 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 🔥 وظيفة جلب الكرة (مضبوطة بالكامل)
+-- 🔥 وظيفة جلب الكرة (مع إزالة القيود)
 -- ============================================
-local function teleportBall()
-    -- 🔍 البحث عن الكرة من جديد في كل مرة
-    local Ball = findBall()
+local function pullBall()
+    -- تحديث الكرة
+    Ball = findBall()
     
     if not Ball then
-        showNotification("❌ لم يتم العثور على الكرة!", Color3.fromRGB(255, 0, 0))
+        showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
         return
     end
     
     local char = Player.Character
     if not char then
-        showNotification("❌ لم يتم العثور على شخصيتك!", Color3.fromRGB(255, 0, 0))
+        showNotification("❌ شخصيتك غير موجودة!", Color3.fromRGB(255, 0, 0))
         return
     end
     
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then
-        showNotification("❌ لم يتم العثور على Root!", Color3.fromRGB(255, 0, 0))
+        showNotification("❌ Root غير موجود!", Color3.fromRGB(255, 0, 0))
         return
     end
     
-    -- نقل الكرة إلى اللاعب
+    -- موقع الكرة الجديد
     local targetPos = root.Position + Vector3.new(0, 3, 0)
     
-    -- تأثير انتقال سلس
+    -- 🛠️ إزالة القيود (Weld, Attachment, Constraints)
     pcall(function()
-        TweenService:Create(Ball, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Position = targetPos
-        }):Play()
+        for _, child in pairs(Ball:GetChildren()) do
+            if child:IsA("Weld") or child:IsA("Attachment") or child:IsA("Constraint") then
+                child:Destroy()
+            end
+        end
     end)
     
-    -- تغيير مكان الكرة فوراً
-    Ball.Position = targetPos
-    Ball.Anchored = false
-    Ball.CanCollide = true
+    -- تحرير الكرة من القيود
+    pcall(function()
+        Ball.Anchored = false
+        Ball.CanCollide = true
+        Ball.Parent = Workspace
+    end)
     
-    showNotification("✅ تم جلب الكرة إليك!", Color3.fromRGB(0, 200, 100))
+    -- 🎯 الطرق المتعددة لجلب الكرة
+    local success = false
+    
+    -- الطريقة 1: Tween
+    pcall(function()
+        TweenService:Create(Ball, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Position = targetPos
+        }):Play()
+        success = true
+    end)
+    
+    -- الطريقة 2: تغيير الموقع مباشرة
+    pcall(function()
+        Ball.Position = targetPos
+        success = true
+    end)
+    
+    -- الطريقة 3: تغيير CFrame
+    pcall(function()
+        Ball.CFrame = CFrame.new(targetPos)
+        success = true
+    end)
+    
+    if success then
+        showNotification("✅ تم جلب الكرة!", Color3.fromRGB(0, 200, 100))
+    else
+        showNotification("❌ فشل جلب الكرة!", Color3.fromRGB(255, 0, 0))
+    end
 end
 
-TeleportBtn.MouseButton1Click:Connect(teleportBall)
+PullBtn.MouseButton1Click:Connect(pullBall)
 
 -- ============================================
 -- ⌨️ اختصارات
@@ -219,22 +264,21 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         toggleMinimize()
     end
     
-    -- زر G عشان جلب الكرة
     if input.KeyCode == Enum.KeyCode.G then
-        teleportBall()
+        pullBall()
     end
 end)
 
 -- ============================================
 -- 💬 رسالة ترحيب
 -- ============================================
-local initialBall = findBall()
-if initialBall then
-    print("⚽ Ball Control V6 Loaded! Ball found: " .. initialBall.Name)
-    showNotification("✅ جاهز! اضغط G أو زر جلب", Color3.fromRGB(0, 200, 100))
+Ball = findBall()
+if Ball then
+    print("⚽ Ball Pull Fixed Loaded! Ball found: " .. Ball.Name)
+    showNotification("✅ جاهز! اضغط G لجلب الكرة", Color3.fromRGB(0, 200, 100))
 else
-    print("⚽ Ball Control V6 Loaded! Ball not found.")
-    showNotification("⚠️ لم يتم العثور على الكرة!", Color3.fromRGB(255, 200, 0))
+    print("⚽ Ball Pull Fixed Loaded! Ball not found.")
+    showNotification("⚠️ الكرة غير موجودة!", Color3.fromRGB(255, 200, 0))
 end
-print("📌 Press G to teleport ball")
+print("📌 Press G to pull ball")
 print("📌 Press F1 to toggle GUI")
