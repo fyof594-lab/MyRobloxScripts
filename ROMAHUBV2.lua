@@ -22,7 +22,6 @@ local connections = {}
 local speedAmount = 120
 local flySpeed = 80
 local isMinimized = false
-local isGUIVisible = true
 
 -- ============================================
 -- 🛠️ دوال الوظائف
@@ -186,10 +185,10 @@ local function stopAll()
 end
 
 -- ============================================
--- 🌐 التيليبورت (قائمة منبثقة مع زر جلب)
+-- 🌐 التيليبورت (قائمة منبثقة)
 -- ============================================
 local TeleportFrame = nil
-local TeleportPlayersList = nil
+local PlayersList = nil
 
 local function showTeleportMenu()
     if TeleportFrame and TeleportFrame.Visible then
@@ -239,41 +238,38 @@ local function showTeleportMenu()
             TeleportFrame.Visible = false
         end)
         
-        TeleportPlayersList = Instance.new("ScrollingFrame")
-        TeleportPlayersList.Parent = TeleportFrame
-        TeleportPlayersList.Size = UDim2.new(1, -10, 1, -40)
-        TeleportPlayersList.Position = UDim2.new(0, 5, 0, 35)
-        TeleportPlayersList.BackgroundTransparency = 1
-        TeleportPlayersList.BorderSizePixel = 0
-        TeleportPlayersList.CanvasSize = UDim2.new(0, 0, 0, 0)
-        TeleportPlayersList.ScrollBarThickness = 3
+        PlayersList = Instance.new("ScrollingFrame")
+        PlayersList.Parent = TeleportFrame
+        PlayersList.Size = UDim2.new(1, -10, 1, -40)
+        PlayersList.Position = UDim2.new(0, 5, 0, 35)
+        PlayersList.BackgroundTransparency = 1
+        PlayersList.BorderSizePixel = 0
+        PlayersList.CanvasSize = UDim2.new(0, 0, 0, 0)
+        PlayersList.ScrollBarThickness = 3
     end
     
-    -- تحديث قائمة اللاعبين
-    for _, child in pairs(TeleportPlayersList:GetChildren()) do
+    -- تحديث القائمة
+    for _, child in pairs(PlayersList:GetChildren()) do
         child:Destroy()
     end
     
     local yOff = 0
     for _, plr in pairs(Players:GetPlayers()) do
         if plr ~= Player then
-            -- زر للاعب مع خيارين: تيليبورت إليه أو جلب اللاعب إليك
             local btn = Instance.new("TextButton")
-            btn.Parent = TeleportPlayersList
-            btn.Size = UDim2.new(1, 0, 0, 40)
+            btn.Parent = PlayersList
+            btn.Size = UDim2.new(1, 0, 0, 35)
             btn.Position = UDim2.new(0, 0, 0, yOff)
             btn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
             btn.BorderSizePixel = 0
-            btn.ClipsDescendants = true
             
             local btnCorner = Instance.new("UICorner")
             btnCorner.CornerRadius = UDim.new(0, 6)
             btnCorner.Parent = btn
             
-            -- اسم اللاعب
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Parent = btn
-            nameLabel.Size = UDim2.new(0.6, 0, 1, 0)
+            nameLabel.Size = UDim2.new(0.5, 0, 1, 0)
             nameLabel.Position = UDim2.new(0, 8, 0, 0)
             nameLabel.BackgroundTransparency = 1
             nameLabel.Text = "🌐 " .. plr.Name
@@ -282,11 +278,10 @@ local function showTeleportMenu()
             nameLabel.Font = Enum.Font.GothamMedium
             nameLabel.TextXAlignment = Enum.TextXAlignment.Left
             
-            -- زر التليفورت إليه
             local tpBtn = Instance.new("TextButton")
             tpBtn.Parent = btn
-            tpBtn.Size = UDim2.new(0, 50, 0, 28)
-            tpBtn.Position = UDim2.new(0.6, 0, 0.5, -14)
+            tpBtn.Size = UDim2.new(0, 50, 0, 25)
+            tpBtn.Position = UDim2.new(0.5, 0, 0.5, -12.5)
             tpBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
             tpBtn.BackgroundTransparency = 0.3
             tpBtn.Text = "انتقال"
@@ -320,11 +315,10 @@ local function showTeleportMenu()
                 end
             end)
             
-            -- زر جلب اللاعب إليك
             local pullBtn = Instance.new("TextButton")
             pullBtn.Parent = btn
-            pullBtn.Size = UDim2.new(0, 40, 0, 28)
-            pullBtn.Position = UDim2.new(0.85, 0, 0.5, -14)
+            pullBtn.Size = UDim2.new(0, 40, 0, 25)
+            pullBtn.Position = UDim2.new(0.75, 0, 0.5, -12.5)
             pullBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
             pullBtn.BackgroundTransparency = 0.3
             pullBtn.Text = "جلب"
@@ -350,7 +344,7 @@ local function showTeleportMenu()
                     local myRoot = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
                     if myRoot then
                         char.HumanoidRootPart.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
-                        showNotification("✅ تم جلب " .. plr.Name .. " إليك!", Color3.fromRGB(0, 200, 100))
+                        showNotification("✅ تم جلب " .. plr.Name, Color3.fromRGB(0, 200, 100))
                         TeleportFrame.Visible = false
                     end
                 else
@@ -358,10 +352,10 @@ local function showTeleportMenu()
                 end
             end)
             
-            yOff = yOff + 45
+            yOff = yOff + 40
         end
     end
-    TeleportPlayersList.CanvasSize = UDim2.new(0, 0, 0, yOff + 10)
+    PlayersList.CanvasSize = UDim2.new(0, 0, 0, yOff + 10)
     
     TeleportFrame.Visible = true
 end
@@ -430,7 +424,6 @@ end
 local ScreenGui = nil
 local MainFrame = nil
 local MinBtn = nil
-local CloseBtn = nil
 
 function createGUI()
     ScreenGui = Instance.new("ScreenGui")
@@ -493,7 +486,7 @@ function createGUI()
     MinCorner.Parent = MinBtn
 
     -- زر إغلاق (دائرة)
-    CloseBtn = Instance.new("TextButton")
+    local CloseBtn = Instance.new("TextButton")
     CloseBtn.Parent = TopBar
     CloseBtn.Size = UDim2.new(0, 22, 0, 22)
     CloseBtn.Position = UDim2.new(1, -26, 0.5, -11)
@@ -763,7 +756,9 @@ function createGUI()
     -- فتح التاب الأول
     tab1.MouseButton1Click()
 
-    -- زر التصغير (يتحول لدائرة)
+    -- ============================================
+    -- 🔄 زر التصغير (يتحول لدائرة)
+    -- ============================================
     MinBtn.MouseButton1Click:Connect(function()
         isMinimized = not isMinimized
         if isMinimized then
@@ -795,12 +790,13 @@ function createGUI()
         end
     end)
 
-    -- اختصارات
+    -- ============================================
+    -- ⌨️ اختصارات
+    -- ============================================
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.F1 then
             if isMinimized then
-                MinBtn.MouseButton1Click()
                 MainFrame.Visible = true
             else
                 MainFrame.Visible = not MainFrame.Visible
