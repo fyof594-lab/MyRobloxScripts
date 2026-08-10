@@ -1,6 +1,6 @@
 -- ============================================
--- ⚽ BALL CONTROL V5 ⚽
--- جلب الكرة + تصغير القائمة لدائرة
+-- ⚽ BALL CONTROL V6 ⚽
+-- جلب الكرة + تصغير القائمة لدائرة (نسخة محسنة)
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -8,14 +8,12 @@ local Player = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
 
 -- ============================================
--- 🔍 إيجاد الكرة (تحديث مستمر)
+-- 🔍 دالة البحث عن الكرة (تُستدعى في كل مرة)
 -- ============================================
-local Ball = nil
-
 local function findBall()
+    -- قائمة بأسماء الكرة المحتملة
     local ballNames = {"Ball", "ball", "Football", "SoccerBall", "BALL"}
     for _, name in ipairs(ballNames) do
         local found = Workspace:FindFirstChild(name)
@@ -23,6 +21,7 @@ local function findBall()
             return found
         end
     end
+    -- بحث أعمق عن أي قطعة تحمل اسم "ball"
     for _, child in pairs(Workspace:GetChildren()) do
         if child:IsA("BasePart") and child.Name:lower():find("ball") then
             return child
@@ -30,15 +29,6 @@ local function findBall()
     end
     return nil
 end
-
--- تحديث الكرة كل ثانية عشان تضل شغالة
-task.spawn(function()
-    while task.wait(1) do
-        Ball = findBall()
-    end
-end)
-
-Ball = findBall()
 
 -- ============================================
 -- 🎨 الواجهة الزجاجية مع زر X دائري
@@ -82,7 +72,7 @@ Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- زر X دائري (يضغط القائمة لدائرة)
+-- زر X دائري
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = MainFrame
 CloseBtn.Size = UDim2.new(0, 28, 0, 28)
@@ -176,11 +166,11 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 🔥 وظيفة جلب الكرة (مضبوطة)
+-- 🔥 وظيفة جلب الكرة (مضبوطة بالكامل)
 -- ============================================
 local function teleportBall()
-    -- البحث عن الكرة من جديد عشان نضمن أنها موجودة
-    Ball = findBall()
+    -- 🔍 البحث عن الكرة من جديد في كل مرة
+    local Ball = findBall()
     
     if not Ball then
         showNotification("❌ لم يتم العثور على الكرة!", Color3.fromRGB(255, 0, 0))
@@ -238,12 +228,12 @@ end)
 -- ============================================
 -- 💬 رسالة ترحيب
 -- ============================================
-Ball = findBall()
-if Ball then
-    print("⚽ Ball Control V5 Loaded! Ball found: " .. Ball.Name)
+local initialBall = findBall()
+if initialBall then
+    print("⚽ Ball Control V6 Loaded! Ball found: " .. initialBall.Name)
     showNotification("✅ جاهز! اضغط G أو زر جلب", Color3.fromRGB(0, 200, 100))
 else
-    print("⚽ Ball Control V5 Loaded! Ball not found.")
+    print("⚽ Ball Control V6 Loaded! Ball not found.")
     showNotification("⚠️ لم يتم العثور على الكرة!", Color3.fromRGB(255, 200, 0))
 end
 print("📌 Press G to teleport ball")
