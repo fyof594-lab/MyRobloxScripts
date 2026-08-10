@@ -301,12 +301,23 @@ local function showTeleportMenu()
                 tpBtn.BackgroundTransparency = 0.3
             end)
             
+            -- ✅ إصلاح: الانتقال إلى اللاعب
             tpBtn.MouseButton1Click:Connect(function()
-                local char = plr.Character
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-                    if root then
-                        root.CFrame = char.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+                local targetChar = plr.Character
+                if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
+                    local myChar = Player.Character
+                    if myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                        local myRoot = myChar.HumanoidRootPart
+                        -- تعطيل التصادم مؤقتاً لتجنب الدفع
+                        local noclipState = states.noclip
+                        if not noclipState then
+                            toggleNoclip(true)
+                        end
+                        myRoot.CFrame = targetChar.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+                        if not noclipState then
+                            task.wait(0.1)
+                            toggleNoclip(false)
+                        end
                         showNotification("✅ تم التليفورت إلى " .. plr.Name, Color3.fromRGB(0, 200, 100))
                         TeleportFrame.Visible = false
                     end
@@ -338,12 +349,23 @@ local function showTeleportMenu()
                 pullBtn.BackgroundTransparency = 0.3
             end)
             
+            -- ✅ إصلاح: جلب اللاعب
             pullBtn.MouseButton1Click:Connect(function()
-                local char = plr.Character
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    local myRoot = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-                    if myRoot then
-                        char.HumanoidRootPart.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
+                local targetChar = plr.Character
+                if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
+                    local myChar = Player.Character
+                    if myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                        local myRoot = myChar.HumanoidRootPart
+                        -- تعطيل التصادم مؤقتاً لتجنب الدفع
+                        local noclipState = states.noclip
+                        if not noclipState then
+                            toggleNoclip(true)
+                        end
+                        targetChar.HumanoidRootPart.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
+                        if not noclipState then
+                            task.wait(0.1)
+                            toggleNoclip(false)
+                        end
                         showNotification("✅ تم جلب " .. plr.Name, Color3.fromRGB(0, 200, 100))
                         TeleportFrame.Visible = false
                     end
@@ -485,7 +507,7 @@ function createGUI()
     MinCorner.CornerRadius = UDim.new(1, 0)
     MinCorner.Parent = MinBtn
 
-    -- زر إغلاق (دائرة)
+    -- ✅ إصلاح: زر الإغلاق أصبح يصغر القائمة بدلاً من إغلاقها
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Parent = TopBar
     CloseBtn.Size = UDim2.new(0, 22, 0, 22)
@@ -502,8 +524,37 @@ function createGUI()
     CloseCorner.CornerRadius = UDim.new(1, 0)
     CloseCorner.Parent = CloseBtn
 
+    -- ✅ إصلاح: زر الإغلاق الآن يصغر القائمة
     CloseBtn.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
+        -- نفس وظيفة زر التصغير
+        isMinimized = not isMinimized
+        if isMinimized then
+            MainFrame.Size = UDim2.new(0, 40, 0, 32)
+            MainFrame.Position = UDim2.new(0, 10, 0.5, -16)
+            MinBtn.Size = UDim2.new(0, 30, 0, 30)
+            MinBtn.Position = UDim2.new(0, 5, 0, 1)
+            MinBtn.Text = "⚡"
+            MinBtn.TextSize = 16
+            CloseBtn.Visible = false
+            for _, child in pairs(MainFrame:GetChildren()) do
+                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
+                    child.Visible = false
+                end
+            end
+        else
+            MainFrame.Size = UDim2.new(0, 260, 0, 230)
+            MainFrame.Position = UDim2.new(0.5, -130, 0.5, -115)
+            MinBtn.Size = UDim2.new(0, 22, 0, 22)
+            MinBtn.Position = UDim2.new(1, -50, 0.5, -11)
+            MinBtn.Text = "−"
+            MinBtn.TextSize = 16
+            CloseBtn.Visible = true
+            for _, child in pairs(MainFrame:GetChildren()) do
+                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
+                    child.Visible = true
+                end
+            end
+        end
     end)
 
     -- القائمة الجانبية
