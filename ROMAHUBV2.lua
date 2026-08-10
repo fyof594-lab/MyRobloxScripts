@@ -8,6 +8,8 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local TeleportService = game:GetService("TeleportService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- ============================================
 -- 🔥 المتغيرات والحالات
@@ -16,7 +18,8 @@ local states = {
     fly = false,
     noclip = false,
     invisible = false,
-    speed = false
+    speed = false,
+    autoPull = false
 }
 local connections = {}
 local speedAmount = 120
@@ -48,20 +51,16 @@ local function toggleFly(state)
                 local h = Player.Character:FindFirstChild("Humanoid")
                 if not root or not h then return end
                 
-                -- الحصول على اتجاه الكاميرا
                 local camera = workspace.CurrentCamera
                 local moveDirection = Vector3.new(0, 0, 0)
                 local upDirection = Vector3.new(0, 0, 0)
                 
-                -- الاتجاهات الأفقية (بناءً على الكاميرا)
                 local forward = camera.CFrame.LookVector
                 local right = camera.CFrame.RightVector
                 
-                -- إزالة المركبة العمودية للحصول على حركة أفقية بحتة
                 forward = Vector3.new(forward.X, 0, forward.Z).Unit
                 right = Vector3.new(right.X, 0, right.Z).Unit
                 
-                -- أزرار الحركة
                 if UserInputService:IsKeyDown(Enum.KeyCode.W) then
                     moveDirection = moveDirection + forward
                 end
@@ -75,14 +74,12 @@ local function toggleFly(state)
                     moveDirection = moveDirection + right
                 end
                 
-                -- الحركة العمودية (صعود/نزول)
                 if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
                     upDirection = Vector3.new(0, 10, 0)
                 elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
                     upDirection = Vector3.new(0, -10, 0)
                 end
                 
-                -- تطبيق السرعة
                 if moveDirection.Magnitude > 0 then
                     root.Velocity = moveDirection.Unit * flySpeed + upDirection
                 else
@@ -184,39 +181,46 @@ local function toggleSpeed(state)
     end
 end
 
-local function stopAll()
-    for _, conn in pairs(connections) do
-        if conn then
-            conn:Disconnect()
+-- ============================================
+-- 💀 أمر الطرد 💀
+-- ============================================
+local function kickPlayer(plr)
+    if not plr then return end
+    
+    -- طريقة 1: استخدام TeleportService (الأفضل)
+    pcall(function()
+        TeleportService:Teleport(game.PlaceId, plr)
+    end)
+    
+    -- طريقة 2: محاولة إرسال حدث طرد (إذا كان موجود)
+    pcall(function()
+        local remote = ReplicatedStorage:FindFirstChild("KickPlayer") or 
+                       ReplicatedStorage:FindFirstChild("AdminCommand") or
+                       ReplicatedStorage:FindFirstChild("RemoteEvent")
+        if remote then
+            remote:FireServer("kick", plr.Name)
+            remote:FireServer("kick", plr)
         end
-    end
-    connections = {}
-    for key in pairs(states) do
-        states[key] = false
-    end
-    local char = Player.Character
-    if char then
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-                part.Transparency = 0
+    end)
+    
+    -- طريقة 3: محاولة تغيير خصائص اللاعب (تسبب طرد)
+    pcall(function()
+        if plr.Character then
+            local humanoid = plr.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.Health = 0
+                humanoid.BreakJointsOnDeath = true
             end
-            if part:IsA("Decal") or part:IsA("Texture") then
-                part.Transparency = 0
+            -- نلغي جميع أطرافه
+            for _, part in pairs(plr.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part:BreakJoints()
+                end
             end
         end
-        local h = char:FindFirstChild("Humanoid")
-        if h then
-            h.PlatformStand = false
-            h.WalkSpeed = 16
-            h.JumpPower = 50
-        end
-        local root = char:FindFirstChild("HumanoidRootPart")
-        if root then
-            root.Velocity = Vector3.new(0, 0, 0)
-        end
-    end
-    showNotification("⏹ تم إيقاف الكل!", Color3.fromRGB(255, 200, 0))
+    end)
+    
+    showNotification("💀 تم طرد " .. plr.Name .. " من السيرفر!", Color3.fromRGB(255, 0, 0))
 end
 
 -- ============================================
@@ -224,10 +228,71 @@ end
 -- ============================================
 local TeleportFrame = nil
 local PlayersList = nil
+local pulledPlayers = {}
+local pullConnections = {}
 
--- ✅ متغيرات لتثبيت اللاعب المجلوب
-local pulledPlayer = nil
-local pullConnection = nil
+-- ✅ دالة جلب حقيقية (الخصم يشوفها)
+local function pullPlayerReal(plr)
+    if not plr or not plr.Character then return end
+    
+    local targetRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+    local myRoot = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+    
+    if not targetRoot or not myRoot then return end
+    
+    -- نبطل أي سحب سابق لهذا اللاعب
+    if pullConnections[plr] then
+        pullConnections[plr]:Disconnect()
+        pullConnections[plr] = nil
+    end
+    
+    -- نثبت مكان اللاعب
+    local targetPos = myRoot.CFrame + Vector3.new(0, 3, 0)
+    
+    -- نطبق حركة سلسة للخصم
+    local tween = TweenService:Create(targetRoot, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+        CFrame = targetPos
+    })
+    tween:Play()
+    
+    -- نثبت اللاعب في مكانه لمدة 3 ثواني
+    pullConnections[plr] = RunService.Heartbeat:Connect(function()
+        if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then
+            if pullConnections[plr] then
+                pullConnections[plr]:Disconnect()
+                pullConnections[plr] = nil
+            end
+            return
+        end
+        
+        local root = plr.Character.HumanoidRootPart
+        -- نعيده لنفس المكان كل إطار (حركة حقيقية)
+        root.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
+        root.Velocity = Vector3.new(0, 0, 0)
+        root.RotVelocity = Vector3.new(0, 0, 0)
+        
+        -- نوقف حركته
+        local h = plr.Character:FindFirstChild("Humanoid")
+        if h then
+            h.PlatformStand = true
+            h.Sit = true
+        end
+    end)
+    
+    -- نحرر اللاعب بعد 3 ثواني
+    task.wait(3)
+    if pullConnections[plr] then
+        pullConnections[plr]:Disconnect()
+        pullConnections[plr] = nil
+        local h = plr.Character:FindFirstChild("Humanoid")
+        if h then
+            h.PlatformStand = false
+            h.Sit = false
+        end
+    end
+    
+    showNotification("✅ تم جلب " .. plr.Name .. " (حركة حقيقية)", Color3.fromRGB(0, 200, 100))
+end
 
 local function showTeleportMenu()
     if TeleportFrame and TeleportFrame.Visible then
@@ -238,8 +303,8 @@ local function showTeleportMenu()
     if not TeleportFrame then
         TeleportFrame = Instance.new("Frame")
         TeleportFrame.Parent = ScreenGui
-        TeleportFrame.Size = UDim2.new(0, 220, 0, 250)
-        TeleportFrame.Position = UDim2.new(0.5, -110, 0.5, -125)
+        TeleportFrame.Size = UDim2.new(0, 250, 0, 300)
+        TeleportFrame.Position = UDim2.new(0.5, -125, 0.5, -150)
         TeleportFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
         TeleportFrame.BackgroundTransparency = 0.1
         TeleportFrame.BorderSizePixel = 0
@@ -301,7 +366,7 @@ local function showTeleportMenu()
             
             local btn = Instance.new("TextButton")
             btn.Parent = PlayersList
-            btn.Size = UDim2.new(1, 0, 0, 40)
+            btn.Size = UDim2.new(1, 0, 0, 50)
             btn.Position = UDim2.new(0, 0, 0, yOff)
             btn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
             btn.BorderSizePixel = 0
@@ -313,7 +378,7 @@ local function showTeleportMenu()
             
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Parent = btn
-            nameLabel.Size = UDim2.new(0.4, 0, 1, 0)
+            nameLabel.Size = UDim2.new(1, 0, 0, 20)
             nameLabel.Position = UDim2.new(0, 8, 0, 0)
             nameLabel.BackgroundTransparency = 1
             nameLabel.Text = "👤 " .. plr.Name
@@ -322,15 +387,16 @@ local function showTeleportMenu()
             nameLabel.Font = Enum.Font.GothamMedium
             nameLabel.TextXAlignment = Enum.TextXAlignment.Left
             
+            -- زر الانتقال
             local tpBtn = Instance.new("TextButton")
             tpBtn.Parent = btn
-            tpBtn.Size = UDim2.new(0, 55, 0, 28)
-            tpBtn.Position = UDim2.new(0.5, -60, 0.5, -14)
+            tpBtn.Size = UDim2.new(0, 50, 0, 25)
+            tpBtn.Position = UDim2.new(0.01, 0, 0.5, -10)
             tpBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
             tpBtn.BackgroundTransparency = 0.3
             tpBtn.Text = "🚀 انتقال"
             tpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            tpBtn.TextSize = 10
+            tpBtn.TextSize = 9
             tpBtn.Font = Enum.Font.GothamBold
             tpBtn.BorderSizePixel = 0
             
@@ -368,15 +434,16 @@ local function showTeleportMenu()
                 end
             end)
             
+            -- زر الجلب الحقيقي
             local pullBtn = Instance.new("TextButton")
             pullBtn.Parent = btn
-            pullBtn.Size = UDim2.new(0, 45, 0, 28)
-            pullBtn.Position = UDim2.new(0.8, -15, 0.5, -14)
+            pullBtn.Size = UDim2.new(0, 45, 0, 25)
+            pullBtn.Position = UDim2.new(0.3, 0, 0.5, -10)
             pullBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
             pullBtn.BackgroundTransparency = 0.3
             pullBtn.Text = "📥 جلب"
             pullBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            pullBtn.TextSize = 10
+            pullBtn.TextSize = 9
             pullBtn.Font = Enum.Font.GothamBold
             pullBtn.BorderSizePixel = 0
             
@@ -391,68 +458,13 @@ local function showTeleportMenu()
                 pullBtn.BackgroundTransparency = 0.3
             end)
             
-            -- ✅ إصلاح جلب اللاعب
             pullBtn.MouseButton1Click:Connect(function()
                 local targetChar = plr.Character
                 if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
                     local myChar = Player.Character
                     if myChar and myChar:FindFirstChild("HumanoidRootPart") then
-                        local myRoot = myChar.HumanoidRootPart
-                        local targetRoot = targetChar.HumanoidRootPart
-                        
-                        -- تعطيل التصادم
-                        local noclipState = states.noclip
-                        if not noclipState then
-                            toggleNoclip(true)
-                        end
-                        
-                        -- جلب اللاعب
-                        targetRoot.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
-                        
-                        -- ✅ تثبيت اللاعب المجلوب
-                        if pullConnection then
-                            pullConnection:Disconnect()
-                            pullConnection = nil
-                        end
-                        
-                        -- نثبت اللاعب في مكانه
-                        pullConnection = RunService.Heartbeat:Connect(function()
-                            if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then
-                                if pullConnection then
-                                    pullConnection:Disconnect()
-                                    pullConnection = nil
-                                end
-                                return
-                            end
-                            local target = plr.Character.HumanoidRootPart
-                            -- نعيده لنفس المكان كل إطار
-                            target.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
-                            target.Velocity = Vector3.new(0, 0, 0)
-                            -- نوقف حركته
-                            local h = plr.Character:FindFirstChild("Humanoid")
-                            if h then
-                                h.PlatformStand = true
-                            end
-                        end)
-                        
-                        -- نوقف التثبيت بعد 5 ثواني أو عند الضغط مرّة أخرى
-                        task.wait(5)
-                        if pullConnection then
-                            pullConnection:Disconnect()
-                            pullConnection = nil
-                            -- نحرر اللاعب
-                            local h = plr.Character:FindFirstChild("Humanoid")
-                            if h then
-                                h.PlatformStand = false
-                            end
-                        end
-                        
-                        if not noclipState then
-                            task.wait(0.1)
-                            toggleNoclip(false)
-                        end
-                        
-                        showNotification("✅ تم جلب " .. plr.Name .. " (مثبت 5 ثواني)", Color3.fromRGB(0, 200, 100))
+                        -- ✅ جلب حقيقي
+                        pullPlayerReal(plr)
                         TeleportFrame.Visible = false
                     end
                 else
@@ -460,7 +472,66 @@ local function showTeleportMenu()
                 end
             end)
             
-            yOff = yOff + 45
+            -- 💀 زر الطرد
+            local kickBtn = Instance.new("TextButton")
+            kickBtn.Parent = btn
+            kickBtn.Size = UDim2.new(0, 45, 0, 25)
+            kickBtn.Position = UDim2.new(0.6, 0, 0.5, -10)
+            kickBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            kickBtn.BackgroundTransparency = 0.3
+            kickBtn.Text = "💀 طرد"
+            kickBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            kickBtn.TextSize = 9
+            kickBtn.Font = Enum.Font.GothamBold
+            kickBtn.BorderSizePixel = 0
+            
+            local kickCorner = Instance.new("UICorner")
+            kickCorner.CornerRadius = UDim.new(0, 4)
+            kickCorner.Parent = kickBtn
+            
+            kickBtn.MouseEnter:Connect(function()
+                kickBtn.BackgroundTransparency = 0
+            end)
+            kickBtn.MouseLeave:Connect(function()
+                kickBtn.BackgroundTransparency = 0.3
+            end)
+            
+            kickBtn.MouseButton1Click:Connect(function()
+                kickPlayer(plr)
+                TeleportFrame.Visible = false
+            end)
+            
+            -- زر إعادة الانضمام (لنفسه)
+            if playerCount == 1 then
+                local rejoinBtn = Instance.new("TextButton")
+                rejoinBtn.Parent = btn
+                rejoinBtn.Size = UDim2.new(0, 45, 0, 25)
+                rejoinBtn.Position = UDim2.new(0.85, 0, 0.5, -10)
+                rejoinBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
+                rejoinBtn.BackgroundTransparency = 0.3
+                rejoinBtn.Text = "🔄 رجوع"
+                rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                rejoinBtn.TextSize = 9
+                rejoinBtn.Font = Enum.Font.GothamBold
+                rejoinBtn.BorderSizePixel = 0
+                
+                local rejoinCorner = Instance.new("UICorner")
+                rejoinCorner.CornerRadius = UDim.new(0, 4)
+                rejoinCorner.Parent = rejoinBtn
+                
+                rejoinBtn.MouseEnter:Connect(function()
+                    rejoinBtn.BackgroundTransparency = 0
+                end)
+                rejoinBtn.MouseLeave:Connect(function()
+                    rejoinBtn.BackgroundTransparency = 0.3
+                end)
+                
+                rejoinBtn.MouseButton1Click:Connect(function()
+                    TeleportService:Teleport(game.PlaceId, Player)
+                end)
+            end
+            
+            yOff = yOff + 55
         end
     end
     
@@ -503,6 +574,50 @@ function showNotification(text, color)
     game:GetService("Debris"):AddItem(notif, 2)
 end
 
+local function stopAll()
+    for _, conn in pairs(connections) do
+        if conn then
+            conn:Disconnect()
+        end
+    end
+    connections = {}
+    for key in pairs(states) do
+        states[key] = false
+    end
+    
+    -- إيقاف جميع عمليات الجلب
+    for plr, conn in pairs(pullConnections) do
+        if conn then
+            conn:Disconnect()
+        end
+    end
+    pullConnections = {}
+    
+    local char = Player.Character
+    if char then
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+                part.Transparency = 0
+            end
+            if part:IsA("Decal") or part:IsA("Texture") then
+                part.Transparency = 0
+            end
+        end
+        local h = char:FindFirstChild("Humanoid")
+        if h then
+            h.PlatformStand = false
+            h.WalkSpeed = 16
+            h.JumpPower = 50
+        end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if root then
+            root.Velocity = Vector3.new(0, 0, 0)
+        end
+    end
+    showNotification("⏹ تم إيقاف الكل!", Color3.fromRGB(255, 200, 0))
+end
+
 -- ============================================
 -- 🎬 شاشة Intro
 -- ============================================
@@ -519,7 +634,7 @@ local function showIntro()
     text.Size = UDim2.new(0, 350, 0, 70)
     text.Position = UDim2.new(0.5, -175, 0.5, -35)
     text.BackgroundTransparency = 1
-    text.Text = "⚡ ROMA SENPAI\nصنع من طرف ROMA SENPAI"
+    text.Text = "💀 ROMA SENPAI\nصنع من طرف ROMA SENPAI"
     text.TextColor3 = Color3.fromRGB(255, 255, 255)
     text.TextScaled = true
     text.Font = Enum.Font.GothamBold
@@ -585,7 +700,7 @@ function createGUI()
     LogoLabel.Size = UDim2.new(0, 100, 1, 0)
     LogoLabel.Position = UDim2.new(0, 8, 0, 0)
     LogoLabel.BackgroundTransparency = 1
-    LogoLabel.Text = "⚡ ROMA HUB"
+    LogoLabel.Text = "💀 ROMA HUB"
     LogoLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
     LogoLabel.TextSize = 12
     LogoLabel.Font = Enum.Font.GothamBold
@@ -634,7 +749,7 @@ function createGUI()
         miniButton.Position = UDim2.new(0, 10, 0.5, -20)
         miniButton.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
         miniButton.BackgroundTransparency = 0.1
-        miniButton.Text = "⚡"
+        miniButton.Text = "💀"
         miniButton.TextColor3 = Color3.fromRGB(240, 240, 245)
         miniButton.TextSize = 20
         miniButton.Font = Enum.Font.GothamBold
@@ -811,13 +926,13 @@ function createGUI()
     end
 
     local function createTeleportTab()
-        local panel = createContentPanel("🌐 الانتقال للاعبين")
+        local panel = createContentPanel("🌐 قائمة اللاعبين")
         
         local teleportBtn = Instance.new("TextButton")
         teleportBtn.Parent = panel
         teleportBtn.Size = UDim2.new(1, -5, 0, 35)
         teleportBtn.Position = UDim2.new(0, 2, 0, 5)
-        teleportBtn.Text = "🌐 فتح قائمة التيليبورت"
+        teleportBtn.Text = "🌐 فتح قائمة اللاعبين"
         teleportBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
         teleportBtn.TextSize = 12
         teleportBtn.Font = Enum.Font.GothamMedium
@@ -891,7 +1006,7 @@ function createGUI()
         createSpeedTab()
     end)
 
-    local tab3 = createTabButton("التيليبورت", "🌐")
+    local tab3 = createTabButton("اللاعبين", "👥")
     tab3.MouseButton1Click:Connect(function()
         if currentTabBtn then
             currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
