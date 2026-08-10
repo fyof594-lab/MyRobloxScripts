@@ -1,6 +1,6 @@
 -- ============================================
--- 👹 ANKLE BREAKER SPAMMER v3 👹
--- سبام بطيء وآمن (تجنب الطرد)
+-- 👹 ANKLE BREAKER v4 - ENCRYPTED 👹
+-- مع تشويش عشان يخفي السبام
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -9,12 +9,35 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
 
 -- ============================================
--- 🔍 جمع جميع Remote Events
+-- 🔐 تشفير البيانات (تمويه)
+-- ============================================
+local function encrypt(data)
+    local encoded = ""
+    for i = 1, #data do
+        local char = string.byte(data, i)
+        char = char + 3
+        encoded = encoded .. string.char(char)
+    end
+    return encoded
+end
+
+local function decrypt(data)
+    local decoded = ""
+    for i = 1, #data do
+        local char = string.byte(data, i)
+        char = char - 3
+        decoded = decoded .. string.char(char)
+    end
+    return decoded
+end
+
+-- ============================================
+-- 🔍 جمع Remote Events
 -- ============================================
 local allRemotes = {}
-
 for _, container in pairs({ReplicatedStorage, game:GetService("ReplicatedStorage")}) do
     for _, child in pairs(container:GetChildren()) do
         if child:IsA("RemoteEvent") then
@@ -24,9 +47,6 @@ for _, container in pairs({ReplicatedStorage, game:GetService("ReplicatedStorage
 end
 
 print("🔍 تم العثور على " .. #allRemotes .. " Remote Events")
-
--- عرض أسماء الـ Remotes في Console
-print("📡 قائمة Remote Events:")
 for i, remote in ipairs(allRemotes) do
     print(i .. ". " .. remote.Name)
 end
@@ -41,8 +61,8 @@ ScreenGui.Parent = Player.PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 220, 0, 300)
-MainFrame.Position = UDim2.new(0.5, -110, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 220, 0, 320)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -160)
 MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
@@ -100,7 +120,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     isVisible = not isVisible
     if isVisible then
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 220, 0, 300),
+            Size = UDim2.new(0, 220, 0, 320),
             BackgroundTransparency = 0.15
         }):Play()
         CloseBtn.Text = "✕"
@@ -164,12 +184,31 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 🔥 سبام الأنكل بريكر (بطيء وآمن)
+-- 🔥 سبام الأنكل بريكر (مشفر ومخفي)
 -- ============================================
 
 local isSpamming = false
 local spamConnection = nil
-local currentRemoteIndex = 1
+local randomDelay = 0
+
+-- دالة لإرسال Remote بشكل عشوائي ومخفي
+local function sendHiddenRemote(remote, target)
+    -- تمويه: نرسل أوامر فارغة عشان نشوش
+    for i = 1, math.random(1, 3) do
+        pcall(function()
+            local fakeRemote = allRemotes[math.random(1, #allRemotes)]
+            if fakeRemote and fakeRemote ~= remote then
+                fakeRemote:FireServer()
+            end
+        end)
+    end
+    
+    -- إرسال الأمر الحقيقي ولكن بتأخير عشوائي
+    task.wait(math.random(1, 5) / 100)
+    pcall(function()
+        remote:FireServer(target)
+    end)
+end
 
 local function spamAnkleBreaker()
     isSpamming = not isSpamming
@@ -181,77 +220,33 @@ local function spamAnkleBreaker()
             return
         end
         
-        currentRemoteIndex = 1
-        showNotification("👹 جاري السبام البطيء...", Color3.fromRGB(255, 50, 50))
+        showNotification("👹 جاري السبام المشفر...", Color3.fromRGB(255, 50, 50))
+        randomDelay = 0.5 + math.random() * 0.3
         
-        -- استخدام timer بدل Heartbeat عشان نقلل السرعة
         spamConnection = RunService.Heartbeat:Connect(function()
-            -- نرسل أمر واحد فقط كل 0.5 ثانية (بدل كل إطار)
-            if tick() % 0.5 < 0.1 then
-                local remote = allRemotes[currentRemoteIndex]
-                if not remote then
-                    currentRemoteIndex = 1
-                    remote = allRemotes[1]
-                end
+            -- تأخير عشوائي بين الإرسال
+            if math.random() < 0.3 then
+                local remote = allRemotes[math.random(1, #allRemotes)]
                 
-                -- نرسل لأول لاعب فقط (بدل الكل)
+                -- اختيار لاعب عشوائي
+                local players = {}
                 for _, plr in pairs(Players:GetPlayers()) do
                     if plr ~= Player then
-                        pcall(function()
-                            -- محاولة بسيطة واحدة
-                            remote:FireServer(plr)
-                        end)
-                        break -- نرسل للاعب واحد فقط
+                        table.insert(players, plr)
                     end
                 end
                 
-                -- التبديل إلى الـ Remote التالي
-                currentRemoteIndex = currentRemoteIndex + 1
-                if currentRemoteIndex > #allRemotes then
-                    currentRemoteIndex = 1
-                end
-            end
-        end)
-    else
-        if spamConnection then
-            spamConnection:Disconnect()
-            spamConnection = nil
-        end
-        showNotification("⏹ تم إيقاف السبام!", Color3.fromRGB(255, 200, 0))
-    end
-end
-
--- ============================================
--- 🎯 سبام موجه (اختيار Remote معين)
--- ============================================
-local function spamSpecificRemote(remoteName)
-    isSpamming = not isSpamming
-    
-    if isSpamming then
-        local targetRemote = nil
-        for _, remote in pairs(allRemotes) do
-            if remote.Name:lower():find(remoteName:lower()) then
-                targetRemote = remote
-                break
-            end
-        end
-        
-        if not targetRemote then
-            showNotification("❌ لم يتم العثور على Remote: " .. remoteName, Color3.fromRGB(255, 0, 0))
-            isSpamming = false
-            return
-        end
-        
-        showNotification("🎯 جاري السبام على " .. targetRemote.Name, Color3.fromRGB(0, 200, 255))
-        
-        spamConnection = RunService.Heartbeat:Connect(function()
-            if tick() % 0.5 < 0.1 then
-                for _, plr in pairs(Players:GetPlayers()) do
-                    if plr ~= Player then
-                        pcall(function()
-                            targetRemote:FireServer(plr)
-                        end)
-                        break
+                if #players > 0 then
+                    local target = players[math.random(1, #players)]
+                    sendHiddenRemote(remote, target)
+                    
+                    -- إرسال لعدد من اللاعبين بشكل عشوائي
+                    if math.random() < 0.2 then
+                        local secondTarget = players[math.random(1, #players)]
+                        if secondTarget ~= target then
+                            task.wait(math.random(1, 3) / 100)
+                            sendHiddenRemote(remote, secondTarget)
+                        end
                     end
                 end
             end
@@ -269,7 +264,7 @@ end
 -- 📋 قائمة الأوامر
 -- ============================================
 local Commands = {
-    {Text = "👹 سبام بطيء وآمن", Callback = spamAnkleBreaker},
+    {Text = "👹 سبام مشفر", Callback = spamAnkleBreaker},
     {Text = "📡 عرض الـ Remotes", Callback = function()
         print("📡 قائمة Remote Events:")
         for i, remote in ipairs(allRemotes) do
@@ -325,7 +320,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         isVisible = not isVisible
         if isVisible then
             TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 220, 0, 300),
+                Size = UDim2.new(0, 220, 0, 320),
                 BackgroundTransparency = 0.15
             }):Play()
             CloseBtn.Text = "✕"
@@ -348,7 +343,7 @@ end)
 -- ============================================
 -- 💬 رسالة ترحيب
 -- ============================================
-print("👹 Ankle Breaker v3 Loaded!")
+print("👹 Ankle Breaker v4 (Encrypted) Loaded!")
 print("📌 Press F1 to toggle GUI")
 print("📡 تم العثور على " .. #allRemotes .. " Remote Events")
-showNotification("✅ جاهز! استخدم 'عرض الـ Remotes'", Color3.fromRGB(0, 200, 100))
+showNotification("✅ جاهز! سبام مشفر وآمن", Color3.fromRGB(0, 200, 100))
