@@ -1,6 +1,5 @@
 -- ============================================
--- 💀 ROMA SENPAI HUB (Axel Hub Style - Fixed) 💀
--- صنع من طرف ROMA SENPAI
+-- 💀 ROMA SENPAI HUB (Axel Hub Style) 💀
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -8,32 +7,346 @@ local Player = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local PlayerGui = Player:WaitForChild("PlayerGui")
+local Workspace = game:GetService("Workspace")
 
-if PlayerGui:FindFirstChild("RomaAxelHub") then
-    PlayerGui.RomaAxelHub:Destroy()
+-- ============================================
+-- 🔥 المتغيرات والحالات
+-- ============================================
+local states = {
+    fly = false,
+    noclip = false,
+    invisible = false,
+    speed = false,
+    teleport = false
+}
+local connections = {}
+local speedAmount = 120
+local flySpeed = 80
+
+-- ============================================
+-- 🛠️ دوال الوظائف
+-- ============================================
+
+-- الطيران
+local function toggleFly(state)
+    states.fly = state
+    local char = Player.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    local h = char:FindFirstChild("Humanoid")
+    if not h then return end
+
+    if states.fly then
+        h.PlatformStand = true
+        if not connections.fly then
+            connections.fly = RunService.Heartbeat:Connect(function()
+                if not states.fly then return end
+                local move = h.MoveDirection
+                local up = Vector3.new(0, 0, 0)
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    up = Vector3.new(0, 10, 0)
+                elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                    up = Vector3.new(0, -10, 0)
+                end
+                if move.Magnitude > 0 then
+                    root.Velocity = move * flySpeed + up
+                else
+                    root.Velocity = up
+                end
+            end)
+        end
+        showNotification("🚀 الطيران ON", Color3.fromRGB(0, 150, 255))
+    else
+        if connections.fly then
+            connections.fly:Disconnect()
+            connections.fly = nil
+        end
+        h.PlatformStand = false
+        root.Velocity = Vector3.new(0, 0, 0)
+        showNotification("⏹ الطيران OFF", Color3.fromRGB(255, 200, 0))
+    end
 end
 
+-- اختراق الجدران
+local function toggleNoclip(state)
+    states.noclip = state
+    if states.noclip then
+        if not connections.noclip then
+            connections.noclip = RunService.Heartbeat:Connect(function()
+                local char = Player.Character
+                if not char then return end
+                for _, part in pairs(char:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end)
+        end
+        showNotification("🧱 اختراق الجدران ON", Color3.fromRGB(150, 100, 255))
+    else
+        if connections.noclip then
+            connections.noclip:Disconnect()
+            connections.noclip = nil
+        end
+        local char = Player.Character
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+        showNotification("⏹ اختراق الجدران OFF", Color3.fromRGB(255, 200, 0))
+    end
+end
+
+-- اختفاء
+local function toggleInvisible(state)
+    states.invisible = state
+    local char = Player.Character
+    if not char then return end
+
+    if states.invisible then
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 1
+            end
+            if part:IsA("Decal") or part:IsA("Texture") then
+                part.Transparency = 1
+            end
+        end
+        pcall(function()
+            char.Humanoid.HealthDisplayDistance = 0
+            char.Humanoid.NameDisplayDistance = 0
+        end)
+        showNotification("👻 اختفاء ON", Color3.fromRGB(200, 100, 255))
+    else
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 0
+            end
+            if part:IsA("Decal") or part:IsA("Texture") then
+                part.Transparency = 0
+            end
+        end
+        pcall(function()
+            char.Humanoid.HealthDisplayDistance = 50
+            char.Humanoid.NameDisplayDistance = 50
+        end)
+        showNotification("👁️ اختفاء OFF", Color3.fromRGB(255, 200, 0))
+    end
+end
+
+-- السرعة
+local function toggleSpeed(state)
+    states.speed = state
+    local h = Player.Character and Player.Character:FindFirstChild("Humanoid")
+    if not h then return end
+
+    if states.speed then
+        h.WalkSpeed = speedAmount
+        showNotification("⚡ سرعة " .. speedAmount .. " ON", Color3.fromRGB(0, 255, 200))
+    else
+        h.WalkSpeed = 16
+        showNotification("⏹ سرعة OFF", Color3.fromRGB(255, 200, 0))
+    end
+end
+
+-- إيقاف الكل
+local function stopAll()
+    for _, conn in pairs(connections) do
+        if conn then
+            conn:Disconnect()
+        end
+    end
+    connections = {}
+    for key in pairs(states) do
+        states[key] = false
+    end
+    local char = Player.Character
+    if char then
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+                part.Transparency = 0
+            end
+            if part:IsA("Decal") or part:IsA("Texture") then
+                part.Transparency = 0
+            end
+        end
+        local h = char:FindFirstChild("Humanoid")
+        if h then
+            h.PlatformStand = false
+            h.WalkSpeed = 16
+            h.JumpPower = 50
+        end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if root then
+            root.Velocity = Vector3.new(0, 0, 0)
+        end
+    end
+    if TeleportFrame then
+        TeleportFrame.Visible = false
+    end
+    showNotification("⏹ تم إيقاف الكل!", Color3.fromRGB(255, 200, 0))
+end
+
+-- ============================================
+-- 🌐 التيليبورت
+-- ============================================
+local TeleportFrame = nil
+
+local function toggleTeleport(state)
+    states.teleport = state
+    if states.teleport then
+        showTeleportMenu()
+    else
+        if TeleportFrame then
+            TeleportFrame.Visible = false
+        end
+    end
+end
+
+local function showTeleportMenu()
+    if TeleportFrame and TeleportFrame.Visible then
+        TeleportFrame.Visible = false
+        return
+    end
+    
+    if not TeleportFrame then
+        TeleportFrame = Instance.new("Frame")
+        TeleportFrame.Parent = ScreenGui
+        TeleportFrame.Size = UDim2.new(0, 200, 0, 200)
+        TeleportFrame.Position = UDim2.new(0.5, -100, 0.5, -100)
+        TeleportFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+        TeleportFrame.BackgroundTransparency = 0.1
+        TeleportFrame.BorderSizePixel = 0
+        TeleportFrame.ClipsDescendants = true
+        
+        local TCorner = Instance.new("UICorner")
+        TCorner.CornerRadius = UDim.new(0, 10)
+        TCorner.Parent = TeleportFrame
+        
+        local TStroke = Instance.new("UIStroke")
+        TStroke.Parent = TeleportFrame
+        TStroke.Color = Color3.fromRGB(45, 45, 55)
+        TStroke.Thickness = 1
+        
+        local TTitle = Instance.new("TextLabel")
+        TTitle.Parent = TeleportFrame
+        TTitle.Size = UDim2.new(1, 0, 0, 30)
+        TTitle.BackgroundTransparency = 1
+        TTitle.Text = "🌐 التيليبورت"
+        TTitle.TextColor3 = Color3.fromRGB(240, 240, 245)
+        TTitle.TextSize = 14
+        TTitle.Font = Enum.Font.GothamBold
+        
+        local closeT = Instance.new("TextButton")
+        closeT.Parent = TeleportFrame
+        closeT.Size = UDim2.new(0, 25, 0, 25)
+        closeT.Position = UDim2.new(1, -30, 0, 3)
+        closeT.BackgroundTransparency = 1
+        closeT.Text = "✕"
+        closeT.TextColor3 = Color3.fromRGB(160, 160, 175)
+        closeT.TextSize = 14
+        closeT.Font = Enum.Font.GothamBold
+        
+        closeT.MouseButton1Click:Connect(function()
+            TeleportFrame.Visible = false
+        end)
+        
+        local TScroll = Instance.new("ScrollingFrame")
+        TScroll.Parent = TeleportFrame
+        TScroll.Size = UDim2.new(1, -10, 1, -40)
+        TScroll.Position = UDim2.new(0, 5, 0, 35)
+        TScroll.BackgroundTransparency = 1
+        TScroll.BorderSizePixel = 0
+        TScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+        TScroll.ScrollBarThickness = 3
+        
+        local yOff = 0
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= Player then
+                local btn = Instance.new("TextButton")
+                btn.Parent = TScroll
+                btn.Size = UDim2.new(1, 0, 0, 30)
+                btn.Position = UDim2.new(0, 0, 0, yOff)
+                btn.Text = "🌐 " .. plr.Name
+                btn.TextColor3 = Color3.fromRGB(200, 200, 215)
+                btn.TextSize = 12
+                btn.Font = Enum.Font.GothamMedium
+                btn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+                btn.BorderSizePixel = 0
+                
+                local btnCorner = Instance.new("UICorner")
+                btnCorner.CornerRadius = UDim.new(0, 6)
+                btnCorner.Parent = btn
+                
+                btn.MouseEnter:Connect(function()
+                    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+                end)
+                btn.MouseLeave:Connect(function()
+                    btn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+                end)
+                
+                btn.MouseButton1Click:Connect(function()
+                    local char = plr.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+                        if root then
+                            root.CFrame = char.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+                            showNotification("✅ تم التليفورت إلى " .. plr.Name, Color3.fromRGB(0, 200, 100))
+                        end
+                    else
+                        showNotification("❌ اللاعب غير موجود!", Color3.fromRGB(255, 0, 0))
+                    end
+                    TeleportFrame.Visible = false
+                end)
+                yOff = yOff + 35
+            end
+        end
+        TScroll.CanvasSize = UDim2.new(0, 0, 0, yOff + 10)
+    end
+    
+    TeleportFrame.Visible = true
+end
+
+-- ============================================
+-- 💬 دالة الإشعار
+-- ============================================
+function showNotification(text, color)
+    local notif = Instance.new("TextLabel")
+    notif.Parent = ScreenGui
+    notif.Size = UDim2.new(0, 280, 0, 35)
+    notif.Position = UDim2.new(0.5, -140, 0.05, 0)
+    notif.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    notif.BackgroundTransparency = 0.3
+    notif.Text = text
+    notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+    notif.TextSize = 14
+    notif.Font = Enum.Font.GothamBold
+    notif.BorderSizePixel = 0
+    local notifCorner = Instance.new("UICorner")
+    notifCorner.CornerRadius = UDim.new(0, 12)
+    notifCorner.Parent = notif
+    game:GetService("Debris"):AddItem(notif, 2)
+end
+
+-- ============================================
+-- 🎨 الواجهة الرئيسية (مصغرة)
+-- ============================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "RomaAxelHub"
 ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = Player.PlayerGui
 
-local TargetParent = PlayerGui
-if gethui then
-    TargetParent = gethui()
-elseif syn and syn.protect_gui then
-    syn.protect_gui(ScreenGui)
-    TargetParent = game:GetService("CoreGui")
-end
-ScreenGui.Parent = TargetParent
-
--- النافذة الرئيسية (مقاسات مضبوطة ورايقة)
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 480, 0, 310)
-MainFrame.Position = UDim2.new(0.5, -240, 0.5, -155)
+MainFrame.Size = UDim2.new(0, 350, 0, 320)
+MainFrame.Position = UDim2.new(0.5, -175, 0.5, -160)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-MainFrame.BackgroundTransparency = 0.05
+MainFrame.BackgroundTransparency = 0.1
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -47,24 +360,25 @@ MainStroke.Parent = MainFrame
 MainStroke.Color = Color3.fromRGB(45, 45, 55)
 MainStroke.Thickness = 1
 
--- شريط العناوين العلوي
+-- ============================================
+-- 📌 شريط العنوان
+-- ============================================
 local TopBar = Instance.new("Frame")
 TopBar.Parent = MainFrame
-TopBar.Size = UDim2.new(1, 0, 0, 38)
+TopBar.Size = UDim2.new(1, 0, 0, 35)
 TopBar.BackgroundTransparency = 1
 
 local LogoLabel = Instance.new("TextLabel")
 LogoLabel.Parent = TopBar
-LogoLabel.Size = UDim2.new(0, 200, 1, 0)
-LogoLabel.Position = UDim2.new(0, 15, 0, 0)
+LogoLabel.Size = UDim2.new(0, 130, 1, 0)
+LogoLabel.Position = UDim2.new(0, 12, 0, 0)
 LogoLabel.BackgroundTransparency = 1
-LogoLabel.Text = "⚡  ROMA SENPAI HUB"
+LogoLabel.Text = "⚡ ROMA HUB"
 LogoLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
-LogoLabel.TextSize = 13
+LogoLabel.TextSize = 14
 LogoLabel.Font = Enum.Font.GothamBold
 LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- زر الإغلاق
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = TopBar
 CloseBtn.Size = UDim2.new(0, 25, 0, 25)
@@ -80,16 +394,16 @@ CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ============================================
--- 📂 السايدبار (القائمة الجانبية اليسرى)
+-- 📂 القائمة الجانبية
 -- ============================================
 local Sidebar = Instance.new("ScrollingFrame")
 Sidebar.Parent = MainFrame
-Sidebar.Size = UDim2.new(0, 145, 1, -85)
-Sidebar.Position = UDim2.new(0, 0, 0, 38)
+Sidebar.Size = UDim2.new(0, 120, 1, -35)
+Sidebar.Position = UDim2.new(0, 0, 0, 35)
 Sidebar.BackgroundTransparency = 1
 Sidebar.BorderSizePixel = 0
 Sidebar.ScrollBarThickness = 0
-Sidebar.CanvasSize = UDim2.new(0, 0, 0, 200)
+Sidebar.CanvasSize = UDim2.new(0, 0, 0, 250)
 
 local SidebarLayout = Instance.new("UIListLayout")
 SidebarLayout.Parent = Sidebar
@@ -101,67 +415,21 @@ SidebarPadding.Parent = Sidebar
 SidebarPadding.PaddingLeft = UDim.new(0, 8)
 SidebarPadding.PaddingRight = UDim.new(0, 8)
 
--- بروفايل المستخدم أسفل السايدبار
-local UserProfile = Instance.new("Frame")
-UserProfile.Parent = MainFrame
-UserProfile.Size = UDim2.new(0, 135, 0, 42)
-UserProfile.Position = UDim2.new(0, 5, 1, -47)
-UserProfile.BackgroundColor3 = Color3.fromRGB(22, 22, 26)
-UserProfile.BorderSizePixel = 0
-
-local UserCorner = Instance.new("UICorner")
-UserCorner.CornerRadius = UDim.new(0, 8)
-UserCorner.Parent = UserProfile
-
-local AvatarImg = Instance.new("ImageLabel")
-AvatarImg.Parent = UserProfile
-AvatarImg.Size = UDim2.new(0, 30, 0, 30)
-AvatarImg.Position = UDim2.new(0, 6, 0.5, -15)
-AvatarImg.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-AvatarImg.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
-
-local AvatarCorner = Instance.new("UICorner")
-AvatarCorner.CornerRadius = UDim.new(1, 0)
-AvatarCorner.Parent = AvatarImg
-
-local UserName = Instance.new("TextLabel")
-UserName.Parent = UserProfile
-UserName.Size = UDim2.new(1, -40, 0, 15)
-UserName.Position = UDim2.new(0, 40, 0, 7)
-UserName.BackgroundTransparency = 1
-UserName.Text = Player.Name
-UserName.TextColor3 = Color3.fromRGB(240, 240, 245)
-UserName.TextSize = 11
-UserName.Font = Enum.Font.GothamBold
-UserName.TextXAlignment = Enum.TextXAlignment.Left
-
-local UserSub = Instance.new("TextLabel")
-UserSub.Parent = UserProfile
-UserSub.Size = UDim2.new(1, -40, 0, 12)
-UserSub.Position = UDim2.new(0, 40, 0, 22)
-UserSub.BackgroundTransparency = 1
-UserSub.Text = "Roma Senpai"
-UserSub.TextColor3 = Color3.fromRGB(120, 120, 140)
-UserSub.TextSize = 9
-UserSub.Font = Enum.Font.Gotham
-UserSub.TextXAlignment = Enum.TextXAlignment.Left
-
 -- ============================================
--- 🖥️ حاوية المحتوى الرئيسي
+-- 🖥️ حاوية المحتوى
 -- ============================================
 local ContentContainer = Instance.new("Frame")
 ContentContainer.Parent = MainFrame
-ContentContainer.Size = UDim2.new(1, -155, 1, -48)
-ContentContainer.Position = UDim2.new(0, 150, 0, 42)
+ContentContainer.Size = UDim2.new(1, -125, 1, -45)
+ContentContainer.Position = UDim2.new(0, 125, 0, 40)
 ContentContainer.BackgroundTransparency = 1
 
 local currentTabBtn = nil
 
-local function createTabButton(name, icon, callback)
+local function createTabButton(name, icon)
     local btn = Instance.new("TextButton")
     btn.Parent = Sidebar
-    btn.Size = UDim2.new(1, 0, 0, 32)
-    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+    btn.Size = UDim2.new(1, 0, 0, 28)
     btn.BackgroundTransparency = 1
     btn.Text = "   " .. icon .. "  " .. name
     btn.TextColor3 = Color3.fromRGB(140, 140, 160)
@@ -173,16 +441,15 @@ local function createTabButton(name, icon, callback)
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = btn
     
-    btn.MouseButton1Click:Connect(function()
-        if currentTabBtn then
-            currentTabBtn.BackgroundTransparency = 1
-            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        end
-        currentTabBtn = btn
-        btn.BackgroundTransparency = 0
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        callback()
+    btn.MouseEnter:Connect(function()
+        btn.TextColor3 = Color3.fromRGB(240, 240, 245)
     end)
+    btn.MouseLeave:Connect(function()
+        if currentTabBtn ~= btn then
+            btn.TextColor3 = Color3.fromRGB(140, 140, 160)
+        end
+    end)
+    
     return btn
 end
 
@@ -191,8 +458,7 @@ local function createContentPanel(titleText)
     
     local panel = Instance.new("ScrollingFrame")
     panel.Parent = ContentContainer
-    panel.Size = UDim2.new(1, -5, 1, 0)
-    panel.Position = UDim2.new(0, 0, 0, 0)
+    panel.Size = UDim2.new(1, 0, 1, 0)
     panel.BackgroundTransparency = 1
     panel.BorderSizePixel = 0
     panel.ScrollBarThickness = 2
@@ -209,28 +475,27 @@ local function createContentPanel(titleText)
     title.BackgroundTransparency = 1
     title.Text = titleText
     title.TextColor3 = Color3.fromRGB(240, 240, 250)
-    title.TextSize = 12
+    title.TextSize = 13
     title.Font = Enum.Font.GothamBold
     title.TextXAlignment = Enum.TextXAlignment.Left
     
     return panel
 end
 
-local function addActionButton(parent, titleText, callback)
-    local btnFrame = Instance.new("TextButton")
-    btnFrame.Parent = parent
-    btnFrame.Size = UDim2.new(1, -10, 0, 32)
-    btnFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-    btnFrame.BorderSizePixel = 0
-    btnFrame.Text = ""
+local function addToggle(parent, titleText, callback)
+    local toggle = Instance.new("Frame")
+    toggle.Parent = parent
+    toggle.Size = UDim2.new(1, -5, 0, 32)
+    toggle.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    toggle.BorderSizePixel = 0
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = btnFrame
+    corner.Parent = toggle
     
     local label = Instance.new("TextLabel")
-    label.Parent = btnFrame
-    label.Size = UDim2.new(1, -15, 1, 0)
+    label.Parent = toggle
+    label.Size = UDim2.new(1, -50, 1, 0)
     label.Position = UDim2.new(0, 10, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = titleText
@@ -239,185 +504,139 @@ local function addActionButton(parent, titleText, callback)
     label.Font = Enum.Font.GothamMedium
     label.TextXAlignment = Enum.TextXAlignment.Left
     
-    btnFrame.MouseButton1Click:Connect(callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = toggle
+    btn.Size = UDim2.new(1, 0, 1, 0)
+    btn.BackgroundTransparency = 1
+    btn.Text = ""
+    
+    local active = false
+    local indicator = Instance.new("Frame")
+    indicator.Parent = toggle
+    indicator.Size = UDim2.new(0, 14, 0, 14)
+    indicator.Position = UDim2.new(1, -20, 0.5, -7)
+    indicator.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    
+    local indCorner = Instance.new("UICorner")
+    indCorner.CornerRadius = UDim.new(0, 4)
+    indCorner.Parent = indicator
+    
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        TweenService:Create(indicator, TweenInfo.new(0.2), {
+            BackgroundColor3 = active and Color3.fromRGB(80, 140, 255) or Color3.fromRGB(40, 40, 50)
+        }):Play()
+        callback(active)
+    end)
 end
 
 -- ============================================
-// 🔥 المتغيرات والوظائف الأساسية
+-- ⚙️ بناء القوائم
 -- ============================================
-local states = {fly = false, noclip = false, invisible = false, speed = false}
-local connections = {}
-local speedAmount = 120
 
-local function showNotification(text, color)
-    local notif = Instance.new("TextLabel")
-    notif.Parent = ScreenGui
-    notif.Size = UDim2.new(0, 250, 0, 30)
-    notif.Position = UDim2.new(0.5, -125, 0.04, 0)
-    notif.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    notif.BackgroundTransparency = 0.3
-    notif.Text = text
-    notif.TextColor3 = Color3.fromRGB(255, 255, 255)
-    notif.TextSize = 11
-    notif.Font = Enum.Font.GothamBold
-    notif.BorderSizePixel = 0
-    local nc = Instance.new("UICorner")
-    nc.CornerRadius = UDim.new(0, 8)
-    nc.Parent = notif
-    game:GetService("Debris"):AddItem(notif, 2)
+local function createMovementTab()
+    local panel = createContentPanel("🚀 إعدادات الحركة")
+    addToggle(panel, "الطيران (Fly)", function(state)
+        toggleFly(state)
+    end)
+    addToggle(panel, "اختراق الجدران (Noclip)", function(state)
+        toggleNoclip(state)
+    end)
+    addToggle(panel, "اختفاء (Invisible)", function(state)
+        toggleInvisible(state)
+    end)
 end
 
--- الوظائف (طيران، نوكب، اختفاء، سرعة)
-local function toggleFly()
-    states.fly = not states.fly
-    local char = Player.Character
-    if not char then return end
-    local root = char:FindFirstChild("HumanoidRootPart")
-    local h = char:FindFirstChild("Humanoid")
-    if not root or not h then return end
-
-    if states.fly then
-        h.PlatformStand = true
-        connections.fly = RunService.Heartbeat:Connect(function()
-            if not states.fly then return end
-            local move = h.MoveDirection
-            local up = Vector3.new(0, 0, 0)
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                up = Vector3.new(0, 10, 0)
-            elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                up = Vector3.new(0, -10, 0)
-            end
-            root.Velocity = move.Magnitude > 0 and (move * 80 + up) or up
-        end)
-        showNotification("🚀 الطيران ON", Color3.fromRGB(0, 150, 255))
-    else
-        if connections.fly then connections.fly:Disconnect(); connections.fly = nil end
-        h.PlatformStand = false
-        root.Velocity = Vector3.new(0, 0, 0)
-        showNotification("⏹ الطيران OFF", Color3.fromRGB(255, 200, 0))
-    end
+local function createSpeedTab()
+    local panel = createContentPanel("⚡ إعدادات السرعة")
+    addToggle(panel, "تفعيل السرعة العالية", function(state)
+        toggleSpeed(state)
+    end)
 end
 
-local function toggleNoclip()
-    states.noclip = not states.noclip
-    if states.noclip then
-        connections.noclip = RunService.Heartbeat:Connect(function()
-            local char = Player.Character
-            if char then
-                for _, part in pairs(char:GetDescendants()) do
-                    if part:IsA("BasePart") then part.CanCollide = false end
-                end
-            end
-        end)
-        showNotification("🧱 اختراق الجدران ON", Color3.fromRGB(150, 100, 255))
-    else
-        if connections.noclip then connections.noclip:Disconnect(); connections.noclip = nil end
-        local char = Player.Character
-        if char then
-            for _, part in pairs(char:GetDescendants()) do
-                if part:IsA("BasePart") then part.CanCollide = true end
+local function createTeleportTab()
+    local panel = createContentPanel("🌐 الانتقال للاعبين")
+    addToggle(panel, "فتح قائمة التيليبورت", function(state)
+        if state then
+            showTeleportMenu()
+        else
+            if TeleportFrame then
+                TeleportFrame.Visible = false
             end
         end
-        showNotification("⏹ اختراق الجدران OFF", Color3.fromRGB(255, 200, 0))
-    end
+    end)
 end
 
-local function toggleInvisible()
-    states.invisible = not states.invisible
-    local char = Player.Character
-    if not char then return end
-    for _, part in pairs(char:GetDescendants()) do
-        if part:IsA("BasePart") or part:IsA("Decal") then
-            part.Transparency = states.invisible and 1 or 0
+local function createExtrasTab()
+    local panel = createContentPanel("🔧 إضافات")
+    addToggle(panel, "إيقاف الكل", function(state)
+        if state then
+            stopAll()
         end
-    end
-    showNotification(states.invisible and "👻 اختفاء ON" or "👁️ اختفاء OFF", Color3.fromRGB(200, 100, 255))
-end
-
-local function toggleSpeed()
-    states.speed = not states.speed
-    local h = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if h then h.WalkSpeed = states.speed and speedAmount or 16 end
-    showNotification(states.speed and ("⚡ سرعة " .. speedAmount) or "⏹ سرعة OFF", Color3.fromRGB(0, 255, 200))
-end
-
-local function increaseSpeed()
-    speedAmount = math.clamp(speedAmount + 10, 20, 500)
-    local h = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if h and states.speed then h.WalkSpeed = speedAmount end
-    showNotification("⚡ السرعة: " .. speedAmount, Color3.fromRGB(0, 255, 200))
-end
-
-local function decreaseSpeed()
-    speedAmount = math.clamp(speedAmount - 10, 20, 500)
-    local h = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if h and states.speed then h.WalkSpeed = speedAmount end
-    showNotification("⚡ السرعة: " .. speedAmount, Color3.fromRGB(0, 255, 200))
-end
-
--- قائمة التيليبورت للاعبين (تظهر داخل لوحة المحتوى بشكل مرتب)
-local function showTeleportList(parent)
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= Player then
-            addActionButton(parent, "🌐 تليبورت إلى: " .. plr.Name, function()
-                local char = plr.Character
-                local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-                if char and char:FindFirstChild("HumanoidRootPart") and root then
-                    root.CFrame = char.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
-                    showNotification("✅ تم التليفورت إلى " .. plr.Name, Color3.fromRGB(0, 200, 100))
-                else
-                    showNotification("❌ اللاعب غير موجود!", Color3.fromRGB(255, 0, 0))
-                end
-            end)
-        end
-    end
-end
-
-local function stopAll()
-    for _, conn in pairs(connections) do if conn then conn:Disconnect() end end
-    connections = {}
-    for key in pairs(states) do states[key] = false end
-    local char = Player.Character
-    if char then
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then part.CanCollide = true; part.Transparency = 0 end
-        end
-        local h = char:FindFirstChild("Humanoid")
-        if h then h.PlatformStand = false; h.WalkSpeed = 16 end
-    end
-    showNotification("⏹ تم إيقاف الكل!", Color3.fromRGB(255, 200, 0))
+    end)
 end
 
 -- ============================================
--- 📋 بناء التبويبات (الأزرار الجانبية)
+-- 📋 إنشاء الأزرار الجانبية
 -- ============================================
-
-local btn1 = createTabButton("الحركة", "🚀", function()
-    local panel = createContentPanel("إعدادات الحركة")
-    addActionButton(panel, "🚀 الطيران (Fly)", toggleFly)
-    addActionButton(panel, "🧱 اختراق الجدران (Noclip)", toggleNoclip)
-    addActionButton(panel, "👻 اختفاء (Invisible)", toggleInvisible)
+local tab1 = createTabButton("الحركة", "🚀")
+tab1.MouseButton1Click:Connect(function()
+    if currentTabBtn then
+        currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
+    end
+    currentTabBtn = tab1
+    tab1.TextColor3 = Color3.fromRGB(240, 240, 245)
+    createMovementTab()
 end)
 
-local btn2 = createTabButton("السرعة", "⚡", function()
-    local panel = createContentPanel("إعدادات السرعة")
-    addActionButton(panel, "⚡ تفعيل/إيقاف السرعة", toggleSpeed)
-    addActionButton(panel, "⬆️ زيادة السرعة (+10)", increaseSpeed)
-    addActionButton(panel, "⬇️ خفض السرعة (-10)", decreaseSpeed)
+local tab2 = createTabButton("السرعة", "⚡")
+tab2.MouseButton1Click:Connect(function()
+    if currentTabBtn then
+        currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
+    end
+    currentTabBtn = tab2
+    tab2.TextColor3 = Color3.fromRGB(240, 240, 245)
+    createSpeedTab()
 end)
 
-local btn3 = createTabButton("التيليبورت", "🌐", function()
-    local panel = createContentPanel("قائمة التيليبورت للاعبين")
-    showTeleportList(panel)
+local tab3 = createTabButton("التيليبورت", "🌐")
+tab3.MouseButton1Click:Connect(function()
+    if currentTabBtn then
+        currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
+    end
+    currentTabBtn = tab3
+    tab3.TextColor3 = Color3.fromRGB(240, 240, 245)
+    createTeleportTab()
 end)
 
-local btn4 = createTabButton("إضافات", "🔧", function()
-    local panel = createContentPanel("الأدوات والإضافات")
-    addActionButton(panel, "🔄 إيقاف جميع الوظائف", stopAll)
+local tab4 = createTabButton("إضافات", "🔧")
+tab4.MouseButton1Click:Connect(function()
+    if currentTabBtn then
+        currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
+    end
+    currentTabBtn = tab4
+    tab4.TextColor3 = Color3.fromRGB(240, 240, 245)
+    createExtrasTab()
 end)
 
--- فتح التاب الأول افتراضياً
-btn1.MouseButton1Click()
+-- ============================================
+-- 🚀 فتح التاب الأول افتراضياً
+-- ============================================
+tab1.MouseButton1Click()
 
+-- ============================================
+-- ⌨️ اختصارات
+-- ============================================
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.F1 then
+        MainFrame.Visible = not MainFrame.Visible
+    end
+end)
+
+-- ============================================
+-- 💬 رسالة ترحيب
+-- ============================================
 print("💀 ROMA SENPAI HUB (Axel Style) Loaded!")
-showNotification("💀 جاهز يا بطل!", Color3.fromRGB(150, 150, 255))
+print("📌 F1 = Toggle GUI")
+showNotification("💀 ROMA HUB جاهز!", Color3.fromRGB(150, 150, 255))
