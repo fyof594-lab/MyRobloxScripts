@@ -1,349 +1,375 @@
+-- نافذة رئيسية بشفافية زجاجية
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer.PlayerGui
+screenGui.ResetOnSpawn = false
 
--- ============================================
--- ⚽ BLUE LOCK RIVALS SCRIPT ⚽
--- ============================================
+-- النافذة الرئيسية
+local mainFrame = Instance.new("Frame")
+mainFrame.Parent = screenGui
+mainFrame.Size = UDim2.new(0, 360, 0, 500)
+mainFrame.Position = UDim2.new(0.5, -180, 0.5, -250)
+mainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+mainFrame.BackgroundTransparency = 0.15
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
 
-local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
-local Mouse = Player:GetMouse()
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
+-- تأثير الزجاج (Glassmorphism)
+local corner = Instance.new("UICorner")
+corner.Parent = mainFrame
+corner.CornerRadius = UDim.new(0, 24)
 
--- ============================================
--- 🎨 واجهة عصرية
--- ============================================
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BlueLockGUI"
-ScreenGui.Parent = Player.PlayerGui
+local blur = Instance.new("BlurEffect")
+blur.Parent = game.Lighting
+blur.Size = 12
 
--- خلفية داكنة شفافة
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 380, 0, 520)
-MainFrame.Position = UDim2.new(0.5, -190, 0.5, -260)
-MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
-MainFrame.BackgroundTransparency = 0.1
-MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Parent = ScreenGui
-
--- زوايا مدورة
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 16)
-Corner.Parent = MainFrame
-
--- إطار متوهج (Neon Stroke)
-local Stroke = Instance.new("UIStroke")
-Stroke.Thickness = 1.5
-Stroke.Color = Color3.fromRGB(0, 200, 255)
-Stroke.Transparency = 0.5
-Stroke.Parent = MainFrame
-
--- ============================================
--- 📌 شريط العنوان مع زر X دائري
--- ============================================
-local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 45)
-TopBar.BackgroundColor3 = Color3.fromRGB(15, 15, 35)
-TopBar.BackgroundTransparency = 0.3
-TopBar.BorderSizePixel = 0
-TopBar.Parent = MainFrame
-
-local TopCorner = Instance.new("UICorner")
-TopCorner.CornerRadius = UDim.new(0, 16)
-TopCorner.Parent = TopBar
+local stroke = Instance.new("UIStroke")
+stroke.Parent = mainFrame
+stroke.Color = Color3.fromRGB(255, 255, 255)
+stroke.Thickness = 1.5
+stroke.Transparency = 0.6
 
 -- عنوان
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -80, 1, 0)
-Title.Position = UDim2.new(0, 20, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "⚽ BLUE LOCK"
-Title.TextColor3 = Color3.fromRGB(0, 200, 255)
-Title.TextScaled = true
-Title.Font = Enum.Font.GothamBold
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = TopBar
+local title = Instance.new("TextLabel")
+title.Parent = mainFrame
+title.Size = UDim2.new(1, 0, 0, 60)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "⚡ CONTROL PANEL"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.TextStrokeTransparency = 0.5
 
--- زر X دائري (إخفاء القائمة)
-local CloseBtn = Instance.new("ImageButton")
-CloseBtn.Size = UDim2.new(0, 32, 0, 32)
-CloseBtn.Position = UDim2.new(1, -40, 0.5, -16)
-CloseBtn.Image = "rbxassetid://3926305904" -- دائرة شفافة
-CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-CloseBtn.BackgroundTransparency = 0.3
-CloseBtn.BorderSizePixel = 0
-CloseBtn.Parent = TopBar
+-- خط فاصل
+local line = Instance.new("Frame")
+line.Parent = mainFrame
+line.Size = UDim2.new(0.9, 0, 0, 2)
+line.Position = UDim2.new(0.05, 0, 0, 70)
+line.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+line.BackgroundTransparency = 0.5
+line.BorderSizePixel = 0
 
--- دائرة زر X
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(1, 0)
-CloseCorner.Parent = CloseBtn
+-- ==================== الزر الأول: الطيران الجماعي ====================
+local flyBtn = Instance.new("TextButton")
+flyBtn.Parent = mainFrame
+flyBtn.Size = UDim2.new(0.85, 0, 0, 70)
+flyBtn.Position = UDim2.new(0.075, 0, 0, 95)
+flyBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+flyBtn.BackgroundTransparency = 0.2
+flyBtn.Text = "🚀 الطيران الجماعي"
+flyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+flyBtn.TextScaled = true
+flyBtn.Font = Enum.Font.GothamBold
+flyBtn.BorderSizePixel = 0
 
--- نص X
-local CloseText = Instance.new("TextLabel")
-CloseText.Size = UDim2.new(1, 0, 1, 0)
-CloseText.BackgroundTransparency = 1
-CloseText.Text = "✕"
-CloseText.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseText.TextScaled = true
-CloseText.Font = Enum.Font.GothamBold
-CloseText.Parent = CloseBtn
+local btnCorner1 = Instance.new("UICorner")
+btnCorner1.Parent = flyBtn
+btnCorner1.CornerRadius = UDim.new(0, 16)
 
--- متغير لحالة القائمة
-local isVisible = true
+local btnStroke1 = Instance.new("UIStroke")
+btnStroke1.Parent = flyBtn
+btnStroke1.Color = Color3.fromRGB(255, 255, 255)
+btnStroke1.Thickness = 1
+btnStroke1.Transparency = 0.6
 
--- وظيفة إظهار/إخفاء القائمة بشكل دائري
-local function ToggleMenu()
-    isVisible = not isVisible
-    local targetSize = isVisible and UDim2.new(0, 380, 0, 520) or UDim2.new(0, 60, 0, 60)
-    local targetPos = isVisible and UDim2.new(0.5, -190, 0.5, -260) or UDim2.new(0, 10, 0, 100)
-    local targetTrans = isVisible and 0.1 or 0.8
+-- حالة الزر
+local isFlying = false
+local flyingPlayers = {}
+
+flyBtn.MouseButton1Click:Connect(function()
+    isFlying = not isFlying
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character then return end
     
-    TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = targetSize,
-        Position = targetPos,
-        BackgroundTransparency = targetTrans
-    }):Play()
-    
-    -- إخفاء/إظهار المحتوى
-    for _, child in pairs(MainFrame:GetChildren()) do
-        if child ~= TopBar and child.Name ~= "Particles" then
-            child.Visible = isVisible
-        end
-    end
-end
-
-CloseBtn.MouseButton1Click:Connect(ToggleMenu)
-
--- ============================================
--- 📜 قائمة الأوامر (سكربت بلو لوك)
--- ============================================
-local ScrollFrame = Instance.new("ScrollingFrame")
-ScrollFrame.Size = UDim2.new(1, -20, 1, -55)
-ScrollFrame.Position = UDim2.new(0, 10, 0, 50)
-ScrollFrame.BackgroundTransparency = 1
-ScrollFrame.BorderSizePixel = 0
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-ScrollFrame.ScrollBarThickness = 4
-ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 200, 255)
-ScrollFrame.Parent = MainFrame
-
--- ============================================
--- ⚽ أوامر بلو لوك رايفلز
--- ============================================
-local Commands = {
-    -- 🏃 دريبل تلقائي (Auto Dribble)
-    {Text = "🏃 Auto Dribble", Color = Color3.fromRGB(0, 200, 255), Callback = function()
-        local char = Player.Character
-        if not char then return end
-        local root = char:FindFirstChild("HumanoidRootPart")
-        if not root then return end
+    if isFlying then
+        flyBtn.Text = "🚀 إيقاف الطيران"
+        flyBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
         
-        local dribbling = false
-        local bv = Instance.new("BodyVelocity")
-        bv.MaxForce = Vector3.new(1, 1, 1) * 100000
-        
-        local function startDribble()
-            dribbling = true
-            bv.Parent = root
-            local con
-            con = RunService.Heartbeat:Connect(function()
-                if not dribbling or not root or not bv.Parent then
-                    con:Disconnect()
-                    return
+        for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+            if otherPlayer ~= player then
+                local otherChar = otherPlayer.Character
+                if otherChar and otherChar:FindFirstChild("HumanoidRootPart") then
+                    local bodyVelocity = Instance.new("BodyVelocity")
+                    bodyVelocity.Velocity = Vector3.new(0, 150, 0) -- سرعة الصعود
+                    bodyVelocity.MaxForce = Vector3.new(0, 4000, 0)
+                    bodyVelocity.Parent = otherChar.HumanoidRootPart
+                    table.insert(flyingPlayers, bodyVelocity)
                 end
-                -- حركة عشوائية تشبه الدريبل
-                local dir = Vector3.new(
-                    math.random(-2, 2),
-                    0,
-                    math.random(-2, 2)
-                )
-                bv.Velocity = dir * 30
-            end)
-            return con
-        end
-        
-        local con = startDribble()
-        
-        if bv.Parent then
-            dribbling = false
-            bv:Destroy()
-            if con then con:Disconnect() end
-        else
-            startDribble()
-        end
-    end},
-    
-    -- 🎯 شخصيات مجانية (Free Characters)
-    {Text = "🎯 Free Characters", Color = Color3.fromRGB(255, 215, 0), Callback = function()
-        -- محاكاة فتح الشخصيات
-        for i = 1, 10 do
-            local char = Instance.new("Model")
-            char.Name = "Character_" .. i
-            char.Parent = Player.Character
-            wait(0.1)
-        end
-        print("✅ تم فتح 10 شخصيات!")
-    end},
-    
-    -- ⚡ سرعة خارقة (Super Speed)
-    {Text = "⚡ Super Speed", Color = Color3.fromRGB(255, 100, 255), Callback = function()
-        local h = Player.Character.Humanoid
-        if h.WalkSpeed == 16 then
-            h.WalkSpeed = 120
-            h.JumpPower = 80
-        else
-            h.WalkSpeed = 16
-            h.JumpPower = 50
-        end
-    end},
-    
-    -- 🎯 Iframe Hitbox (تحسين التسديد)
-    {Text = "🎯 Iframe Hitbox", Color = Color3.fromRGB(255, 50, 100), Callback = function()
-        local char = Player.Character
-        if not char then return end
-        
-        -- تكبير الهيت بوكس
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                part.Size = part.Size * 1.5
-                part.Transparency = 0.5
             end
         end
+    else
+        flyBtn.Text = "🚀 الطيران الجماعي"
+        flyBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        flyBtn.BackgroundTransparency = 0.2
         
-        -- تأثير بصري
-        local highlight = Instance.new("Highlight")
-        highlight.FillColor = Color3.fromRGB(255, 0, 100)
-        highlight.FillTransparency = 0.3
-        highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
-        highlight.Parent = char
-        
-        wait(5)
-        highlight:Destroy()
-    end},
-    
-    -- 🎯 تسديد دقيق (Perfect Shot)
-    {Text = "🎯 Perfect Shot", Color = Color3.fromRGB(0, 255, 200), Callback = function()
-        -- محاكاة تسديد دقيق
-        local root = Player.Character.HumanoidRootPart
-        if root then
-            -- اتجاه التسديد
-            local dir = Mouse.Hit.Position - root.Position
-            local vel = Instance.new("BodyVelocity")
-            vel.MaxForce = Vector3.new(1, 1, 1) * 100000
-            vel.Velocity = dir.Unit * 200
-            vel.Parent = root
-            wait(0.5)
-            vel:Destroy()
-        end
-    end},
-    
-    -- 👻 اختراق (Noclip)
-    {Text = "👻 Noclip", Color = Color3.fromRGB(150, 100, 255), Callback = function()
-        local char = Player.Character
-        if not char then return end
-        local noclip = false
-        
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = not part.CanCollide
-                noclip = true
+        for _, vel in pairs(flyingPlayers) do
+            if vel and vel.Parent then
+                vel:Destroy()
             end
         end
-    end},
-    
-    -- 💨 طيران
-    {Text = "💨 Fly", Color = Color3.fromRGB(0, 150, 255), Callback = function()
-        local char = Player.Character
-        if not char then return end
-        local root = char:FindFirstChild("HumanoidRootPart")
-        if not root then return end
-        
-        local flying = false
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(1, 1, 1) * 100000
-        
-        local function startFly()
-            flying = true
-            bodyVelocity.Parent = root
-            local connection
-            connection = RunService.Heartbeat:Connect(function()
-                if not flying or not root or not bodyVelocity.Parent then
-                    connection:Disconnect()
-                    return
-                end
-                local direction = Mouse.UnitRay.Direction * 50
-                bodyVelocity.Velocity = direction
-            end)
-            return connection
-        end
-        
-        local con = startFly()
-        
-        if bodyVelocity.Parent then
-            flying = false
-            bodyVelocity:Destroy()
-            if con then con:Disconnect() end
-        else
-            startFly()
-        end
-    end},
-}
-
--- ============================================
--- 🎨 إنشاء الأزرار
--- ============================================
-local buttonHeight = 45
-local spacing = 6
-local canvasHeight = #Commands * (buttonHeight + spacing) + 20
-
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, canvasHeight)
-
-for i, cmdData in ipairs(Commands) do
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(1, 0, 0, buttonHeight)
-    Button.Position = UDim2.new(0, 0, 0, 5 + (i-1) * (buttonHeight + spacing))
-    Button.Text = cmdData.Text
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.TextScaled = true
-    Button.Font = Enum.Font.GothamBold
-    Button.BackgroundColor3 = cmdData.Color or Color3.fromRGB(30, 30, 60)
-    Button.BackgroundTransparency = 0.2
-    Button.BorderSizePixel = 0
-    Button.Parent = ScrollFrame
-    
-    -- زوايا مدورة
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 8)
-    btnCorner.Parent = Button
-    
-    -- تأثير التمرير
-    Button.MouseEnter:Connect(function()
-        Button.BackgroundTransparency = 0
-    end)
-    Button.MouseLeave:Connect(function()
-        Button.BackgroundTransparency = 0.2
-    end)
-    
-    Button.MouseButton1Click:Connect(cmdData.Callback)
-end
-
--- ============================================
--- ⌨️ اختصارات
--- ============================================
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    
-    if input.KeyCode == Enum.KeyCode.F1 then
-        ToggleMenu()
+        flyingPlayers = {}
     end
 end)
 
--- ============================================
--- 💬 رسالة ترحيب
--- ============================================
-print("⚽ Blue Lock Script Loaded!")
-print("📌 Press F1 to toggle GUI")
+-- ==================== الزر الثاني: جلب الكرة ====================
+local ballBtn = Instance.new("TextButton")
+ballBtn.Parent = mainFrame
+ballBtn.Size = UDim2.new(0.85, 0, 0, 70)
+ballBtn.Position = UDim2.new(0.075, 0, 0, 185)
+ballBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ballBtn.BackgroundTransparency = 0.2
+ballBtn.Text = "⚽ جلب الكرة"
+ballBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ballBtn.TextScaled = true
+ballBtn.Font = Enum.Font.GothamBold
+ballBtn.BorderSizePixel = 0
+
+local btnCorner2 = Instance.new("UICorner")
+btnCorner2.Parent = ballBtn
+btnCorner2.CornerRadius = UDim.new(0, 16)
+
+local btnStroke2 = Instance.new("UIStroke")
+btnStroke2.Parent = ballBtn
+btnStroke2.Color = Color3.fromRGB(255, 255, 255)
+btnStroke2.Thickness = 1
+btnStroke2.Transparency = 0.6
+
+ballBtn.MouseButton1Click:Connect(function()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character then return end
+    
+    local ball = workspace:FindFirstChild("Ball") or workspace:FindFirstChild("ball")
+    if ball and ball:FindFirstChild("Handle") then
+        local handle = ball.Handle
+        local charPos = character.HumanoidRootPart.Position
+        handle.CFrame = CFrame.new(charPos + Vector3.new(0, 3, 0))
+        -- إضافة تأثير حركي
+        local bodyVel = Instance.new("BodyVelocity")
+        bodyVel.Velocity = Vector3.new(0, 10, 0)
+        bodyVel.MaxForce = Vector3.new(0, 1000, 0)
+        bodyVel.Parent = handle
+        game:GetService("Debris"):AddItem(bodyVel, 0.5)
+        
+        -- إشعار
+        local notif = Instance.new("TextLabel")
+        notif.Parent = screenGui
+        notif.Size = UDim2.new(0, 300, 0, 50)
+        notif.Position = UDim2.new(0.5, -150, 0.1, 0)
+        notif.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+        notif.BackgroundTransparency = 0.3
+        notif.Text = "✅ تم جلب الكرة!"
+        notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+        notif.TextScaled = true
+        notif.Font = Enum.Font.GothamBold
+        notif.BorderSizePixel = 0
+        local notifCorner = Instance.new("UICorner")
+        notifCorner.Parent = notif
+        notifCorner.CornerRadius = UDim.new(0, 12)
+        game:GetService("Debris"):AddItem(notif, 2)
+    else
+        -- رسالة خطأ إذا لم توجد الكرة
+        local notif = Instance.new("TextLabel")
+        notif.Parent = screenGui
+        notif.Size = UDim2.new(0, 300, 0, 50)
+        notif.Position = UDim2.new(0.5, -150, 0.1, 0)
+        notif.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        notif.BackgroundTransparency = 0.3
+        notif.Text = "❌ لم يتم العثور على الكرة!"
+        notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+        notif.TextScaled = true
+        notif.Font = Enum.Font.GothamBold
+        notif.BorderSizePixel = 0
+        local notifCorner = Instance.new("UICorner")
+        notifCorner.Parent = notif
+        notifCorner.CornerRadius = UDim.new(0, 12)
+        game:GetService("Debris"):AddItem(notif, 2)
+    end
+end)
+
+-- ==================== الزر الثالث: التحكم بالكرة ====================
+local controlBtn = Instance.new("TextButton")
+controlBtn.Parent = mainFrame
+controlBtn.Size = UDim2.new(0.85, 0, 0, 70)
+controlBtn.Position = UDim2.new(0.075, 0, 0, 275)
+controlBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+controlBtn.BackgroundTransparency = 0.2
+controlBtn.Text = "🎯 التحكم بالكرة"
+controlBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+controlBtn.TextScaled = true
+controlBtn.Font = Enum.Font.GothamBold
+controlBtn.BorderSizePixel = 0
+
+local btnCorner3 = Instance.new("UICorner")
+btnCorner3.Parent = controlBtn
+btnCorner3.CornerRadius = UDim.new(0, 16)
+
+local btnStroke3 = Instance.new("UIStroke")
+btnStroke3.Parent = controlBtn
+btnStroke3.Color = Color3.fromRGB(255, 255, 255)
+btnStroke3.Thickness = 1
+btnStroke3.Transparency = 0.6
+
+local isControlling = false
+local controlConnection = nil
+
+controlBtn.MouseButton1Click:Connect(function()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character then return end
+    
+    isControlling = not isControlling
+    
+    if isControlling then
+        controlBtn.Text = "🎯 إيقاف التحكم"
+        controlBtn.BackgroundColor3 = Color3.fromRGB(70, 150, 255)
+        controlBtn.BackgroundTransparency = 0.1
+        
+        local ball = workspace:FindFirstChild("Ball") or workspace:FindFirstChild("ball")
+        if ball and ball:FindFirstChild("Handle") then
+            local handle = ball.Handle
+            
+            -- جعل الكرة تتبع الماوس في السماء
+            controlConnection = game:GetService("RunService").RenderStepped:Connect(function()
+                local mouse = player:GetMouse()
+                local targetPos = mouse.Hit.Position + Vector3.new(0, 10, 0) -- تحليق في السماء
+                handle.CFrame = CFrame.new(targetPos)
+                
+                -- إضافة تأثير طيران للكرة
+                local bodyVel = Instance.new("BodyVelocity")
+                bodyVel.Velocity = Vector3.new(0, 20, 0)
+                bodyVel.MaxForce = Vector3.new(0, 2000, 0)
+                bodyVel.Parent = handle
+                game:GetService("Debris"):AddItem(bodyVel, 0.1)
+            end)
+            
+            -- إشعار
+            local notif = Instance.new("TextLabel")
+            notif.Parent = screenGui
+            notif.Size = UDim2.new(0, 300, 0, 50)
+            notif.Position = UDim2.new(0.5, -150, 0.1, 0)
+            notif.BackgroundColor3 = Color3.fromRGB(70, 150, 255)
+            notif.BackgroundTransparency = 0.3
+            notif.Text = "🎯 حرك الماوس للتحكم بالكرة!"
+            notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+            notif.TextScaled = true
+            notif.Font = Enum.Font.GothamBold
+            notif.BorderSizePixel = 0
+            local notifCorner = Instance.new("UICorner")
+            notifCorner.Parent = notif
+            notifCorner.CornerRadius = UDim.new(0, 12)
+            game:GetService("Debris"):AddItem(notif, 3)
+        else
+            isControlling = false
+            controlBtn.Text = "🎯 التحكم بالكرة"
+            controlBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            controlBtn.BackgroundTransparency = 0.2
+            
+            local notif = Instance.new("TextLabel")
+            notif.Parent = screenGui
+            notif.Size = UDim2.new(0, 300, 0, 50)
+            notif.Position = UDim2.new(0.5, -150, 0.1, 0)
+            notif.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+            notif.BackgroundTransparency = 0.3
+            notif.Text = "❌ لم يتم العثور على الكرة!"
+            notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+            notif.TextScaled = true
+            notif.Font = Enum.Font.GothamBold
+            notif.BorderSizePixel = 0
+            local notifCorner = Instance.new("UICorner")
+            notifCorner.Parent = notif
+            notifCorner.CornerRadius = UDim.new(0, 12)
+            game:GetService("Debris"):AddItem(notif, 2)
+        end
+    else
+        controlBtn.Text = "🎯 التحكم بالكرة"
+        controlBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        controlBtn.BackgroundTransparency = 0.2
+        
+        if controlConnection then
+            controlConnection:Disconnect()
+            controlConnection = nil
+        end
+        
+        -- إشعار
+        local notif = Instance.new("TextLabel")
+        notif.Parent = screenGui
+        notif.Size = UDim2.new(0, 300, 0, 50)
+        notif.Position = UDim2.new(0.5, -150, 0.1, 0)
+        notif.BackgroundColor3 = Color3.fromRGB(255, 150, 50)
+        notif.BackgroundTransparency = 0.3
+        notif.Text = "⏹ تم إيقاف التحكم"
+        notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+        notif.TextScaled = true
+        notif.Font = Enum.Font.GothamBold
+        notif.BorderSizePixel = 0
+        local notifCorner = Instance.new("UICorner")
+        notifCorner.Parent = notif
+        notifCorner.CornerRadius = UDim.new(0, 12)
+        game:GetService("Debris"):AddItem(notif, 2)
+    end
+end)
+
+-- ==================== زر الإغلاق (X) ====================
+local closeBtn = Instance.new("TextButton")
+closeBtn.Parent = mainFrame
+closeBtn.Size = UDim2.new(0, 45, 0, 45)
+closeBtn.Position = UDim2.new(1, -55, 0, 10)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+closeBtn.BackgroundTransparency = 0.3
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.BorderSizePixel = 0
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.Parent = closeBtn
+closeCorner.CornerRadius = UDim.new(0, 12)
+
+closeBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+    if mainFrame.Visible then
+        closeBtn.Text = "✕"
+    else
+        closeBtn.Text = "⊕"
+    end
+end)
+
+-- زر سحب النافذة (لتحريكها)
+local dragBtn = Instance.new("TextButton")
+dragBtn.Parent = mainFrame
+dragBtn.Size = UDim2.new(1, -60, 0, 60)
+dragBtn.Position = UDim2.new(0, 0, 0, 0)
+dragBtn.BackgroundTransparency = 1
+dragBtn.Text = ""
+dragBtn.BorderSizePixel = 0
+
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+dragBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
+end)
+
+dragBtn.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- ==================== ملاحظة: الكود جاهز للتشغيل ====================
+print("✅ تم تحميل الواجهة الزجاجية الفخمة بنجاح!")
