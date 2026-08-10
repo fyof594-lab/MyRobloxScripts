@@ -1,5 +1,5 @@
 -- ============================================
--- 💀 ROMA SENPAI HUB (Axel Hub Style) 💀
+-- 💀 ROMA SENPAI HUB 💀
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -16,18 +16,17 @@ local states = {
     fly = false,
     noclip = false,
     invisible = false,
-    speed = false,
-    teleport = false
+    speed = false
 }
 local connections = {}
 local speedAmount = 120
 local flySpeed = 80
+local isGUIVisible = false
 
 -- ============================================
 -- 🛠️ دوال الوظائف
 -- ============================================
 
--- الطيران
 local function toggleFly(state)
     states.fly = state
     local char = Player.Character
@@ -68,7 +67,6 @@ local function toggleFly(state)
     end
 end
 
--- اختراق الجدران
 local function toggleNoclip(state)
     states.noclip = state
     if states.noclip then
@@ -101,7 +99,6 @@ local function toggleNoclip(state)
     end
 end
 
--- اختفاء
 local function toggleInvisible(state)
     states.invisible = state
     local char = Player.Character
@@ -138,7 +135,6 @@ local function toggleInvisible(state)
     end
 end
 
--- السرعة
 local function toggleSpeed(state)
     states.speed = state
     local h = Player.Character and Player.Character:FindFirstChild("Humanoid")
@@ -153,7 +149,6 @@ local function toggleSpeed(state)
     end
 end
 
--- إيقاف الكل
 local function stopAll()
     for _, conn in pairs(connections) do
         if conn then
@@ -186,27 +181,13 @@ local function stopAll()
             root.Velocity = Vector3.new(0, 0, 0)
         end
     end
-    if TeleportFrame then
-        TeleportFrame.Visible = false
-    end
     showNotification("⏹ تم إيقاف الكل!", Color3.fromRGB(255, 200, 0))
 end
 
 -- ============================================
--- 🌐 التيليبورت
+-- 🌐 التيليبورت (قائمة منبثقة)
 -- ============================================
 local TeleportFrame = nil
-
-local function toggleTeleport(state)
-    states.teleport = state
-    if states.teleport then
-        showTeleportMenu()
-    else
-        if TeleportFrame then
-            TeleportFrame.Visible = false
-        end
-    end
-end
 
 local function showTeleportMenu()
     if TeleportFrame and TeleportFrame.Visible then
@@ -334,309 +315,434 @@ function showNotification(text, color)
 end
 
 -- ============================================
+-- 🎬 شاشة Intro (ترحيب)
+-- ============================================
+local function showIntro()
+    local intro = Instance.new("Frame")
+    intro.Parent = Player.PlayerGui
+    intro.Size = UDim2.new(1, 0, 1, 0)
+    intro.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    intro.BackgroundTransparency = 0.2
+    intro.BorderSizePixel = 0
+    
+    local text = Instance.new("TextLabel")
+    text.Parent = intro
+    text.Size = UDim2.new(0, 400, 0, 80)
+    text.Position = UDim2.new(0.5, -200, 0.5, -40)
+    text.BackgroundTransparency = 1
+    text.Text = "⚡ ROMA SENPAI\nصنع من طرف ROMA SENPAI"
+    text.TextColor3 = Color3.fromRGB(255, 255, 255)
+    text.TextScaled = true
+    text.Font = Enum.Font.GothamBold
+    text.TextStrokeTransparency = 0.5
+    
+    local subText = Instance.new("TextLabel")
+    subText.Parent = intro
+    subText.Size = UDim2.new(0, 300, 0, 30)
+    subText.Position = UDim2.new(0.5, -150, 0.5, 60)
+    subText.BackgroundTransparency = 1
+    subText.Text = "جاري التحميل..."
+    subText.TextColor3 = Color3.fromRGB(150, 150, 255)
+    subText.TextScaled = true
+    subText.Font = Enum.Font.GothamSemibold
+    
+    task.wait(1.5)
+    
+    intro:Destroy()
+    createGUI()
+end
+
+-- ============================================
 -- 🎨 الواجهة الرئيسية (مصغرة)
 -- ============================================
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RomaAxelHub"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = Player.PlayerGui
+local ScreenGui = nil
+local MainFrame = nil
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 350, 0, 320)
-MainFrame.Position = UDim2.new(0.5, -175, 0.5, -160)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-MainFrame.BackgroundTransparency = 0.1
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
+function createGUI()
+    ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "RomaAxelHub"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.Parent = Player.PlayerGui
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 10)
-MainCorner.Parent = MainFrame
+    MainFrame = Instance.new("Frame")
+    MainFrame.Parent = ScreenGui
+    MainFrame.Size = UDim2.new(0, 300, 0, 280)
+    MainFrame.Position = UDim2.new(0.5, -150, 0.5, -140)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+    MainFrame.BackgroundTransparency = 0.1
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    MainFrame.Visible = true
 
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Parent = MainFrame
-MainStroke.Color = Color3.fromRGB(45, 45, 55)
-MainStroke.Thickness = 1
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 10)
+    MainCorner.Parent = MainFrame
 
--- ============================================
--- 📌 شريط العنوان
--- ============================================
-local TopBar = Instance.new("Frame")
-TopBar.Parent = MainFrame
-TopBar.Size = UDim2.new(1, 0, 0, 35)
-TopBar.BackgroundTransparency = 1
+    local MainStroke = Instance.new("UIStroke")
+    MainStroke.Parent = MainFrame
+    MainStroke.Color = Color3.fromRGB(45, 45, 55)
+    MainStroke.Thickness = 1
 
-local LogoLabel = Instance.new("TextLabel")
-LogoLabel.Parent = TopBar
-LogoLabel.Size = UDim2.new(0, 130, 1, 0)
-LogoLabel.Position = UDim2.new(0, 12, 0, 0)
-LogoLabel.BackgroundTransparency = 1
-LogoLabel.Text = "⚡ ROMA HUB"
-LogoLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
-LogoLabel.TextSize = 14
-LogoLabel.Font = Enum.Font.GothamBold
-LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
+    -- ============================================
+    -- 📌 شريط العنوان مع زر تصغير
+    -- ============================================
+    local TopBar = Instance.new("Frame")
+    TopBar.Parent = MainFrame
+    TopBar.Size = UDim2.new(1, 0, 0, 35)
+    TopBar.BackgroundTransparency = 1
 
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Parent = TopBar
-CloseBtn.Size = UDim2.new(0, 25, 0, 25)
-CloseBtn.Position = UDim2.new(1, -32, 0.5, -12.5)
-CloseBtn.BackgroundTransparency = 1
-CloseBtn.Text = "✕"
-CloseBtn.TextColor3 = Color3.fromRGB(160, 160, 175)
-CloseBtn.TextSize = 14
-CloseBtn.Font = Enum.Font.GothamBold
+    local LogoLabel = Instance.new("TextLabel")
+    LogoLabel.Parent = TopBar
+    LogoLabel.Size = UDim2.new(0, 120, 1, 0)
+    LogoLabel.Position = UDim2.new(0, 10, 0, 0)
+    LogoLabel.BackgroundTransparency = 1
+    LogoLabel.Text = "⚡ ROMA HUB"
+    LogoLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
+    LogoLabel.TextSize = 13
+    LogoLabel.Font = Enum.Font.GothamBold
+    LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
+    -- زر تصغير (Minimize)
+    local MinBtn = Instance.new("TextButton")
+    MinBtn.Parent = TopBar
+    MinBtn.Size = UDim2.new(0, 25, 0, 25)
+    MinBtn.Position = UDim2.new(1, -60, 0.5, -12.5)
+    MinBtn.BackgroundTransparency = 1
+    MinBtn.Text = "−"
+    MinBtn.TextColor3 = Color3.fromRGB(160, 160, 175)
+    MinBtn.TextSize = 18
+    MinBtn.Font = Enum.Font.GothamBold
 
--- ============================================
--- 📂 القائمة الجانبية
--- ============================================
-local Sidebar = Instance.new("ScrollingFrame")
-Sidebar.Parent = MainFrame
-Sidebar.Size = UDim2.new(0, 120, 1, -35)
-Sidebar.Position = UDim2.new(0, 0, 0, 35)
-Sidebar.BackgroundTransparency = 1
-Sidebar.BorderSizePixel = 0
-Sidebar.ScrollBarThickness = 0
-Sidebar.CanvasSize = UDim2.new(0, 0, 0, 250)
-
-local SidebarLayout = Instance.new("UIListLayout")
-SidebarLayout.Parent = Sidebar
-SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-SidebarLayout.Padding = UDim.new(0, 4)
-
-local SidebarPadding = Instance.new("UIPadding")
-SidebarPadding.Parent = Sidebar
-SidebarPadding.PaddingLeft = UDim.new(0, 8)
-SidebarPadding.PaddingRight = UDim.new(0, 8)
-
--- ============================================
--- 🖥️ حاوية المحتوى
--- ============================================
-local ContentContainer = Instance.new("Frame")
-ContentContainer.Parent = MainFrame
-ContentContainer.Size = UDim2.new(1, -125, 1, -45)
-ContentContainer.Position = UDim2.new(0, 125, 0, 40)
-ContentContainer.BackgroundTransparency = 1
-
-local currentTabBtn = nil
-
-local function createTabButton(name, icon)
-    local btn = Instance.new("TextButton")
-    btn.Parent = Sidebar
-    btn.Size = UDim2.new(1, 0, 0, 28)
-    btn.BackgroundTransparency = 1
-    btn.Text = "   " .. icon .. "  " .. name
-    btn.TextColor3 = Color3.fromRGB(140, 140, 160)
-    btn.TextSize = 11
-    btn.Font = Enum.Font.GothamSemibold
-    btn.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = btn
-    
-    btn.MouseEnter:Connect(function()
-        btn.TextColor3 = Color3.fromRGB(240, 240, 245)
-    end)
-    btn.MouseLeave:Connect(function()
-        if currentTabBtn ~= btn then
-            btn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        end
-    end)
-    
-    return btn
-end
-
-local function createContentPanel(titleText)
-    for _, v in pairs(ContentContainer:GetChildren()) do v:Destroy() end
-    
-    local panel = Instance.new("ScrollingFrame")
-    panel.Parent = ContentContainer
-    panel.Size = UDim2.new(1, 0, 1, 0)
-    panel.BackgroundTransparency = 1
-    panel.BorderSizePixel = 0
-    panel.ScrollBarThickness = 2
-    panel.CanvasSize = UDim2.new(0, 0, 0, 250)
-    
-    local layout = Instance.new("UIListLayout")
-    layout.Parent = panel
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 6)
-    
-    local title = Instance.new("TextLabel")
-    title.Parent = panel
-    title.Size = UDim2.new(1, 0, 0, 22)
-    title.BackgroundTransparency = 1
-    title.Text = titleText
-    title.TextColor3 = Color3.fromRGB(240, 240, 250)
-    title.TextSize = 13
-    title.Font = Enum.Font.GothamBold
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    
-    return panel
-end
-
-local function addToggle(parent, titleText, callback)
-    local toggle = Instance.new("Frame")
-    toggle.Parent = parent
-    toggle.Size = UDim2.new(1, -5, 0, 32)
-    toggle.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    toggle.BorderSizePixel = 0
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = toggle
-    
-    local label = Instance.new("TextLabel")
-    label.Parent = toggle
-    label.Size = UDim2.new(1, -50, 1, 0)
-    label.Position = UDim2.new(0, 10, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = titleText
-    label.TextColor3 = Color3.fromRGB(200, 200, 215)
-    label.TextSize = 11
-    label.Font = Enum.Font.GothamMedium
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local btn = Instance.new("TextButton")
-    btn.Parent = toggle
-    btn.Size = UDim2.new(1, 0, 1, 0)
-    btn.BackgroundTransparency = 1
-    btn.Text = ""
-    
-    local active = false
-    local indicator = Instance.new("Frame")
-    indicator.Parent = toggle
-    indicator.Size = UDim2.new(0, 14, 0, 14)
-    indicator.Position = UDim2.new(1, -20, 0.5, -7)
-    indicator.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-    
-    local indCorner = Instance.new("UICorner")
-    indCorner.CornerRadius = UDim.new(0, 4)
-    indCorner.Parent = indicator
-    
-    btn.MouseButton1Click:Connect(function()
-        active = not active
-        TweenService:Create(indicator, TweenInfo.new(0.2), {
-            BackgroundColor3 = active and Color3.fromRGB(80, 140, 255) or Color3.fromRGB(40, 40, 50)
-        }):Play()
-        callback(active)
-    end)
-end
-
--- ============================================
--- ⚙️ بناء القوائم
--- ============================================
-
-local function createMovementTab()
-    local panel = createContentPanel("🚀 إعدادات الحركة")
-    addToggle(panel, "الطيران (Fly)", function(state)
-        toggleFly(state)
-    end)
-    addToggle(panel, "اختراق الجدران (Noclip)", function(state)
-        toggleNoclip(state)
-    end)
-    addToggle(panel, "اختفاء (Invisible)", function(state)
-        toggleInvisible(state)
-    end)
-end
-
-local function createSpeedTab()
-    local panel = createContentPanel("⚡ إعدادات السرعة")
-    addToggle(panel, "تفعيل السرعة العالية", function(state)
-        toggleSpeed(state)
-    end)
-end
-
-local function createTeleportTab()
-    local panel = createContentPanel("🌐 الانتقال للاعبين")
-    addToggle(panel, "فتح قائمة التيليبورت", function(state)
-        if state then
-            showTeleportMenu()
+    local isMinimized = false
+    MinBtn.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+        if isMinimized then
+            MainFrame.Size = UDim2.new(0, 40, 0, 35)
+            MainFrame.Position = UDim2.new(0, 10, 0.5, -17.5)
+            MinBtn.Text = "+"
+            MinBtn.Position = UDim2.new(0, 10, 0.5, -12.5)
+            for _, child in pairs(MainFrame:GetChildren()) do
+                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
+                    child.Visible = false
+                end
+            end
         else
-            if TeleportFrame then
-                TeleportFrame.Visible = false
+            MainFrame.Size = UDim2.new(0, 300, 0, 280)
+            MainFrame.Position = UDim2.new(0.5, -150, 0.5, -140)
+            MinBtn.Text = "−"
+            MinBtn.Position = UDim2.new(1, -60, 0.5, -12.5)
+            for _, child in pairs(MainFrame:GetChildren()) do
+                if child ~= TopBar and child ~= MinBtn and child ~= CloseBtn then
+                    child.Visible = true
+                end
             end
         end
     end)
-end
 
-local function createExtrasTab()
-    local panel = createContentPanel("🔧 إضافات")
-    addToggle(panel, "إيقاف الكل", function(state)
-        if state then
+    -- زر إغلاق
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Parent = TopBar
+    CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+    CloseBtn.Position = UDim2.new(1, -32, 0.5, -12.5)
+    CloseBtn.BackgroundTransparency = 1
+    CloseBtn.Text = "✕"
+    CloseBtn.TextColor3 = Color3.fromRGB(160, 160, 175)
+    CloseBtn.TextSize = 14
+    CloseBtn.Font = Enum.Font.GothamBold
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+
+    -- ============================================
+    -- 📂 القائمة الجانبية
+    -- ============================================
+    local Sidebar = Instance.new("ScrollingFrame")
+    Sidebar.Parent = MainFrame
+    Sidebar.Size = UDim2.new(0, 110, 1, -35)
+    Sidebar.Position = UDim2.new(0, 0, 0, 35)
+    Sidebar.BackgroundTransparency = 1
+    Sidebar.BorderSizePixel = 0
+    Sidebar.ScrollBarThickness = 0
+    Sidebar.CanvasSize = UDim2.new(0, 0, 0, 250)
+
+    local SidebarLayout = Instance.new("UIListLayout")
+    SidebarLayout.Parent = Sidebar
+    SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SidebarLayout.Padding = UDim.new(0, 4)
+
+    local SidebarPadding = Instance.new("UIPadding")
+    SidebarPadding.Parent = Sidebar
+    SidebarPadding.PaddingLeft = UDim.new(0, 8)
+    SidebarPadding.PaddingRight = UDim.new(0, 8)
+
+    -- ============================================
+    -- 🖥️ حاوية المحتوى
+    -- ============================================
+    local ContentContainer = Instance.new("Frame")
+    ContentContainer.Parent = MainFrame
+    ContentContainer.Size = UDim2.new(1, -115, 1, -45)
+    ContentContainer.Position = UDim2.new(0, 115, 0, 40)
+    ContentContainer.BackgroundTransparency = 1
+
+    local currentTabBtn = nil
+
+    local function createTabButton(name, icon)
+        local btn = Instance.new("TextButton")
+        btn.Parent = Sidebar
+        btn.Size = UDim2.new(1, 0, 0, 28)
+        btn.BackgroundTransparency = 1
+        btn.Text = "   " .. icon .. "  " .. name
+        btn.TextColor3 = Color3.fromRGB(140, 140, 160)
+        btn.TextSize = 11
+        btn.Font = Enum.Font.GothamSemibold
+        btn.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = btn
+        
+        btn.MouseEnter:Connect(function()
+            btn.TextColor3 = Color3.fromRGB(240, 240, 245)
+        end)
+        btn.MouseLeave:Connect(function()
+            if currentTabBtn ~= btn then
+                btn.TextColor3 = Color3.fromRGB(140, 140, 160)
+            end
+        end)
+        
+        return btn
+    end
+
+    local function createContentPanel(titleText)
+        for _, v in pairs(ContentContainer:GetChildren()) do v:Destroy() end
+        
+        local panel = Instance.new("ScrollingFrame")
+        panel.Parent = ContentContainer
+        panel.Size = UDim2.new(1, 0, 1, 0)
+        panel.BackgroundTransparency = 1
+        panel.BorderSizePixel = 0
+        panel.ScrollBarThickness = 2
+        panel.CanvasSize = UDim2.new(0, 0, 0, 250)
+        
+        local layout = Instance.new("UIListLayout")
+        layout.Parent = panel
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.Padding = UDim.new(0, 6)
+        
+        local title = Instance.new("TextLabel")
+        title.Parent = panel
+        title.Size = UDim2.new(1, 0, 0, 22)
+        title.BackgroundTransparency = 1
+        title.Text = titleText
+        title.TextColor3 = Color3.fromRGB(240, 240, 250)
+        title.TextSize = 13
+        title.Font = Enum.Font.GothamBold
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        
+        return panel
+    end
+
+    local function addToggle(parent, titleText, callback)
+        local toggle = Instance.new("Frame")
+        toggle.Parent = parent
+        toggle.Size = UDim2.new(1, -5, 0, 30)
+        toggle.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        toggle.BorderSizePixel = 0
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = toggle
+        
+        local label = Instance.new("TextLabel")
+        label.Parent = toggle
+        label.Size = UDim2.new(1, -45, 1, 0)
+        label.Position = UDim2.new(0, 10, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = titleText
+        label.TextColor3 = Color3.fromRGB(200, 200, 215)
+        label.TextSize = 11
+        label.Font = Enum.Font.GothamMedium
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local btn = Instance.new("TextButton")
+        btn.Parent = toggle
+        btn.Size = UDim2.new(1, 0, 1, 0)
+        btn.BackgroundTransparency = 1
+        btn.Text = ""
+        
+        local active = false
+        local indicator = Instance.new("Frame")
+        indicator.Parent = toggle
+        indicator.Size = UDim2.new(0, 14, 0, 14)
+        indicator.Position = UDim2.new(1, -20, 0.5, -7)
+        indicator.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        
+        local indCorner = Instance.new("UICorner")
+        indCorner.CornerRadius = UDim.new(0, 4)
+        indCorner.Parent = indicator
+        
+        btn.MouseButton1Click:Connect(function()
+            active = not active
+            TweenService:Create(indicator, TweenInfo.new(0.2), {
+                BackgroundColor3 = active and Color3.fromRGB(80, 140, 255) or Color3.fromRGB(40, 40, 50)
+            }):Play()
+            callback(active)
+        end)
+    end
+
+    -- ============================================
+    -- ⚙️ بناء القوائم
+    -- ============================================
+
+    local function createMovementTab()
+        local panel = createContentPanel("🚀 إعدادات الحركة")
+        addToggle(panel, "الطيران (Fly)", function(state)
+            toggleFly(state)
+        end)
+        addToggle(panel, "اختراق الجدران", function(state)
+            toggleNoclip(state)
+        end)
+        addToggle(panel, "اختفاء (Invisible)", function(state)
+            toggleInvisible(state)
+        end)
+    end
+
+    local function createSpeedTab()
+        local panel = createContentPanel("⚡ إعدادات السرعة")
+        addToggle(panel, "تفعيل السرعة العالية", function(state)
+            toggleSpeed(state)
+        end)
+    end
+
+    local function createTeleportTab()
+        local panel = createContentPanel("🌐 الانتقال للاعبين")
+        
+        local teleportBtn = Instance.new("TextButton")
+        teleportBtn.Parent = panel
+        teleportBtn.Size = UDim2.new(1, -5, 0, 32)
+        teleportBtn.Position = UDim2.new(0, 2, 0, 5)
+        teleportBtn.Text = "🌐 فتح قائمة التيليبورت"
+        teleportBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
+        teleportBtn.TextSize = 12
+        teleportBtn.Font = Enum.Font.GothamMedium
+        teleportBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        teleportBtn.BorderSizePixel = 0
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 6)
+        btnCorner.Parent = teleportBtn
+        
+        teleportBtn.MouseEnter:Connect(function()
+            teleportBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+        end)
+        teleportBtn.MouseLeave:Connect(function()
+            teleportBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        end)
+        
+        teleportBtn.MouseButton1Click:Connect(function()
+            showTeleportMenu()
+        end)
+    end
+
+    local function createExtrasTab()
+        local panel = createContentPanel("🔧 إضافات")
+        
+        local stopBtn = Instance.new("TextButton")
+        stopBtn.Parent = panel
+        stopBtn.Size = UDim2.new(1, -5, 0, 32)
+        stopBtn.Position = UDim2.new(0, 2, 0, 5)
+        stopBtn.Text = "🔄 إيقاف الكل"
+        stopBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
+        stopBtn.TextSize = 12
+        stopBtn.Font = Enum.Font.GothamMedium
+        stopBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        stopBtn.BorderSizePixel = 0
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 6)
+        btnCorner.Parent = stopBtn
+        
+        stopBtn.MouseEnter:Connect(function()
+            stopBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+        end)
+        stopBtn.MouseLeave:Connect(function()
+            stopBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        end)
+        
+        stopBtn.MouseButton1Click:Connect(function()
             stopAll()
+        end)
+    end
+
+    -- ============================================
+    -- 📋 إنشاء الأزرار الجانبية
+    -- ============================================
+    local tab1 = createTabButton("الحركة", "🚀")
+    tab1.MouseButton1Click:Connect(function()
+        if currentTabBtn then
+            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
+        end
+        currentTabBtn = tab1
+        tab1.TextColor3 = Color3.fromRGB(240, 240, 245)
+        createMovementTab()
+    end)
+
+    local tab2 = createTabButton("السرعة", "⚡")
+    tab2.MouseButton1Click:Connect(function()
+        if currentTabBtn then
+            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
+        end
+        currentTabBtn = tab2
+        tab2.TextColor3 = Color3.fromRGB(240, 240, 245)
+        createSpeedTab()
+    end)
+
+    local tab3 = createTabButton("التيليبورت", "🌐")
+    tab3.MouseButton1Click:Connect(function()
+        if currentTabBtn then
+            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
+        end
+        currentTabBtn = tab3
+        tab3.TextColor3 = Color3.fromRGB(240, 240, 245)
+        createTeleportTab()
+    end)
+
+    local tab4 = createTabButton("إضافات", "🔧")
+    tab4.MouseButton1Click:Connect(function()
+        if currentTabBtn then
+            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
+        end
+        currentTabBtn = tab4
+        tab4.TextColor3 = Color3.fromRGB(240, 240, 245)
+        createExtrasTab()
+    end)
+
+    -- ============================================
+    -- 🚀 فتح التاب الأول افتراضياً
+    -- ============================================
+    tab1.MouseButton1Click()
+
+    -- ============================================
+    -- ⌨️ اختصارات
+    -- ============================================
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.F1 then
+            MainFrame.Visible = not MainFrame.Visible
         end
     end)
+
+    -- ============================================
+    -- 💬 رسالة ترحيب
+    -- ============================================
+    print("💀 ROMA SENPAI HUB Loaded!")
+    print("📌 F1 = Toggle GUI")
+    showNotification("💀 ROMA HUB جاهز!", Color3.fromRGB(150, 150, 255))
 end
 
 -- ============================================
--- 📋 إنشاء الأزرار الجانبية
+-- 🎬 تشغيل الإنتـرو ثم القائمة
 -- ============================================
-local tab1 = createTabButton("الحركة", "🚀")
-tab1.MouseButton1Click:Connect(function()
-    if currentTabBtn then
-        currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-    end
-    currentTabBtn = tab1
-    tab1.TextColor3 = Color3.fromRGB(240, 240, 245)
-    createMovementTab()
-end)
-
-local tab2 = createTabButton("السرعة", "⚡")
-tab2.MouseButton1Click:Connect(function()
-    if currentTabBtn then
-        currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-    end
-    currentTabBtn = tab2
-    tab2.TextColor3 = Color3.fromRGB(240, 240, 245)
-    createSpeedTab()
-end)
-
-local tab3 = createTabButton("التيليبورت", "🌐")
-tab3.MouseButton1Click:Connect(function()
-    if currentTabBtn then
-        currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-    end
-    currentTabBtn = tab3
-    tab3.TextColor3 = Color3.fromRGB(240, 240, 245)
-    createTeleportTab()
-end)
-
-local tab4 = createTabButton("إضافات", "🔧")
-tab4.MouseButton1Click:Connect(function()
-    if currentTabBtn then
-        currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-    end
-    currentTabBtn = tab4
-    tab4.TextColor3 = Color3.fromRGB(240, 240, 245)
-    createExtrasTab()
-end)
-
--- ============================================
--- 🚀 فتح التاب الأول افتراضياً
--- ============================================
-tab1.MouseButton1Click()
-
--- ============================================
--- ⌨️ اختصارات
--- ============================================
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.F1 then
-        MainFrame.Visible = not MainFrame.Visible
-    end
-end)
-
--- ============================================
--- 💬 رسالة ترحيب
--- ============================================
-print("💀 ROMA SENPAI HUB (Axel Style) Loaded!")
-print("📌 F1 = Toggle GUI")
-showNotification("💀 ROMA HUB جاهز!", Color3.fromRGB(150, 150, 255))
+showIntro()
