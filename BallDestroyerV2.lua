@@ -1,6 +1,6 @@
 -- ============================================
--- ⚽ BALL DESTROYER SCRIPT ⚽
--- سبام الكرة تحت الأرض + تضخيم
+-- 💀 BALL DESTROYER V2 💀
+-- يستخدم Remote Events عشان يخرب
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -9,23 +9,25 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- ============================================
--- 🔍 إيجاد الكرة
+-- 🔍 العثور على Remote Events
 -- ============================================
-local Ball = nil
+local BallRemote = nil
+local allRemotes = {}
 
-local function findBall()
-    for _, child in pairs(Workspace:GetChildren()) do
-        if child:IsA("BasePart") and child.Name:lower():find("ball") then
-            return child
+-- جمع جميع الـ Remote Events
+for _, child in pairs(ReplicatedStorage:GetChildren()) do
+    if child:IsA("RemoteEvent") then
+        table.insert(allRemotes, child)
+        if child.Name:lower():find("ball") or child.Name:lower():find("kick") or child.Name:lower():find("shoot") then
+            BallRemote = child
         end
     end
-    return nil
 end
 
--- تحديث الكرة
-Ball = findBall()
+print("🔍 تم العثور على " .. #allRemotes .. " Remote Events")
 
 -- ============================================
 -- 🎨 الواجهة
@@ -37,8 +39,8 @@ ScreenGui.Parent = Player.PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 200, 0, 150)
-MainFrame.Position = UDim2.new(0.5, -100, 0.5, -75)
+MainFrame.Size = UDim2.new(0, 220, 0, 200)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -100)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
@@ -102,8 +104,8 @@ local function toggleMinimize()
         end
     else
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 200, 0, 150),
-            Position = UDim2.new(0.5, -100, 0.5, -75),
+            Size = UDim2.new(0, 220, 0, 200),
+            Position = UDim2.new(0.5, -110, 0.5, -100),
             BackgroundTransparency = 0.15
         }):Play()
         CloseBtn.Text = "✕"
@@ -155,65 +157,53 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 💀 1️⃣ سبام الكرة تحت الأرض
+-- 💀 1️⃣ سبام Remote Events
 -- ============================================
-local isSinking = false
-local sinkConnection = nil
+local isSpamming = false
+local spamConnection = nil
 
-local function toggleSink()
-    isSinking = not isSinking
+local function toggleSpam()
+    isSpamming = not isSpamming
     
-    if isSinking then
-        Ball = findBall()
-        if not Ball then
-            showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
-            isSinking = false
+    if isSpamming then
+        if #allRemotes == 0 then
+            showNotification("❌ لا يوجد Remote Events!", Color3.fromRGB(255, 0, 0))
+            isSpamming = false
             return
         end
         
-        showNotification("⬇️ جاري إغراق الكرة تحت الأرض!", Color3.fromRGB(255, 0, 100))
+        showNotification("💀 جاري سبام الـ Remotes!", Color3.fromRGB(255, 0, 100))
         
-        sinkConnection = RunService.Heartbeat:Connect(function()
-            if not isSinking then return end
+        spamConnection = RunService.Heartbeat:Connect(function()
+            if not isSpamming then return end
             
-            Ball = findBall()
-            if not Ball then return end
-            
-            -- 🛠️ إزالة القيود
-            pcall(function()
-                for _, child in pairs(Ball:GetChildren()) do
-                    if child:IsA("Weld") or child:IsA("Attachment") or child:IsA("Constraint") then
-                        child:Destroy()
-                    end
-                end
-            end)
-            
-            -- ⬇️ إنزال الكرة تحت الأرض
-            pcall(function()
-                Ball.Position = Ball.Position + Vector3.new(0, -5, 0)
-                Ball.CFrame = CFrame.new(Ball.Position)
-                Ball.Anchored = false
-                Ball.CanCollide = true
-                
-                -- ندفع الكرة للأسفل بقوة
-                local bv = Instance.new("BodyVelocity")
-                bv.MaxForce = Vector3.new(0, 1, 0) * 100000
-                bv.Velocity = Vector3.new(0, -100, 0)
-                bv.Parent = Ball
-                game:GetService("Debris"):AddItem(bv, 0.1)
-            end)
+            -- إرسال أوامر عشوائية لكل Remote
+            for _, remote in pairs(allRemotes) do
+                pcall(function()
+                    remote:FireServer()
+                end)
+                pcall(function()
+                    remote:FireServer("Use")
+                end)
+                pcall(function()
+                    remote:FireServer(Player)
+                end)
+                pcall(function()
+                    remote:FireServer("Activate", Player)
+                end)
+            end
         end)
     else
-        if sinkConnection then
-            sinkConnection:Disconnect()
-            sinkConnection = nil
+        if spamConnection then
+            spamConnection:Disconnect()
+            spamConnection = nil
         end
-        showNotification("⏹ تم إيقاف إغراق الكرة", Color3.fromRGB(255, 200, 0))
+        showNotification("⏹ تم إيقاف السبام", Color3.fromRGB(255, 200, 0))
     end
 end
 
 -- ============================================
--- 💀 2️⃣ تضخيم الكرة
+-- 💀 2️⃣ تضخيم الكرة (عبر Remote)
 -- ============================================
 local isGiant = false
 local giantConnection = nil
@@ -222,50 +212,36 @@ local function toggleGiant()
     isGiant = not isGiant
     
     if isGiant then
-        Ball = findBall()
-        if not Ball then
-            showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
-            isGiant = false
-            return
-        end
-        
-        showNotification("🐘 جاري تضخيم الكرة!", Color3.fromRGB(255, 200, 0))
+        showNotification("🐘 جاري تضخيم الكرة عبر Remote!", Color3.fromRGB(255, 200, 0))
         
         giantConnection = RunService.Heartbeat:Connect(function()
             if not isGiant then return end
             
-            Ball = findBall()
-            if not Ball then return end
-            
-            -- تكبير الكرة بشكل تدريجي
-            pcall(function()
-                Ball.Size = Vector3.new(50, 50, 50)
-                Ball.Transparency = 0.3
-                Ball.BrickColor = BrickColor.new("Bright red")
-                Ball.Material = Enum.Material.Neon
-                
-                -- تأثير ضوئي
-                local pointLight = Instance.new("PointLight")
-                pointLight.Color = Color3.fromRGB(255, 0, 0)
-                pointLight.Range = 30
-                pointLight.Brightness = 5
-                pointLight.Parent = Ball
-                game:GetService("Debris"):AddItem(pointLight, 0.2)
-            end)
+            -- البحث عن Remote خاص بالكرة وتضخيمها
+            for _, remote in pairs(allRemotes) do
+                pcall(function()
+                    remote:FireServer("Size", 50)
+                end)
+                pcall(function()
+                    remote:FireServer("Giant", true)
+                end)
+                pcall(function()
+                    remote:FireServer("Scale", 10)
+                end)
+            end
         end)
     else
         if giantConnection then
             giantConnection:Disconnect()
             giantConnection = nil
         end
-        -- إعادة الكرة لحجمها الطبيعي
-        Ball = findBall()
-        if Ball then
+        -- إعادة الكرة لحجمها الطبيعي عبر Remote
+        for _, remote in pairs(allRemotes) do
             pcall(function()
-                Ball.Size = Vector3.new(2, 2, 2)
-                Ball.Transparency = 0
-                Ball.BrickColor = BrickColor.new("White")
-                Ball.Material = Enum.Material.Plastic
+                remote:FireServer("Size", 1)
+            end)
+            pcall(function()
+                remote:FireServer("Giant", false)
             end)
         end
         showNotification("⏹ تم إيقاف تضخيم الكرة", Color3.fromRGB(255, 200, 0))
@@ -273,18 +249,30 @@ local function toggleGiant()
 end
 
 -- ============================================
+-- 🔍 عرض الـ Remotes
+-- ============================================
+local function showRemotes()
+    print("📡 قائمة Remote Events:")
+    for i, remote in ipairs(allRemotes) do
+        print(i .. ". " .. remote.Name)
+    end
+    showNotification("✅ تم عرض " .. #allRemotes .. " Remote في Console!", Color3.fromRGB(0, 200, 100))
+end
+
+-- ============================================
 -- 📋 قائمة الأوامر
 -- ============================================
 local Commands = {
-    {Text = "⬇️ إغراق الكرة تحت الأرض", Callback = toggleSink},
-    {Text = "🐘 تضخيم الكرة", Callback = toggleGiant},
+    {Text = "💀 سبام Remote Events", Callback = toggleSpam},
+    {Text = "🐘 تضخيم الكرة (Remote)", Callback = toggleGiant},
+    {Text = "📡 عرض الـ Remotes", Callback = showRemotes},
 }
 
 -- ============================================
 -- 🎨 إنشاء الأزرار
 -- ============================================
-local buttonHeight = 45
-local spacing = 6
+local buttonHeight = 40
+local spacing = 5
 local canvasHeight = #Commands * (buttonHeight + spacing) + 10
 
 ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, canvasHeight)
@@ -327,7 +315,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
     
     if input.KeyCode == Enum.KeyCode.G then
-        toggleSink()
+        toggleSpam()
     end
     
     if input.KeyCode == Enum.KeyCode.H then
@@ -338,14 +326,9 @@ end)
 -- ============================================
 -- 💬 رسالة ترحيب
 -- ============================================
-Ball = findBall()
-if Ball then
-    print("💀 Ball Destroyer Script Loaded! Ball found: " .. Ball.Name)
-    showNotification("💀 جاهز! G = إغراق | H = تضخيم", Color3.fromRGB(255, 50, 50))
-else
-    print("💀 Ball Destroyer Script Loaded! Ball not found.")
-    showNotification("⚠️ الكرة غير موجودة!", Color3.fromRGB(255, 200, 0))
-end
-print("📌 Press G to sink ball")
-print("📌 Press H to giant ball")
+print("💀 Ball Destroyer V2 Loaded!")
+print("📡 تم العثور على " .. #allRemotes .. " Remote Events")
+print("📌 Press G = Spam Remotes")
+print("📌 Press H = Giant Ball")
 print("📌 Press F1 to toggle GUI")
+showNotification("💀 جاهز! G = سبام | H = تضخيم", Color3.fromRGB(255, 50, 50))
