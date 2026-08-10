@@ -1,6 +1,6 @@
 -- ============================================
--- 👹 DEMON ANKLE BREAKER SCRIPT 👹
--- سبام حركة الأنكل بريكر على جميع اللاعبين
+-- 👹 ANKLE BREAKER SPAMMER v2 👹
+-- يجرب جميع الـ Remotes عشان يلقى المناسب
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -11,63 +11,32 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 -- ============================================
--- 🔍 البحث عن Remote Events الخاصة بالحركات
+-- 🔍 جمع جميع Remote Events
 -- ============================================
+local allRemotes = {}
 
-local function findAbilityRemote()
-    -- Remote Events المحتملة لحركات الأنكل بريكر
-    local possibleRemotes = {
-        "Ability",
-        "UseAbility",
-        "Skill",
-        "ActivateSkill",
-        "Dribble",
-        "AnkleBreaker",
-        "Malice",
-        "VMagic",
-        "LionChop",
-        "RisingDance"
-    }
-    
-    for _, name in ipairs(possibleRemotes) do
-        local remote = ReplicatedStorage:FindFirstChild(name) 
-            or ReplicatedStorage:FindFirstChild(name .. "Remote")
-            or game:GetService("ReplicatedStorage"):FindFirstChild(name)
-        
-        if remote and remote:IsA("RemoteEvent") then
-            return remote
+for _, container in pairs({ReplicatedStorage, game:GetService("ReplicatedStorage")}) do
+    for _, child in pairs(container:GetChildren()) do
+        if child:IsA("RemoteEvent") then
+            table.insert(allRemotes, child)
         end
     end
-    
-    -- البحث العميق في ReplicatedStorage
-    for _, child in pairs(ReplicatedStorage:GetChildren()) do
-        if child:IsA("RemoteEvent") and (
-            child.Name:lower():find("ability") or
-            child.Name:lower():find("skill") or
-            child.Name:lower():find("dribble") or
-            child.Name:lower():find("tackle")
-        ) then
-            return child
-        end
-    end
-    
-    return nil
 end
 
-local abilityRemote = findAbilityRemote()
+print("🔍 تم العثور على " .. #allRemotes .. " Remote Events")
 
 -- ============================================
 -- 🎨 الواجهة الزجاجية
 -- ============================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DemonGUI"
+ScreenGui.Name = "AnkleGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = Player.PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 200, 0, 280)
-MainFrame.Position = UDim2.new(0.5, -100, 0.5, -140)
+MainFrame.Size = UDim2.new(0, 220, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
@@ -125,7 +94,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     isVisible = not isVisible
     if isVisible then
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 200, 0, 280),
+            Size = UDim2.new(0, 220, 0, 300),
             BackgroundTransparency = 0.15
         }):Play()
         CloseBtn.Text = "✕"
@@ -189,46 +158,55 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 🔥 أوامر الأنكل بريكر
+-- 🔥 سبام الأنكل بريكر (يجرب كل الـ Remotes)
 -- ============================================
 
 local isSpamming = false
 local spamConnection = nil
+local currentRemoteIndex = 1
 
--- 1️⃣ سبام الأنكل بريكر على الكل
 local function spamAnkleBreaker()
     isSpamming = not isSpamming
     
     if isSpamming then
-        if not abilityRemote then
-            showNotification("❌ لم يتم العثور على Remote Event!", Color3.fromRGB(255, 0, 0))
+        if #allRemotes == 0 then
+            showNotification("❌ لا يوجد Remote Events!", Color3.fromRGB(255, 0, 0))
             isSpamming = false
             return
         end
         
-        showNotification("👹 جاري سبام الأنكل بريكر على الكل!", Color3.fromRGB(255, 50, 50))
+        currentRemoteIndex = 1
+        showNotification("👹 جاري تجربة " .. #allRemotes .. " Remote...", Color3.fromRGB(255, 50, 50))
         
         spamConnection = RunService.Heartbeat:Connect(function()
-            -- إرسال الأمر لكل لاعب في السيرفر
+            local remote = allRemotes[currentRemoteIndex]
+            if not remote then
+                currentRemoteIndex = 1
+                remote = allRemotes[1]
+            end
+            
+            -- إرسال الأمر لكل لاعب
             for _, plr in pairs(Players:GetPlayers()) do
                 if plr ~= Player then
-                    -- محاولة إرسال الأمر بطرق مختلفة
                     pcall(function()
-                        -- الطريقة الأولى: إرسال مباشر
-                        abilityRemote:FireServer(plr)
+                        remote:FireServer(plr)
                     end)
                     pcall(function()
-                        -- الطريقة الثانية: إرسال مع بيانات إضافية
-                        abilityRemote:FireServer("Use", plr)
+                        remote:FireServer("Use", plr)
                     end)
                     pcall(function()
-                        -- الطريقة الثالثة: إرسال مع موضع اللاعب
-                        local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-                        if root then
-                            abilityRemote:FireServer(root.Position, plr)
-                        end
+                        remote:FireServer(plr, "Use")
+                    end)
+                    pcall(function()
+                        remote:FireServer({target = plr})
                     end)
                 end
+            end
+            
+            -- التبديل إلى الـ Remote التالي
+            currentRemoteIndex = currentRemoteIndex + 1
+            if currentRemoteIndex > #allRemotes then
+                currentRemoteIndex = 1
             end
         end)
     else
@@ -240,36 +218,18 @@ local function spamAnkleBreaker()
     end
 end
 
--- 2️⃣ كشف Remote Events في اللعبة
-local function scanRemotes()
-    showNotification("🔍 جاري البحث عن Remote Events...", Color3.fromRGB(0, 200, 255))
-    
-    local found = {}
-    for _, container in pairs({ReplicatedStorage, game:GetService("ReplicatedStorage")}) do
-        for _, child in pairs(container:GetChildren()) do
-            if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
-                table.insert(found, child.Name)
-            end
-        end
-    end
-    
-    if #found > 0 then
-        showNotification("✅ تم العثور على " .. #found .. " Remote Events!", Color3.fromRGB(0, 200, 100))
-        print("📡 Remote Events found:")
-        for _, name in ipairs(found) do
-            print("  - " .. name)
-        end
-    else
-        showNotification("❌ لم يتم العثور على Remote Events!", Color3.fromRGB(255, 0, 0))
-    end
-end
-
 -- ============================================
 -- 📋 قائمة الأوامر
 -- ============================================
 local Commands = {
     {Text = "👹 سبام الأنكل بريكر", Callback = spamAnkleBreaker},
-    {Text = "🔍 كشف Remote Events", Callback = scanRemotes},
+    {Text = "📡 عرض الـ Remotes", Callback = function()
+        print("📡 قائمة Remote Events:")
+        for i, remote in ipairs(allRemotes) do
+            print(i .. ". " .. remote.Name)
+        end
+        showNotification("✅ تم عرض " .. #allRemotes .. " Remote في Console!", Color3.fromRGB(0, 200, 100))
+    end},
 }
 
 -- ============================================
@@ -318,7 +278,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         isVisible = not isVisible
         if isVisible then
             TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 200, 0, 280),
+                Size = UDim2.new(0, 220, 0, 300),
                 BackgroundTransparency = 0.15
             }):Play()
             CloseBtn.Text = "✕"
@@ -341,11 +301,7 @@ end)
 -- ============================================
 -- 💬 رسالة ترحيب
 -- ============================================
-print("👹 Demon Ankle Breaker Script Loaded!")
+print("👹 Ankle Breaker v2 Loaded!")
 print("📌 Press F1 to toggle GUI")
-
-if abilityRemote then
-    showNotification("✅ تم العثور على Remote: " .. abilityRemote.Name, Color3.fromRGB(0, 200, 100))
-else
-    showNotification("⚠️ لم يتم العثور على Remote، استخدم 'كشف Remote Events'", Color3.fromRGB(255, 200, 0))
-end
+print("📡 تم العثور على " .. #allRemotes .. " Remote Events")
+showNotification("✅ جاهز! استخدم 'عرض الـ Remotes'", Color3.fromRGB(0, 200, 100))
