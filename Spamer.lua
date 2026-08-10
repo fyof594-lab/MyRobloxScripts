@@ -1,6 +1,6 @@
 -- ============================================
--- 👹 ANKLE BREAKER SPAMMER v2 👹
--- يجرب جميع الـ Remotes عشان يلقى المناسب
+-- 👹 ANKLE BREAKER SPAMMER v3 👹
+-- سبام بطيء وآمن (تجنب الطرد)
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -24,6 +24,12 @@ for _, container in pairs({ReplicatedStorage, game:GetService("ReplicatedStorage
 end
 
 print("🔍 تم العثور على " .. #allRemotes .. " Remote Events")
+
+-- عرض أسماء الـ Remotes في Console
+print("📡 قائمة Remote Events:")
+for i, remote in ipairs(allRemotes) do
+    print(i .. ". " .. remote.Name)
+end
 
 -- ============================================
 -- 🎨 الواجهة الزجاجية
@@ -158,7 +164,7 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 🔥 سبام الأنكل بريكر (يجرب كل الـ Remotes)
+-- 🔥 سبام الأنكل بريكر (بطيء وآمن)
 -- ============================================
 
 local isSpamming = false
@@ -176,37 +182,78 @@ local function spamAnkleBreaker()
         end
         
         currentRemoteIndex = 1
-        showNotification("👹 جاري تجربة " .. #allRemotes .. " Remote...", Color3.fromRGB(255, 50, 50))
+        showNotification("👹 جاري السبام البطيء...", Color3.fromRGB(255, 50, 50))
         
+        -- استخدام timer بدل Heartbeat عشان نقلل السرعة
         spamConnection = RunService.Heartbeat:Connect(function()
-            local remote = allRemotes[currentRemoteIndex]
-            if not remote then
-                currentRemoteIndex = 1
-                remote = allRemotes[1]
-            end
-            
-            -- إرسال الأمر لكل لاعب
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr ~= Player then
-                    pcall(function()
-                        remote:FireServer(plr)
-                    end)
-                    pcall(function()
-                        remote:FireServer("Use", plr)
-                    end)
-                    pcall(function()
-                        remote:FireServer(plr, "Use")
-                    end)
-                    pcall(function()
-                        remote:FireServer({target = plr})
-                    end)
+            -- نرسل أمر واحد فقط كل 0.5 ثانية (بدل كل إطار)
+            if tick() % 0.5 < 0.1 then
+                local remote = allRemotes[currentRemoteIndex]
+                if not remote then
+                    currentRemoteIndex = 1
+                    remote = allRemotes[1]
+                end
+                
+                -- نرسل لأول لاعب فقط (بدل الكل)
+                for _, plr in pairs(Players:GetPlayers()) do
+                    if plr ~= Player then
+                        pcall(function()
+                            -- محاولة بسيطة واحدة
+                            remote:FireServer(plr)
+                        end)
+                        break -- نرسل للاعب واحد فقط
+                    end
+                end
+                
+                -- التبديل إلى الـ Remote التالي
+                currentRemoteIndex = currentRemoteIndex + 1
+                if currentRemoteIndex > #allRemotes then
+                    currentRemoteIndex = 1
                 end
             end
-            
-            -- التبديل إلى الـ Remote التالي
-            currentRemoteIndex = currentRemoteIndex + 1
-            if currentRemoteIndex > #allRemotes then
-                currentRemoteIndex = 1
+        end)
+    else
+        if spamConnection then
+            spamConnection:Disconnect()
+            spamConnection = nil
+        end
+        showNotification("⏹ تم إيقاف السبام!", Color3.fromRGB(255, 200, 0))
+    end
+end
+
+-- ============================================
+-- 🎯 سبام موجه (اختيار Remote معين)
+-- ============================================
+local function spamSpecificRemote(remoteName)
+    isSpamming = not isSpamming
+    
+    if isSpamming then
+        local targetRemote = nil
+        for _, remote in pairs(allRemotes) do
+            if remote.Name:lower():find(remoteName:lower()) then
+                targetRemote = remote
+                break
+            end
+        end
+        
+        if not targetRemote then
+            showNotification("❌ لم يتم العثور على Remote: " .. remoteName, Color3.fromRGB(255, 0, 0))
+            isSpamming = false
+            return
+        end
+        
+        showNotification("🎯 جاري السبام على " .. targetRemote.Name, Color3.fromRGB(0, 200, 255))
+        
+        spamConnection = RunService.Heartbeat:Connect(function()
+            if tick() % 0.5 < 0.1 then
+                for _, plr in pairs(Players:GetPlayers()) do
+                    if plr ~= Player then
+                        pcall(function()
+                            targetRemote:FireServer(plr)
+                        end)
+                        break
+                    end
+                end
             end
         end)
     else
@@ -222,7 +269,7 @@ end
 -- 📋 قائمة الأوامر
 -- ============================================
 local Commands = {
-    {Text = "👹 سبام الأنكل بريكر", Callback = spamAnkleBreaker},
+    {Text = "👹 سبام بطيء وآمن", Callback = spamAnkleBreaker},
     {Text = "📡 عرض الـ Remotes", Callback = function()
         print("📡 قائمة Remote Events:")
         for i, remote in ipairs(allRemotes) do
@@ -235,7 +282,7 @@ local Commands = {
 -- ============================================
 -- 🎨 إنشاء الأزرار
 -- ============================================
-local buttonHeight = 40
+local buttonHeight = 45
 local spacing = 6
 local canvasHeight = #Commands * (buttonHeight + spacing) + 10
 
@@ -301,7 +348,7 @@ end)
 -- ============================================
 -- 💬 رسالة ترحيب
 -- ============================================
-print("👹 Ankle Breaker v2 Loaded!")
+print("👹 Ankle Breaker v3 Loaded!")
 print("📌 Press F1 to toggle GUI")
 print("📡 تم العثور على " .. #allRemotes .. " Remote Events")
 showNotification("✅ جاهز! استخدم 'عرض الـ Remotes'", Color3.fromRGB(0, 200, 100))
