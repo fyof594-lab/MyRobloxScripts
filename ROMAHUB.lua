@@ -12,18 +12,18 @@ local RunService = game:GetService("RunService")
 local Mouse = Player:GetMouse()
 
 -- ============================================
--- 🎨 الواجهة الرئيسية (مستطيل أفقي + أقسام جانبية)
+-- 🎨 الواجهة الرئيسية (مصغرة)
 -- ============================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "RomaHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = Player.PlayerGui
 
--- النافذة الرئيسية (أفقية)
+-- النافذة الرئيسية (أصغر)
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 700, 0, 350)
-MainFrame.Position = UDim2.new(0.5, -350, 0.5, -175)
+MainFrame.Size = UDim2.new(0, 580, 0, 280)
+MainFrame.Position = UDim2.new(0.5, -290, 0.5, -140)
 MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
@@ -46,7 +46,7 @@ Stroke.Transparency = 0.5
 -- ============================================
 local TitleBar = Instance.new("Frame")
 TitleBar.Parent = MainFrame
-TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.Size = UDim2.new(1, 0, 0, 35)
 TitleBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 TitleBar.BackgroundTransparency = 0.3
 
@@ -67,8 +67,8 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 
 local SubTitle = Instance.new("TextLabel")
 SubTitle.Parent = TitleBar
-SubTitle.Size = UDim2.new(0, 150, 0, 15)
-SubTitle.Position = UDim2.new(0, 10, 0, 24)
+SubTitle.Size = UDim2.new(0, 150, 0, 12)
+SubTitle.Position = UDim2.new(0, 10, 0, 22)
 SubTitle.BackgroundTransparency = 1
 SubTitle.Text = "صنع من طرف ROMA SENPAI"
 SubTitle.TextColor3 = Color3.fromRGB(150, 150, 255)
@@ -78,8 +78,8 @@ SubTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = TitleBar
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -38, 0.5, -15)
+CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+CloseBtn.Position = UDim2.new(1, -35, 0.5, -14)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
 CloseBtn.BackgroundTransparency = 0.3
 CloseBtn.Text = "✕"
@@ -114,13 +114,13 @@ local function toggleMinimize()
         SubTitle.Visible = false
     else
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 700, 0, 350),
-            Position = UDim2.new(0.5, -350, 0.5, -175),
+            Size = UDim2.new(0, 580, 0, 280),
+            Position = UDim2.new(0.5, -290, 0.5, -140),
             BackgroundTransparency = 0.15
         }):Play()
         CloseBtn.Text = "✕"
-        CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-        CloseBtn.Position = UDim2.new(1, -38, 0.5, -15)
+        CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+        CloseBtn.Position = UDim2.new(1, -35, 0.5, -14)
         CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
         Title.Visible = true
         SubTitle.Visible = true
@@ -134,39 +134,35 @@ end
 CloseBtn.MouseButton1Click:Connect(toggleMinimize)
 
 -- ============================================
--- 📂 القائمة الجانبية (Vertical Tabs)
+-- 📂 القائمة الجانبية
 -- ============================================
 local Sidebar = Instance.new("Frame")
 Sidebar.Parent = MainFrame
-Sidebar.Size = UDim2.new(0, 120, 1, -45)
-Sidebar.Position = UDim2.new(0, 0, 0, 45)
+Sidebar.Size = UDim2.new(0, 100, 1, -40)
+Sidebar.Position = UDim2.new(0, 0, 0, 40)
 Sidebar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Sidebar.BackgroundTransparency = 0.3
 Sidebar.BorderSizePixel = 0
 Sidebar.ClipsDescendants = true
 
-local SidebarCorner = Instance.new("UICorner")
-SidebarCorner.CornerRadius = UDim.new(0, 0)
-SidebarCorner.Parent = Sidebar
-
 local SidebarLayout = Instance.new("UIListLayout")
 SidebarLayout.Parent = Sidebar
 SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-SidebarLayout.Padding = UDim.new(0, 5)
+SidebarLayout.Padding = UDim.new(0, 4)
 
 local SidebarPadding = Instance.new("UIPadding")
 SidebarPadding.Parent = Sidebar
-SidebarPadding.PaddingTop = UDim.new(0, 10)
+SidebarPadding.PaddingTop = UDim.new(0, 8)
 SidebarPadding.PaddingLeft = UDim.new(0, 5)
 SidebarPadding.PaddingRight = UDim.new(0, 5)
 
 -- ============================================
--- 📄 المحتوى (يظهر حسب التاب)
+-- 📄 المحتوى
 -- ============================================
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Parent = MainFrame
-ContentFrame.Size = UDim2.new(1, -125, 1, -50)
-ContentFrame.Position = UDim2.new(0, 125, 0, 45)
+ContentFrame.Size = UDim2.new(1, -110, 1, -45)
+ContentFrame.Position = UDim2.new(0, 105, 0, 42)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.BorderSizePixel = 0
 ContentFrame.ClipsDescendants = true
@@ -177,8 +173,8 @@ ContentFrame.ClipsDescendants = true
 function showNotification(text, color)
     local notif = Instance.new("TextLabel")
     notif.Parent = ScreenGui
-    notif.Size = UDim2.new(0, 300, 0, 40)
-    notif.Position = UDim2.new(0.5, -150, 0.05, 0)
+    notif.Size = UDim2.new(0, 280, 0, 35)
+    notif.Position = UDim2.new(0.5, -140, 0.05, 0)
     notif.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     notif.BackgroundTransparency = 0.3
     notif.Text = text
@@ -195,18 +191,19 @@ end
 -- ============================================
 -- 🔥 المتغيرات والحالات
 -- ============================================
-local states = {fly = false, noclip = false, invisible = false, speed = false}
+local states = {fly = false, fly2 = false, fly3 = false, noclip = false, invisible = false, speed = false}
 local connections = {}
 local speedAmount = 120
 local currentTab = nil
+local flyButtons = {} -- لتخزين أزرار الطيران عشان نتحكم فيها
 
 -- ============================================
--- 📦 دالة إنشاء تاب جانبي
+-- 📦 دالة إنشاء تاب جانبي (مصغر)
 -- ============================================
 function createTab(name, icon, callback)
     local btn = Instance.new("TextButton")
     btn.Parent = Sidebar
-    btn.Size = UDim2.new(1, -10, 0, 40)
+    btn.Size = UDim2.new(1, -10, 0, 32)
     btn.Text = icon .. " " .. name
     btn.TextColor3 = Color3.fromRGB(200, 200, 200)
     btn.TextScaled = true
@@ -217,7 +214,7 @@ function createTab(name, icon, callback)
     btn.LayoutOrder = 1
     
     local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 8)
+    btnCorner.CornerRadius = UDim.new(0, 6)
     btnCorner.Parent = btn
     
     btn.MouseEnter:Connect(function()
@@ -246,44 +243,103 @@ function createTab(name, icon, callback)
 end
 
 -- ============================================
--- 📦 دالة إنشاء زر في المحتوى
+-- 📦 دالة إنشاء Frame قابل للسحب (للميزات)
 -- ============================================
-function addContentButton(parent, text, callback, color, yPos)
-    local btn = Instance.new("TextButton")
-    btn.Parent = parent
-    btn.Size = UDim2.new(0.9, 0, 0, 35)
-    btn.Position = UDim2.new(0.05, 0, 0, yPos or 5)
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextScaled = true
-    btn.Font = Enum.Font.GothamBold
-    btn.BackgroundColor3 = color or Color3.fromRGB(20, 20, 40)
-    btn.BackgroundTransparency = 0.3
-    btn.BorderSizePixel = 0
+local function createDraggableFrame(title, callback, color)
+    local frame = Instance.new("Frame")
+    frame.Parent = ContentFrame
+    frame.Size = UDim2.new(0.9, 0, 0, 0)
+    frame.Position = UDim2.new(0.05, 0, 0, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
+    frame.BackgroundTransparency = 0.3
+    frame.BorderSizePixel = 0
+    frame.ClipsDescendants = true
+    frame.Active = true
+    frame.Draggable = true
     
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 8)
-    btnCorner.Parent = btn
+    local frameCorner = Instance.new("UICorner")
+    frameCorner.CornerRadius = UDim.new(0, 8)
+    frameCorner.Parent = frame
     
-    btn.MouseEnter:Connect(function()
-        btn.BackgroundTransparency = 0
-        btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        btn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Parent = frame
+    titleLabel.Size = UDim2.new(1, 0, 0, 25)
+    titleLabel.BackgroundColor3 = color or Color3.fromRGB(30, 30, 50)
+    titleLabel.BackgroundTransparency = 0.3
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextScaled = true
+    titleLabel.Font = Enum.Font.GothamBold
+    
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 8)
+    titleCorner.Parent = titleLabel
+    
+    -- زر إغلاق الـ Frame
+    local closeFrame = Instance.new("TextButton")
+    closeFrame.Parent = titleLabel
+    closeFrame.Size = UDim2.new(0, 20, 0, 20)
+    closeFrame.Position = UDim2.new(1, -25, 0.5, -10)
+    closeFrame.Text = "✕"
+    closeFrame.TextColor3 = Color3.fromRGB(255, 100, 100)
+    closeFrame.TextScaled = true
+    closeFrame.Font = Enum.Font.GothamBold
+    closeFrame.BackgroundTransparency = 1
+    closeFrame.BorderSizePixel = 0
+    
+    closeFrame.MouseButton1Click:Connect(function()
+        frame:Destroy()
     end)
-    btn.MouseLeave:Connect(function()
-        btn.BackgroundTransparency = 0.3
-        btn.BackgroundColor3 = color or Color3.fromRGB(20, 20, 40)
+    
+    -- محتوى الـ Frame
+    local content = Instance.new("Frame")
+    content.Parent = frame
+    content.Size = UDim2.new(1, 0, 1, -25)
+    content.Position = UDim2.new(0, 0, 0, 25)
+    content.BackgroundTransparency = 1
+    
+    -- دالة لإضافة زر داخل الـ Frame
+    local function addButtonToFrame(text, cb, col)
+        local btn = Instance.new("TextButton")
+        btn.Parent = content
+        btn.Size = UDim2.new(0.95, 0, 0, 28)
+        btn.Position = UDim2.new(0.025, 0, 0, 0)
+        btn.Text = text
         btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end)
+        btn.TextScaled = true
+        btn.Font = Enum.Font.GothamBold
+        btn.BackgroundColor3 = col or Color3.fromRGB(30, 30, 50)
+        btn.BackgroundTransparency = 0.3
+        btn.BorderSizePixel = 0
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 6)
+        btnCorner.Parent = btn
+        
+        btn.MouseEnter:Connect(function()
+            btn.BackgroundTransparency = 0
+            btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            btn.TextColor3 = Color3.fromRGB(0, 0, 0)
+        end)
+        btn.MouseLeave:Connect(function()
+            btn.BackgroundTransparency = 0.3
+            btn.BackgroundColor3 = col or Color3.fromRGB(30, 30, 50)
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        end)
+        
+        btn.MouseButton1Click:Connect(cb)
+        return btn
+    end
     
-    btn.MouseButton1Click:Connect(callback)
-    return btn
+    return frame, content, addButtonToFrame
 end
 
 -- ============================================
--- 🚀 الطيران
+-- 🚀 الطيران (3 أنواع)
 -- ============================================
-local function toggleFly()
+
+-- النوع الأول: طيران عادي (فوق وتحت)
+local function toggleFly1()
     states.fly = not states.fly
     local char = Player.Character
     if not char then return end
@@ -297,13 +353,19 @@ local function toggleFly()
         connections.fly = RunService.Heartbeat:Connect(function()
             if not states.fly then return end
             local move = h.MoveDirection
+            local up = Vector3.new(0, 0, 0)
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                up = Vector3.new(0, 10, 0)
+            elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                up = Vector3.new(0, -10, 0)
+            end
             if move.Magnitude > 0 then
-                root.Velocity = move * 80 + Vector3.new(0, 10, 0)
+                root.Velocity = move * 80 + up
             else
-                root.Velocity = Vector3.new(0, 0, 0)
+                root.Velocity = up
             end
         end)
-        showNotification("🚀 الطيران ON", Color3.fromRGB(0, 150, 255))
+        showNotification("🚀 طيران عادي ON (Space↑ / Shift↓)", Color3.fromRGB(0, 150, 255))
     else
         if connections.fly then
             connections.fly:Disconnect()
@@ -311,7 +373,82 @@ local function toggleFly()
         end
         h.PlatformStand = false
         root.Velocity = Vector3.new(0, 0, 0)
-        showNotification("⏹ الطيران OFF", Color3.fromRGB(255, 200, 0))
+        showNotification("⏹ طيران عادي OFF", Color3.fromRGB(255, 200, 0))
+    end
+end
+
+-- النوع الثاني: طيران ثابت (أمام/خلف/يمين/يسار فقط)
+local function toggleFly2()
+    states.fly2 = not states.fly2
+    local char = Player.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    local h = char:FindFirstChild("Humanoid")
+    if not h then return end
+
+    if states.fly2 then
+        h.PlatformStand = true
+        connections.fly2 = RunService.Heartbeat:Connect(function()
+            if not states.fly2 then return end
+            local move = h.MoveDirection
+            if move.Magnitude > 0 then
+                -- نثبت الارتفاع ونسمح فقط بالحركة الأفقية
+                local currentY = root.Position.Y
+                root.Velocity = Vector3.new(move.X * 80, 0, move.Z * 80)
+                root.Position = Vector3.new(root.Position.X, currentY, root.Position.Z)
+            else
+                root.Velocity = Vector3.new(0, 0, 0)
+            end
+        end)
+        showNotification("🚀 طيران ثابت ON (أفقي فقط)", Color3.fromRGB(0, 200, 255))
+    else
+        if connections.fly2 then
+            connections.fly2:Disconnect()
+            connections.fly2 = nil
+        end
+        h.PlatformStand = false
+        root.Velocity = Vector3.new(0, 0, 0)
+        showNotification("⏹ طيران ثابت OFF", Color3.fromRGB(255, 200, 0))
+    end
+end
+
+-- النوع الثالث: طيران حر (فوق وتحت)
+local function toggleFly3()
+    states.fly3 = not states.fly3
+    local char = Player.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    local h = char:FindFirstChild("Humanoid")
+    if not h then return end
+
+    if states.fly3 then
+        h.PlatformStand = true
+        connections.fly3 = RunService.Heartbeat:Connect(function()
+            if not states.fly3 then return end
+            local move = h.MoveDirection
+            local up = Vector3.new(0, 0, 0)
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                up = Vector3.new(0, 10, 0)
+            elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                up = Vector3.new(0, -10, 0)
+            end
+            if move.Magnitude > 0 then
+                root.Velocity = move * 80 + up
+            else
+                root.Velocity = up
+            end
+        end)
+        showNotification("🚀 طيران حر ON (Space↑ / Shift↓)", Color3.fromRGB(150, 100, 255))
+    else
+        if connections.fly3 then
+            connections.fly3:Disconnect()
+            connections.fly3 = nil
+        end
+        h.PlatformStand = false
+        root.Velocity = Vector3.new(0, 0, 0)
+        showNotification("⏹ طيران حر OFF", Color3.fromRGB(255, 200, 0))
     end
 end
 
@@ -437,8 +574,8 @@ local function showTeleportMenu()
     if not TeleportFrame then
         TeleportFrame = Instance.new("Frame")
         TeleportFrame.Parent = MainFrame
-        TeleportFrame.Size = UDim2.new(0.8, 0, 0, 180)
-        TeleportFrame.Position = UDim2.new(0.1, 0, 0, 50)
+        TeleportFrame.Size = UDim2.new(0.8, 0, 0, 150)
+        TeleportFrame.Position = UDim2.new(0.1, 0, 0, 45)
         TeleportFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         TeleportFrame.BackgroundTransparency = 0.3
         TeleportFrame.BorderSizePixel = 0
@@ -462,7 +599,7 @@ local function showTeleportMenu()
             if plr ~= Player then
                 local btn = Instance.new("TextButton")
                 btn.Parent = TScroll
-                btn.Size = UDim2.new(1, 0, 0, 30)
+                btn.Size = UDim2.new(1, 0, 0, 28)
                 btn.Position = UDim2.new(0, 0, 0, yOff)
                 btn.Text = "🌐 " .. plr.Name
                 btn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -496,7 +633,7 @@ local function showTeleportMenu()
                     end
                     TeleportFrame.Visible = false
                 end)
-                yOff = yOff + 35
+                yOff = yOff + 33
             end
         end
         TScroll.CanvasSize = UDim2.new(0, 0, 0, yOff + 10)
@@ -538,8 +675,8 @@ local function showMapTeleport()
     if not MapFrame then
         MapFrame = Instance.new("Frame")
         MapFrame.Parent = MainFrame
-        MapFrame.Size = UDim2.new(0.8, 0, 0, 180)
-        MapFrame.Position = UDim2.new(0.1, 0, 0, 50)
+        MapFrame.Size = UDim2.new(0.8, 0, 0, 150)
+        MapFrame.Position = UDim2.new(0.1, 0, 0, 45)
         MapFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         MapFrame.BackgroundTransparency = 0.3
         MapFrame.BorderSizePixel = 0
@@ -604,41 +741,8 @@ local function showMapTeleport()
 end
 
 -- ============================================
--- 🔧 أوامر إضافية
+-- 🔧 إيقاف الكل
 -- ============================================
-local function pullBall()
-    local ball = nil
-    for _, child in pairs(Workspace:GetChildren()) do
-        if child:IsA("BasePart") and child.Name:lower():find("ball") then
-            ball = child
-            break
-        end
-    end
-    
-    if not ball then
-        showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
-        return
-    end
-    
-    local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-    if root then
-        ball.Position = root.Position + Vector3.new(0, 3, 0)
-        showNotification("✅ تم جلب الكرة!", Color3.fromRGB(0, 200, 100))
-    end
-end
-
-local function killAll()
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= Player then
-            local h = plr.Character and plr.Character:FindFirstChild("Humanoid")
-            if h then
-                h.Health = 0
-            end
-        end
-    end
-    showNotification("💀 تم قتل الكل!", Color3.fromRGB(255, 0, 0))
-end
-
 local function stopAll()
     for _, conn in pairs(connections) do
         if conn then
@@ -684,45 +788,368 @@ end
 -- 📂 إنشاء الأقسام والمحتوى
 -- ============================================
 
--- 🔥 Tab 1: الطيران والحركة
+-- 🔥 Tab 1: الطيران
 local function showTab1()
     for _, child in pairs(ContentFrame:GetChildren()) do child:Destroy() end
+    
     local yPos = 5
-    addContentButton(ContentFrame, "🚀 طيران", toggleFly, Color3.fromRGB(0, 150, 255), yPos); yPos = yPos + 45
-    addContentButton(ContentFrame, "🧱 اختراق الجدران", toggleNoclip, Color3.fromRGB(150, 100, 255), yPos); yPos = yPos + 45
-    addContentButton(ContentFrame, "👻 اختفاء", toggleInvisible, Color3.fromRGB(200, 100, 255), yPos)
+    
+    -- زر لفتح Frame الطيران العادي
+    local btn1 = Instance.new("TextButton")
+    btn1.Parent = ContentFrame
+    btn1.Size = UDim2.new(0.9, 0, 0, 30)
+    btn1.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn1.Text = "🚀 طيران عادي (Space↑ / Shift↓)"
+    btn1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn1.TextScaled = true
+    btn1.Font = Enum.Font.GothamBold
+    btn1.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    btn1.BackgroundTransparency = 0.3
+    btn1.BorderSizePixel = 0
+    
+    local btnCorner1 = Instance.new("UICorner")
+    btnCorner1.CornerRadius = UDim.new(0, 6)
+    btnCorner1.Parent = btn1
+    
+    btn1.MouseEnter:Connect(function()
+        btn1.BackgroundTransparency = 0
+        btn1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn1.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn1.MouseLeave:Connect(function()
+        btn1.BackgroundTransparency = 0.3
+        btn1.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        btn1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn1.MouseButton1Click:Connect(toggleFly1)
+    yPos = yPos + 40
+    
+    -- زر لفتح Frame الطيران الثابت
+    local btn2 = Instance.new("TextButton")
+    btn2.Parent = ContentFrame
+    btn2.Size = UDim2.new(0.9, 0, 0, 30)
+    btn2.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn2.Text = "🚀 طيران ثابت (أفقي فقط)"
+    btn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn2.TextScaled = true
+    btn2.Font = Enum.Font.GothamBold
+    btn2.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+    btn2.BackgroundTransparency = 0.3
+    btn2.BorderSizePixel = 0
+    
+    local btnCorner2 = Instance.new("UICorner")
+    btnCorner2.CornerRadius = UDim.new(0, 6)
+    btnCorner2.Parent = btn2
+    
+    btn2.MouseEnter:Connect(function()
+        btn2.BackgroundTransparency = 0
+        btn2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn2.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn2.MouseLeave:Connect(function()
+        btn2.BackgroundTransparency = 0.3
+        btn2.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+        btn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn2.MouseButton1Click:Connect(toggleFly2)
+    yPos = yPos + 40
+    
+    -- زر لفتح Frame الطيران الحر
+    local btn3 = Instance.new("TextButton")
+    btn3.Parent = ContentFrame
+    btn3.Size = UDim2.new(0.9, 0, 0, 30)
+    btn3.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn3.Text = "🚀 طيران حر (Space↑ / Shift↓)"
+    btn3.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn3.TextScaled = true
+    btn3.Font = Enum.Font.GothamBold
+    btn3.BackgroundColor3 = Color3.fromRGB(150, 100, 255)
+    btn3.BackgroundTransparency = 0.3
+    btn3.BorderSizePixel = 0
+    
+    local btnCorner3 = Instance.new("UICorner")
+    btnCorner3.CornerRadius = UDim.new(0, 6)
+    btnCorner3.Parent = btn3
+    
+    btn3.MouseEnter:Connect(function()
+        btn3.BackgroundTransparency = 0
+        btn3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn3.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn3.MouseLeave:Connect(function()
+        btn3.BackgroundTransparency = 0.3
+        btn3.BackgroundColor3 = Color3.fromRGB(150, 100, 255)
+        btn3.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn3.MouseButton1Click:Connect(toggleFly3)
+    yPos = yPos + 40
 end
 
 -- ⚡ Tab 2: السرعة
 local function showTab2()
     for _, child in pairs(ContentFrame:GetChildren()) do child:Destroy() end
     local yPos = 5
-    addContentButton(ContentFrame, "⚡ تفعيل السرعة", toggleSpeed, Color3.fromRGB(0, 255, 200), yPos); yPos = yPos + 45
-    addContentButton(ContentFrame, "⬆️ زيادة السرعة +10", increaseSpeed, Color3.fromRGB(50, 200, 100), yPos); yPos = yPos + 45
-    addContentButton(ContentFrame, "⬇️ خفض السرعة -10", decreaseSpeed, Color3.fromRGB(200, 150, 50), yPos)
+    
+    local btn1 = Instance.new("TextButton")
+    btn1.Parent = ContentFrame
+    btn1.Size = UDim2.new(0.9, 0, 0, 30)
+    btn1.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn1.Text = "⚡ تفعيل السرعة"
+    btn1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn1.TextScaled = true
+    btn1.Font = Enum.Font.GothamBold
+    btn1.BackgroundColor3 = Color3.fromRGB(0, 255, 200)
+    btn1.BackgroundTransparency = 0.3
+    btn1.BorderSizePixel = 0
+    
+    local btnCorner1 = Instance.new("UICorner")
+    btnCorner1.CornerRadius = UDim.new(0, 6)
+    btnCorner1.Parent = btn1
+    
+    btn1.MouseEnter:Connect(function()
+        btn1.BackgroundTransparency = 0
+        btn1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn1.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn1.MouseLeave:Connect(function()
+        btn1.BackgroundTransparency = 0.3
+        btn1.BackgroundColor3 = Color3.fromRGB(0, 255, 200)
+        btn1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn1.MouseButton1Click:Connect(toggleSpeed)
+    yPos = yPos + 40
+    
+    local btn2 = Instance.new("TextButton")
+    btn2.Parent = ContentFrame
+    btn2.Size = UDim2.new(0.9, 0, 0, 30)
+    btn2.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn2.Text = "⬆️ زيادة السرعة +10"
+    btn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn2.TextScaled = true
+    btn2.Font = Enum.Font.GothamBold
+    btn2.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+    btn2.BackgroundTransparency = 0.3
+    btn2.BorderSizePixel = 0
+    
+    local btnCorner2 = Instance.new("UICorner")
+    btnCorner2.CornerRadius = UDim.new(0, 6)
+    btnCorner2.Parent = btn2
+    
+    btn2.MouseEnter:Connect(function()
+        btn2.BackgroundTransparency = 0
+        btn2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn2.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn2.MouseLeave:Connect(function()
+        btn2.BackgroundTransparency = 0.3
+        btn2.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+        btn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn2.MouseButton1Click:Connect(increaseSpeed)
+    yPos = yPos + 40
+    
+    local btn3 = Instance.new("TextButton")
+    btn3.Parent = ContentFrame
+    btn3.Size = UDim2.new(0.9, 0, 0, 30)
+    btn3.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn3.Text = "⬇️ خفض السرعة -10"
+    btn3.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn3.TextScaled = true
+    btn3.Font = Enum.Font.GothamBold
+    btn3.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+    btn3.BackgroundTransparency = 0.3
+    btn3.BorderSizePixel = 0
+    
+    local btnCorner3 = Instance.new("UICorner")
+    btnCorner3.CornerRadius = UDim.new(0, 6)
+    btnCorner3.Parent = btn3
+    
+    btn3.MouseEnter:Connect(function()
+        btn3.BackgroundTransparency = 0
+        btn3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn3.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn3.MouseLeave:Connect(function()
+        btn3.BackgroundTransparency = 0.3
+        btn3.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+        btn3.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn3.MouseButton1Click:Connect(decreaseSpeed)
+    yPos = yPos + 40
 end
 
 -- 🌐 Tab 3: التيليبورت
 local function showTab3()
     for _, child in pairs(ContentFrame:GetChildren()) do child:Destroy() end
     local yPos = 5
-    addContentButton(ContentFrame, "🌐 تيليبورت للاعب", showTeleportMenu, Color3.fromRGB(100, 150, 255), yPos); yPos = yPos + 45
-    addContentButton(ContentFrame, "🗺️ تيليبورت للخريطة", showMapTeleport, Color3.fromRGB(255, 200, 50), yPos)
+    
+    local btn1 = Instance.new("TextButton")
+    btn1.Parent = ContentFrame
+    btn1.Size = UDim2.new(0.9, 0, 0, 30)
+    btn1.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn1.Text = "🌐 تيليبورت للاعب"
+    btn1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn1.TextScaled = true
+    btn1.Font = Enum.Font.GothamBold
+    btn1.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+    btn1.BackgroundTransparency = 0.3
+    btn1.BorderSizePixel = 0
+    
+    local btnCorner1 = Instance.new("UICorner")
+    btnCorner1.CornerRadius = UDim.new(0, 6)
+    btnCorner1.Parent = btn1
+    
+    btn1.MouseEnter:Connect(function()
+        btn1.BackgroundTransparency = 0
+        btn1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn1.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn1.MouseLeave:Connect(function()
+        btn1.BackgroundTransparency = 0.3
+        btn1.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+        btn1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn1.MouseButton1Click:Connect(showTeleportMenu)
+    yPos = yPos + 40
+    
+    local btn2 = Instance.new("TextButton")
+    btn2.Parent = ContentFrame
+    btn2.Size = UDim2.new(0.9, 0, 0, 30)
+    btn2.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn2.Text = "🗺️ تيليبورت للخريطة"
+    btn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn2.TextScaled = true
+    btn2.Font = Enum.Font.GothamBold
+    btn2.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
+    btn2.BackgroundTransparency = 0.3
+    btn2.BorderSizePixel = 0
+    
+    local btnCorner2 = Instance.new("UICorner")
+    btnCorner2.CornerRadius = UDim.new(0, 6)
+    btnCorner2.Parent = btn2
+    
+    btn2.MouseEnter:Connect(function()
+        btn2.BackgroundTransparency = 0
+        btn2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn2.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn2.MouseLeave:Connect(function()
+        btn2.BackgroundTransparency = 0.3
+        btn2.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
+        btn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn2.MouseButton1Click:Connect(showMapTeleport)
+    yPos = yPos + 40
 end
 
 -- 🔧 Tab 4: أوامر إضافية
 local function showTab4()
     for _, child in pairs(ContentFrame:GetChildren()) do child:Destroy() end
     local yPos = 5
-    addContentButton(ContentFrame, "⚽ جلب الكرة", pullBall, Color3.fromRGB(0, 200, 255), yPos); yPos = yPos + 45
-    addContentButton(ContentFrame, "💀 قتل الكل", killAll, Color3.fromRGB(255, 0, 0), yPos); yPos = yPos + 45
-    addContentButton(ContentFrame, "🔄 إيقاف الكل", stopAll, Color3.fromRGB(200, 50, 50), yPos)
+    
+    local btn1 = Instance.new("TextButton")
+    btn1.Parent = ContentFrame
+    btn1.Size = UDim2.new(0.9, 0, 0, 30)
+    btn1.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn1.Text = "🧱 اختراق الجدران"
+    btn1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn1.TextScaled = true
+    btn1.Font = Enum.Font.GothamBold
+    btn1.BackgroundColor3 = Color3.fromRGB(150, 100, 255)
+    btn1.BackgroundTransparency = 0.3
+    btn1.BorderSizePixel = 0
+    
+    local btnCorner1 = Instance.new("UICorner")
+    btnCorner1.CornerRadius = UDim.new(0, 6)
+    btnCorner1.Parent = btn1
+    
+    btn1.MouseEnter:Connect(function()
+        btn1.BackgroundTransparency = 0
+        btn1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn1.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn1.MouseLeave:Connect(function()
+        btn1.BackgroundTransparency = 0.3
+        btn1.BackgroundColor3 = Color3.fromRGB(150, 100, 255)
+        btn1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn1.MouseButton1Click:Connect(toggleNoclip)
+    yPos = yPos + 40
+    
+    local btn2 = Instance.new("TextButton")
+    btn2.Parent = ContentFrame
+    btn2.Size = UDim2.new(0.9, 0, 0, 30)
+    btn2.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn2.Text = "👻 اختفاء"
+    btn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn2.TextScaled = true
+    btn2.Font = Enum.Font.GothamBold
+    btn2.BackgroundColor3 = Color3.fromRGB(200, 100, 255)
+    btn2.BackgroundTransparency = 0.3
+    btn2.BorderSizePixel = 0
+    
+    local btnCorner2 = Instance.new("UICorner")
+    btnCorner2.CornerRadius = UDim.new(0, 6)
+    btnCorner2.Parent = btn2
+    
+    btn2.MouseEnter:Connect(function()
+        btn2.BackgroundTransparency = 0
+        btn2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn2.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn2.MouseLeave:Connect(function()
+        btn2.BackgroundTransparency = 0.3
+        btn2.BackgroundColor3 = Color3.fromRGB(200, 100, 255)
+        btn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn2.MouseButton1Click:Connect(toggleInvisible)
+    yPos = yPos + 40
+    
+    local btn3 = Instance.new("TextButton")
+    btn3.Parent = ContentFrame
+    btn3.Size = UDim2.new(0.9, 0, 0, 30)
+    btn3.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn3.Text = "🔄 إيقاف الكل"
+    btn3.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn3.TextScaled = true
+    btn3.Font = Enum.Font.GothamBold
+    btn3.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    btn3.BackgroundTransparency = 0.3
+    btn3.BorderSizePixel = 0
+    
+    local btnCorner3 = Instance.new("UICorner")
+    btnCorner3.CornerRadius = UDim.new(0, 6)
+    btnCorner3.Parent = btn3
+    
+    btn3.MouseEnter:Connect(function()
+        btn3.BackgroundTransparency = 0
+        btn3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn3.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+    btn3.MouseLeave:Connect(function()
+        btn3.BackgroundTransparency = 0.3
+        btn3.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        btn3.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    btn3.MouseButton1Click:Connect(stopAll)
+    yPos = yPos + 40
 end
 
 -- ============================================
 -- 📋 إنشاء الأزرار الجانبية
 -- ============================================
-createTab("الحركة", "🚀", showTab1)
+createTab("الطيران", "🚀", showTab1)
 createTab("السرعة", "⚡", showTab2)
 createTab("التيليبورت", "🌐", showTab3)
 createTab("إضافات", "🔧", showTab4)
@@ -738,15 +1165,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.F1 then
         toggleMinimize()
     end
-    if input.KeyCode == Enum.KeyCode.H then
-        toggleFly()
-    end
-    if input.KeyCode == Enum.KeyCode.G then
-        toggleNoclip()
-    end
-    if input.KeyCode == Enum.KeyCode.V then
-        toggleInvisible()
-    end
 end)
 
 -- ============================================
@@ -754,7 +1172,4 @@ end)
 -- ============================================
 print("💀 ROMA SENPAI HUB Loaded!")
 print("📌 F1 = Toggle GUI")
-print("📌 H = Fly")
-print("📌 G = Noclip")
-print("📌 V = Invisible")
 showNotification("💀 ROMA SENPAI HUB جاهز!", Color3.fromRGB(150, 150, 255))
