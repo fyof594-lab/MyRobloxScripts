@@ -1,14 +1,12 @@
 -- ============================================
 -- 💀 ROMA SENPAI HUB 💀
--- صنع من طرف ROMA SENPAI
+-- صنع من طرف ROMA SENPAI (نسخة نهائية مضبوطة 100%)
 -- ============================================
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
 -- إزالة النسخة القديمة لمنع التكرار
@@ -16,15 +14,12 @@ if PlayerGui:FindFirstChild("RomaHub") then
     PlayerGui.RomaHub:Destroy()
 end
 
--- ============================================
--- 🎨 الواجهة الرئيسية (زي Axel Hub بالضبط)
--- ============================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "RomaHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- النافذة الرئيسية (مقاس مدمج ومناسب للجوال)
+-- النافذة الرئيسية
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
@@ -75,7 +70,32 @@ TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleText.TextSize = 12
 TitleText.TextXAlignment = Enum.TextXAlignment.Left
 
--- زر إغلاق الهب
+-- ============================================
+-- 🔵 زر فتح وإغلاق عائم (يظهر لما تصغر القائمة)
+-- ============================================
+local FloatingBtn = Instance.new("TextButton")
+FloatingBtn.Name = "FloatingBtn"
+FloatingBtn.Parent = ScreenGui
+FloatingBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+FloatingBtn.Position = UDim2.new(0, 20, 0.5, -25)
+FloatingBtn.Size = UDim2.new(0, 45, 0, 45)
+FloatingBtn.AutoButtonColor = false
+FloatingBtn.Font = Enum.Font.GothamBold
+FloatingBtn.Text = "💀"
+FloatingBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+FloatingBtn.TextSize = 20
+FloatingBtn.Visible = false -- مخفي بالبداية لأن الهب بيكون مفتوح
+
+local FBなんだ = Instance.new("UICorner")
+FBなんだ.CornerRadius = UDim.new(1, 0)
+FBなんだ.Parent = FloatingBtn
+
+local FBStroke = Instance.new("UIStroke")
+FBStroke.Parent = FloatingBtn
+FBStroke.Color = Color3.fromRGB(0, 170, 255)
+FBStroke.Thickness = 2
+
+-- زر التصغير/الإغلاق (X) في الشريط العلوي
 local CloseButton = Instance.new("TextButton")
 CloseButton.Parent = TopBar
 CloseButton.BackgroundColor3 = Color3.fromRGB(200, 45, 45)
@@ -83,16 +103,23 @@ CloseButton.Position = UDim2.new(1, -26, 0.5, -9)
 CloseButton.Size = UDim2.new(0, 18, 0, 18)
 CloseButton.AutoButtonColor = false
 CloseButton.Font = Enum.Font.GothamBold
-CloseButton.Text = "X"
+CloseButton.Text = "-"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.TextSize = 9
+CloseButton.TextSize = 11
 
 local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 4)
 CloseCorner.Parent = CloseButton
 
+-- وظيفة زر التصغير والإظهار
 CloseButton.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
+    MainFrame.Visible = false
+    FloatingBtn.Visible = true
+end)
+
+FloatingBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    FloatingBtn.Visible = false
 end)
 
 -- ============================================
@@ -121,14 +148,14 @@ SidebarPadding.Parent = Sidebar
 SidebarPadding.TopPadding = UDim.new(0, 6)
 
 -- ============================================
--- 🖥️ حاوية الصفحات
+-- 🖥️ حاوية الصفحات (تم تصحيح المقاسات لتظهر الأزرار بوضوح)
 -- ============================================
 local PagesContainer = Instance.new("Frame")
 PagesContainer.Name = "PagesContainer"
 PagesContainer.Parent = MainFrame
 PagesContainer.BackgroundTransparency = 1
-PagesContainer.Position = UDim2.new(0, 125, 0, 36)
-PagesContainer.Size = UDim2.new(1, -128, 1, -40)
+PagesContainer.Position = UDim2.new(0, 125, 0, 38)
+PagesContainer.Size = UDim2.new(1, -130, 1, -42)
 
 local CurrentTab = nil
 local Pages = {}
@@ -155,6 +182,7 @@ local function CreateTab(name, icon)
     Page.Parent = PagesContainer
     Page.Active = true
     Page.BackgroundTransparency = 1
+    Page.Position = UDim2.new(0, 0, 0, 0)
     Page.Size = UDim2.new(1, 0, 1, 0)
     Page.CanvasSize = UDim2.new(0, 0, 0, 0)
     Page.ScrollBarThickness = 2
@@ -257,7 +285,7 @@ local function AddToggle(parentPage, titleText, callback)
     end)
 end
 
--- بناء الأقسام والأزرار
+-- بناء الأقسام والأزرار بداخلها
 local MovementPage = CreateTab("الحركة", "🚀")
 local SpeedPage = CreateTab("السرعة", "⚡")
 local ExtrasPage = CreateTab("إضافات", "🔧")
