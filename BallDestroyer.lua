@@ -1,6 +1,6 @@
 -- ============================================
--- ⚽ BLUE LOCK RIVALS ULTIMATE SCRIPT ⚽
--- جلب الكرة + Auto Roll + سرعة + ستات
+-- ⚽ BALL DESTROYER SCRIPT ⚽
+-- سبام الكرة تحت الأرض + تضخيم
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -9,33 +9,36 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- ============================================
 -- 🔍 إيجاد الكرة
 -- ============================================
+local Ball = nil
+
 local function findBall()
-    local allParts = Workspace:GetDescendants()
-    for _, part in pairs(allParts) do
-        if part:IsA("BasePart") and part.Name:lower():find("ball") then
-            return part
+    for _, child in pairs(Workspace:GetChildren()) do
+        if child:IsA("BasePart") and child.Name:lower():find("ball") then
+            return child
         end
     end
     return nil
 end
 
+-- تحديث الكرة
+Ball = findBall()
+
 -- ============================================
 -- 🎨 الواجهة
 -- ============================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BLRUltimateGUI"
+ScreenGui.Name = "BallDestroyerGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = Player.PlayerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 200, 0, 320)
-MainFrame.Position = UDim2.new(0.5, -100, 0.5, -160)
+MainFrame.Size = UDim2.new(0, 200, 0, 150)
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -75)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
@@ -49,22 +52,21 @@ Corner.Parent = MainFrame
 
 local Stroke = Instance.new("UIStroke")
 Stroke.Parent = MainFrame
-Stroke.Color = Color3.fromRGB(255, 200, 0)
-Stroke.Thickness = 1.5
-Stroke.Transparency = 0.5
+Stroke.Color = Color3.fromRGB(255, 50, 50)
+Stroke.Thickness = 2
+Stroke.Transparency = 0.3
 
 local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
 Title.Size = UDim2.new(1, -40, 0, 30)
 Title.Position = UDim2.new(0, 5, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "⚽ BLR ULTIMATE"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "💀 BALL DESTROYER"
+Title.TextColor3 = Color3.fromRGB(255, 50, 50)
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- زر X
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = MainFrame
 CloseBtn.Size = UDim2.new(0, 28, 0, 28)
@@ -100,8 +102,8 @@ local function toggleMinimize()
         end
     else
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 200, 0, 320),
-            Position = UDim2.new(0.5, -100, 0.5, -160),
+            Size = UDim2.new(0, 200, 0, 150),
+            Position = UDim2.new(0.5, -100, 0.5, -75),
             BackgroundTransparency = 0.15
         }):Play()
         CloseBtn.Text = "✕"
@@ -127,7 +129,7 @@ ScrollFrame.BackgroundTransparency = 1
 ScrollFrame.BorderSizePixel = 0
 ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 ScrollFrame.ScrollBarThickness = 3
-ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 200, 0)
+ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 50, 50)
 
 -- ============================================
 -- 💀 دالة الإشعار
@@ -137,7 +139,7 @@ function showNotification(text, color)
     notif.Parent = ScreenGui
     notif.Size = UDim2.new(0, 280, 0, 35)
     notif.Position = UDim2.new(0.5, -140, 0.05, 0)
-    notif.BackgroundColor3 = color or Color3.fromRGB(0, 150, 255)
+    notif.BackgroundColor3 = color or Color3.fromRGB(255, 50, 50)
     notif.BackgroundTransparency = 0.2
     notif.Text = text
     notif.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -153,164 +155,136 @@ function showNotification(text, color)
 end
 
 -- ============================================
--- 🔥 1️⃣ جلب الكرة (ضغطة واحدة)
+-- 💀 1️⃣ سبام الكرة تحت الأرض
 -- ============================================
-local function pullBall()
-    local Ball = findBall()
-    if not Ball then
-        showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
-        return
-    end
+local isSinking = false
+local sinkConnection = nil
+
+local function toggleSink()
+    isSinking = not isSinking
     
-    local char = Player.Character
-    if not char then return end
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    
-    local targetPos = root.Position + Vector3.new(0, 3, 0)
-    
-    pcall(function()
-        for _, child in pairs(Ball:GetChildren()) do
-            if child:IsA("Weld") or child:IsA("Attachment") or child:IsA("Constraint") then
-                child:Destroy()
-            end
+    if isSinking then
+        Ball = findBall()
+        if not Ball then
+            showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+            isSinking = false
+            return
         end
-    end)
-    
-    pcall(function()
-        Ball.Position = targetPos
-        Ball.CFrame = CFrame.new(targetPos)
-        Ball.Anchored = false
-        Ball.CanCollide = true
-    end)
-    
-    showNotification("✅ تم جلب الكرة!", Color3.fromRGB(0, 200, 100))
-end
-
--- ============================================
--- 🔥 2️⃣ Auto Roll (لف على لافينيو)
--- ============================================
-local function autoRollLavinho()
-    showNotification("🔄 جاري اللف على لافينيو...", Color3.fromRGB(0, 200, 255))
-    
-    -- البحث عن Remote الـ Roll
-    local rollRemote = nil
-    for _, child in pairs(ReplicatedStorage:GetChildren()) do
-        if child:IsA("RemoteEvent") and (child.Name:lower():find("roll") or child.Name:lower():find("spin")) then
-            rollRemote = child
-            break
-        end
-    end
-    
-    if not rollRemote then
-        showNotification("❌ لم يتم العثور على Remote اللف!", Color3.fromRGB(255, 0, 0))
-        return
-    end
-    
-    -- محاولة إرسال أمر اللف (قد يختلف حسب اللعبة)
-    pcall(function()
-        rollRemote:FireServer()
-    end)
-    pcall(function()
-        rollRemote:FireServer("Spin")
-    end)
-    pcall(function()
-        rollRemote:FireServer("Roll")
-    end)
-    
-    showNotification("✅ تم إرسال أمر اللف!", Color3.fromRGB(0, 200, 100))
-end
-
--- ============================================
--- 🔥 3️⃣ سرعة خارقة
--- ============================================
-local speedState = false
-local function toggleSpeed()
-    local h = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if not h then return end
-    
-    speedState = not speedState
-    if speedState then
-        h.WalkSpeed = 120
-        h.JumpPower = 80
-        showNotification("⚡ سرعة خارقة ON!", Color3.fromRGB(0, 200, 255))
-    else
-        h.WalkSpeed = 16
-        h.JumpPower = 50
-        showNotification("⚡ سرعة خارقة OFF", Color3.fromRGB(255, 200, 0))
-    end
-end
-
--- ============================================
--- 🔥 4️⃣ ستات مكسيمة
--- ============================================
-local function maxStats()
-    local h = Player.Character and Player.Character:FindFirstChild("Humanoid")
-    if not h then return end
-    
-    h.MaxHealth = 999999
-    h.Health = 999999
-    h.WalkSpeed = 120
-    h.JumpPower = 80
-    
-    showNotification("💪 تم تعزيز جميع الستات!", Color3.fromRGB(0, 200, 100))
-end
-
--- ============================================
--- 🔥 5️⃣ أكواد اللعبة (Lavinho Codes)
--- ============================================
-local function redeemCodes()
-    local codes = {
-        "BRAZILMAN",
-        "DANCERHYPE", 
-        "BACHIRADAD",
-        "OPUPDATE",
-        "SORRYFORDELAY",
-        "BUNNYPEAK",
-        "PRODIGYBALANCE",
-        "UPDATEHYPE3"
-    }
-    
-    -- البحث عن Remote الـ Codes
-    local codeRemote = nil
-    for _, child in pairs(ReplicatedStorage:GetChildren()) do
-        if child:IsA("RemoteEvent") and (child.Name:lower():find("code") or child.Name:lower():find("redeem")) then
-            codeRemote = child
-            break
-        end
-    end
-    
-    if not codeRemote then
-        showNotification("❌ لم يتم العثور على Remote الأكواد!", Color3.fromRGB(255, 0, 0))
-        return
-    end
-    
-    for _, code in ipairs(codes) do
-        pcall(function()
-            codeRemote:FireServer(code)
+        
+        showNotification("⬇️ جاري إغراق الكرة تحت الأرض!", Color3.fromRGB(255, 0, 100))
+        
+        sinkConnection = RunService.Heartbeat:Connect(function()
+            if not isSinking then return end
+            
+            Ball = findBall()
+            if not Ball then return end
+            
+            -- 🛠️ إزالة القيود
+            pcall(function()
+                for _, child in pairs(Ball:GetChildren()) do
+                    if child:IsA("Weld") or child:IsA("Attachment") or child:IsA("Constraint") then
+                        child:Destroy()
+                    end
+                end
+            end)
+            
+            -- ⬇️ إنزال الكرة تحت الأرض
+            pcall(function()
+                Ball.Position = Ball.Position + Vector3.new(0, -5, 0)
+                Ball.CFrame = CFrame.new(Ball.Position)
+                Ball.Anchored = false
+                Ball.CanCollide = true
+                
+                -- ندفع الكرة للأسفل بقوة
+                local bv = Instance.new("BodyVelocity")
+                bv.MaxForce = Vector3.new(0, 1, 0) * 100000
+                bv.Velocity = Vector3.new(0, -100, 0)
+                bv.Parent = Ball
+                game:GetService("Debris"):AddItem(bv, 0.1)
+            end)
         end)
-        task.wait(0.2)
+    else
+        if sinkConnection then
+            sinkConnection:Disconnect()
+            sinkConnection = nil
+        end
+        showNotification("⏹ تم إيقاف إغراق الكرة", Color3.fromRGB(255, 200, 0))
     end
+end
+
+-- ============================================
+-- 💀 2️⃣ تضخيم الكرة
+-- ============================================
+local isGiant = false
+local giantConnection = nil
+
+local function toggleGiant()
+    isGiant = not isGiant
     
-    showNotification("✅ تم إرسال جميع الأكواد!", Color3.fromRGB(0, 200, 100))
+    if isGiant then
+        Ball = findBall()
+        if not Ball then
+            showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+            isGiant = false
+            return
+        end
+        
+        showNotification("🐘 جاري تضخيم الكرة!", Color3.fromRGB(255, 200, 0))
+        
+        giantConnection = RunService.Heartbeat:Connect(function()
+            if not isGiant then return end
+            
+            Ball = findBall()
+            if not Ball then return end
+            
+            -- تكبير الكرة بشكل تدريجي
+            pcall(function()
+                Ball.Size = Vector3.new(50, 50, 50)
+                Ball.Transparency = 0.3
+                Ball.BrickColor = BrickColor.new("Bright red")
+                Ball.Material = Enum.Material.Neon
+                
+                -- تأثير ضوئي
+                local pointLight = Instance.new("PointLight")
+                pointLight.Color = Color3.fromRGB(255, 0, 0)
+                pointLight.Range = 30
+                pointLight.Brightness = 5
+                pointLight.Parent = Ball
+                game:GetService("Debris"):AddItem(pointLight, 0.2)
+            end)
+        end)
+    else
+        if giantConnection then
+            giantConnection:Disconnect()
+            giantConnection = nil
+        end
+        -- إعادة الكرة لحجمها الطبيعي
+        Ball = findBall()
+        if Ball then
+            pcall(function()
+                Ball.Size = Vector3.new(2, 2, 2)
+                Ball.Transparency = 0
+                Ball.BrickColor = BrickColor.new("White")
+                Ball.Material = Enum.Material.Plastic
+            end)
+        end
+        showNotification("⏹ تم إيقاف تضخيم الكرة", Color3.fromRGB(255, 200, 0))
+    end
 end
 
 -- ============================================
 -- 📋 قائمة الأوامر
 -- ============================================
 local Commands = {
-    {Text = "🔄 جلب الكرة", Callback = pullBall},
-    {Text = "🎰 Auto Roll لافينيو", Callback = autoRollLavinho},
-    {Text = "⚡ سرعة خارقة", Callback = toggleSpeed},
-    {Text = "💪 Max Stats", Callback = maxStats},
-    {Text = "🎁 أكواد لافينيو", Callback = redeemCodes},
+    {Text = "⬇️ إغراق الكرة تحت الأرض", Callback = toggleSink},
+    {Text = "🐘 تضخيم الكرة", Callback = toggleGiant},
 }
 
 -- ============================================
 -- 🎨 إنشاء الأزرار
 -- ============================================
-local buttonHeight = 38
-local spacing = 5
+local buttonHeight = 45
+local spacing = 6
 local canvasHeight = #Commands * (buttonHeight + spacing) + 10
 
 ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, canvasHeight)
@@ -324,7 +298,7 @@ for i, cmdData in ipairs(Commands) do
     Button.TextColor3 = Color3.fromRGB(255, 255, 255)
     Button.TextScaled = true
     Button.Font = Enum.Font.GothamBold
-    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
+    Button.BackgroundColor3 = Color3.fromRGB(60, 20, 40)
     Button.BackgroundTransparency = 0.3
     Button.BorderSizePixel = 0
     
@@ -353,14 +327,25 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
     
     if input.KeyCode == Enum.KeyCode.G then
-        pullBall()
+        toggleSink()
+    end
+    
+    if input.KeyCode == Enum.KeyCode.H then
+        toggleGiant()
     end
 end)
 
 -- ============================================
 -- 💬 رسالة ترحيب
 -- ============================================
-print("⚽ BLR Ultimate Script Loaded!")
-print("📌 Press G to pull ball")
+Ball = findBall()
+if Ball then
+    print("💀 Ball Destroyer Script Loaded! Ball found: " .. Ball.Name)
+    showNotification("💀 جاهز! G = إغراق | H = تضخيم", Color3.fromRGB(255, 50, 50))
+else
+    print("💀 Ball Destroyer Script Loaded! Ball not found.")
+    showNotification("⚠️ الكرة غير موجودة!", Color3.fromRGB(255, 200, 0))
+end
+print("📌 Press G to sink ball")
+print("📌 Press H to giant ball")
 print("📌 Press F1 to toggle GUI")
-showNotification("🔥 BLR Ultimate جاهز!", Color3.fromRGB(0, 200, 255))
