@@ -42,21 +42,55 @@ local function toggleFly(state)
         if not connections.fly then
             connections.fly = RunService.Heartbeat:Connect(function()
                 if not states.fly then return end
-                local move = h.MoveDirection
-                local up = Vector3.new(0, 0, 0)
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                    up = Vector3.new(0, 10, 0)
-                elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                    up = Vector3.new(0, -10, 0)
+                if not Player.Character then return end
+                
+                local root = Player.Character:FindFirstChild("HumanoidRootPart")
+                local h = Player.Character:FindFirstChild("Humanoid")
+                if not root or not h then return end
+                
+                -- الحصول على اتجاه الكاميرا
+                local camera = workspace.CurrentCamera
+                local moveDirection = Vector3.new(0, 0, 0)
+                local upDirection = Vector3.new(0, 0, 0)
+                
+                -- الاتجاهات الأفقية (بناءً على الكاميرا)
+                local forward = camera.CFrame.LookVector
+                local right = camera.CFrame.RightVector
+                
+                -- إزالة المركبة العمودية للحصول على حركة أفقية بحتة
+                forward = Vector3.new(forward.X, 0, forward.Z).Unit
+                right = Vector3.new(right.X, 0, right.Z).Unit
+                
+                -- أزرار الحركة
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                    moveDirection = moveDirection + forward
                 end
-                if move.Magnitude > 0 then
-                    root.Velocity = move * flySpeed + up
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                    moveDirection = moveDirection - forward
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                    moveDirection = moveDirection - right
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                    moveDirection = moveDirection + right
+                end
+                
+                -- الحركة العمودية (صعود/نزول)
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    upDirection = Vector3.new(0, 10, 0)
+                elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                    upDirection = Vector3.new(0, -10, 0)
+                end
+                
+                -- تطبيق السرعة
+                if moveDirection.Magnitude > 0 then
+                    root.Velocity = moveDirection.Unit * flySpeed + upDirection
                 else
-                    root.Velocity = up
+                    root.Velocity = upDirection
                 end
             end)
         end
-        showNotification("🚀 الطيران ON", Color3.fromRGB(0, 150, 255))
+        showNotification("🚀 الطيران الحر ON", Color3.fromRGB(0, 150, 255))
     else
         if connections.fly then
             connections.fly:Disconnect()
@@ -191,6 +225,10 @@ end
 local TeleportFrame = nil
 local PlayersList = nil
 
+-- ✅ متغيرات لتثبيت اللاعب المجلوب
+local pulledPlayer = nil
+local pullConnection = nil
+
 local function showTeleportMenu()
     if TeleportFrame and TeleportFrame.Visible then
         TeleportFrame.Visible = false
@@ -199,7 +237,7 @@ local function showTeleportMenu()
     
     if not TeleportFrame then
         TeleportFrame = Instance.new("Frame")
-        TeleportFrame.Parent = ScreenGui  -- ✅ تأكد أن ScreenGui موجود
+        TeleportFrame.Parent = ScreenGui
         TeleportFrame.Size = UDim2.new(0, 220, 0, 250)
         TeleportFrame.Position = UDim2.new(0.5, -110, 0.5, -125)
         TeleportFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
@@ -261,7 +299,6 @@ local function showTeleportMenu()
         if plr ~= Player then
             playerCount = playerCount + 1
             
-            -- زر اللاعب الكامل
             local btn = Instance.new("TextButton")
             btn.Parent = PlayersList
             btn.Size = UDim2.new(1, 0, 0, 40)
@@ -274,7 +311,6 @@ local function showTeleportMenu()
             btnCorner.CornerRadius = UDim.new(0, 6)
             btnCorner.Parent = btn
             
-            -- اسم اللاعب
             local nameLabel = Instance.new("TextLabel")
             nameLabel.Parent = btn
             nameLabel.Size = UDim2.new(0.4, 0, 1, 0)
@@ -286,7 +322,6 @@ local function showTeleportMenu()
             nameLabel.Font = Enum.Font.GothamMedium
             nameLabel.TextXAlignment = Enum.TextXAlignment.Left
             
-            -- زر الانتقال
             local tpBtn = Instance.new("TextButton")
             tpBtn.Parent = btn
             tpBtn.Size = UDim2.new(0, 55, 0, 28)
@@ -316,7 +351,6 @@ local function showTeleportMenu()
                     local myChar = Player.Character
                     if myChar and myChar:FindFirstChild("HumanoidRootPart") then
                         local myRoot = myChar.HumanoidRootPart
-                        -- تعطيل التصادم مؤقتاً
                         local noclipState = states.noclip
                         if not noclipState then
                             toggleNoclip(true)
@@ -334,7 +368,6 @@ local function showTeleportMenu()
                 end
             end)
             
-            -- زر الجلب
             local pullBtn = Instance.new("TextButton")
             pullBtn.Parent = btn
             pullBtn.Size = UDim2.new(0, 45, 0, 28)
@@ -358,23 +391,68 @@ local function showTeleportMenu()
                 pullBtn.BackgroundTransparency = 0.3
             end)
             
+            -- ✅ إصلاح جلب اللاعب
             pullBtn.MouseButton1Click:Connect(function()
                 local targetChar = plr.Character
                 if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
                     local myChar = Player.Character
                     if myChar and myChar:FindFirstChild("HumanoidRootPart") then
                         local myRoot = myChar.HumanoidRootPart
-                        -- تعطيل التصادم مؤقتاً
+                        local targetRoot = targetChar.HumanoidRootPart
+                        
+                        -- تعطيل التصادم
                         local noclipState = states.noclip
                         if not noclipState then
                             toggleNoclip(true)
                         end
-                        targetChar.HumanoidRootPart.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
+                        
+                        -- جلب اللاعب
+                        targetRoot.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
+                        
+                        -- ✅ تثبيت اللاعب المجلوب
+                        if pullConnection then
+                            pullConnection:Disconnect()
+                            pullConnection = nil
+                        end
+                        
+                        -- نثبت اللاعب في مكانه
+                        pullConnection = RunService.Heartbeat:Connect(function()
+                            if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then
+                                if pullConnection then
+                                    pullConnection:Disconnect()
+                                    pullConnection = nil
+                                end
+                                return
+                            end
+                            local target = plr.Character.HumanoidRootPart
+                            -- نعيده لنفس المكان كل إطار
+                            target.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
+                            target.Velocity = Vector3.new(0, 0, 0)
+                            -- نوقف حركته
+                            local h = plr.Character:FindFirstChild("Humanoid")
+                            if h then
+                                h.PlatformStand = true
+                            end
+                        end)
+                        
+                        -- نوقف التثبيت بعد 5 ثواني أو عند الضغط مرّة أخرى
+                        task.wait(5)
+                        if pullConnection then
+                            pullConnection:Disconnect()
+                            pullConnection = nil
+                            -- نحرر اللاعب
+                            local h = plr.Character:FindFirstChild("Humanoid")
+                            if h then
+                                h.PlatformStand = false
+                            end
+                        end
+                        
                         if not noclipState then
                             task.wait(0.1)
                             toggleNoclip(false)
                         end
-                        showNotification("✅ تم جلب " .. plr.Name, Color3.fromRGB(0, 200, 100))
+                        
+                        showNotification("✅ تم جلب " .. plr.Name .. " (مثبت 5 ثواني)", Color3.fromRGB(0, 200, 100))
                         TeleportFrame.Visible = false
                     end
                 else
@@ -386,7 +464,6 @@ local function showTeleportMenu()
         end
     end
     
-    -- إذا لم يوجد لاعبين
     if playerCount == 0 then
         local noPlayers = Instance.new("TextLabel")
         noPlayers.Parent = PlayersList
@@ -472,7 +549,6 @@ local CloseBtn = nil
 local isGUIVisible = true
 
 function createGUI()
-    -- ✅ حفظ ScreenGui في متغير عام
     ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "RomaAxelHub"
     ScreenGui.ResetOnSpawn = false
@@ -515,7 +591,6 @@ function createGUI()
     LogoLabel.Font = Enum.Font.GothamBold
     LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- ✅ زر التصغير (يخلي القائمة تختفي وتتحول لزر دائري)
     MinBtn = Instance.new("TextButton")
     MinBtn.Parent = TopBar
     MinBtn.Size = UDim2.new(0, 22, 0, 22)
@@ -532,7 +607,6 @@ function createGUI()
     MinCorner.CornerRadius = UDim.new(1, 0)
     MinCorner.Parent = MinBtn
 
-    -- ✅ زر الإغلاق (يخلي القائمة تختفي وتتحول لزر دائري برمز ⚡)
     CloseBtn = Instance.new("TextButton")
     CloseBtn.Parent = TopBar
     CloseBtn.Size = UDim2.new(0, 22, 0, 22)
@@ -549,12 +623,10 @@ function createGUI()
     CloseCorner.CornerRadius = UDim.new(1, 0)
     CloseCorner.Parent = CloseBtn
 
-    -- ✅ دالة التصغير
     local function minimizeGUI()
         isMinimized = true
-        MainFrame.Visible = false  -- القائمة تختفي
+        MainFrame.Visible = false
         
-        -- نصنع زر دائري صغير مكانها
         local miniButton = Instance.new("TextButton")
         miniButton.Name = "MiniButton"
         miniButton.Parent = ScreenGui
@@ -577,7 +649,6 @@ function createGUI()
         miniStroke.Color = Color3.fromRGB(45, 45, 55)
         miniStroke.Thickness = 1
         
-        -- عند الضغط على الزر الدائري ترجع القائمة
         miniButton.MouseButton1Click:Connect(function()
             isMinimized = false
             MainFrame.Visible = true
@@ -585,12 +656,10 @@ function createGUI()
         end)
     end
 
-    -- ✅ زر التصغير
     MinBtn.MouseButton1Click:Connect(function()
         minimizeGUI()
     end)
 
-    -- ✅ زر الإغلاق (نفس وظيفة التصغير)
     CloseBtn.MouseButton1Click:Connect(function()
         minimizeGUI()
     end)
@@ -731,7 +800,7 @@ function createGUI()
     -- بناء القوائم
     local function createMovementTab()
         local panel = createContentPanel("🚀 إعدادات الحركة")
-        addToggle(panel, "الطيران (Fly)", function(state) toggleFly(state) end)
+        addToggle(panel, "الطيران الحر (Fly)", function(state) toggleFly(state) end)
         addToggle(panel, "اختراق الجدران", function(state) toggleNoclip(state) end)
         addToggle(panel, "اختفاء (Invisible)", function(state) toggleInvisible(state) end)
     end
@@ -852,7 +921,6 @@ function createGUI()
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.F1 then
             if isMinimized then
-                -- إذا كانت مصغرة، نرجع القائمة
                 isMinimized = false
                 MainFrame.Visible = true
                 local miniBtn = ScreenGui:FindFirstChild("MiniButton")
