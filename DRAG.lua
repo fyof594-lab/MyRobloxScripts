@@ -1,6 +1,5 @@
 -- ============================================
--- 💀 BLR MOBILITY (مستطيل أفقي) 💀
--- طيران + نوكليب + اختفاء + سرعة + تيليبورت للاعب + تيليبورت للخريطة
+-- 💀 BLR MOBILITY (عصري 2026) 💀
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -12,52 +11,72 @@ local RunService = game:GetService("RunService")
 local Mouse = Player:GetMouse()
 
 -- ============================================
--- 🎨 الواجهة الزجاجية (مستطيل أفقي)
+-- 🎨 الواجهة الزجاجية الفخمة (عصري 2026)
 -- ============================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MobilityGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = Player.PlayerGui
 
--- النافذة الرئيسية (عرضية)
+-- النافذة الرئيسية (مستطيل صغير)
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 700, 0, 200)
-MainFrame.Position = UDim2.new(0.5, -350, 0.5, -100)
-MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-MainFrame.BackgroundTransparency = 0.1
+MainFrame.Size = UDim2.new(0, 520, 0, 170)
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -85)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BackgroundTransparency = 0.2
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
 MainFrame.Active = true
 MainFrame.Draggable = true
 
+-- زوايا مدورة ناعمة
 local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 16)
+Corner.CornerRadius = UDim.new(0, 20)
 Corner.Parent = MainFrame
 
+-- تأثير الزجاج (Glassmorphism)
+local Blur = Instance.new("BlurEffect")
+Blur.Parent = game.Lighting
+Blur.Size = 18
+
+-- إطار متوهج (Neon Stroke)
 local Stroke = Instance.new("UIStroke")
 Stroke.Parent = MainFrame
-Stroke.Color = Color3.fromRGB(255, 255, 255)
+Stroke.Color = Color3.fromRGB(100, 150, 255)
 Stroke.Thickness = 1.5
-Stroke.Transparency = 0.4
+Stroke.Transparency = 0.3
 
--- العنوان
+-- ============================================
+-- 📌 شريط عنوان فخم
+-- ============================================
+local TitleBar = Instance.new("Frame")
+TitleBar.Parent = MainFrame
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+TitleBar.BackgroundTransparency = 0.3
+TitleBar.BorderSizePixel = 0
+
+local TitleBarCorner = Instance.new("UICorner")
+TitleBarCorner.CornerRadius = UDim.new(0, 20)
+TitleBarCorner.Parent = TitleBar
+
 local Title = Instance.new("TextLabel")
-Title.Parent = MainFrame
-Title.Size = UDim2.new(1, -50, 0, 35)
-Title.Position = UDim2.new(0, 5, 0, 0)
+Title.Parent = TitleBar
+Title.Size = UDim2.new(1, -60, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "💀 MOBILITY"
+Title.Text = "💀 MOBILITY • 2026"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- زر X
+-- زر X دائري أنيق
 local CloseBtn = Instance.new("TextButton")
-CloseBtn.Parent = MainFrame
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -36, 0, 3)
+CloseBtn.Parent = TitleBar
+CloseBtn.Size = UDim2.new(0, 32, 0, 32)
+CloseBtn.Position = UDim2.new(1, -40, 0.5, -16)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
 CloseBtn.BackgroundTransparency = 0.3
 CloseBtn.Text = "✕"
@@ -70,36 +89,41 @@ local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(1, 0)
 CloseCorner.Parent = CloseBtn
 
+-- ============================================
+-- 🔄 تصغير القائمة لدائرة
+-- ============================================
 local isMinimized = false
 local function toggleMinimize()
     isMinimized = not isMinimized
     if isMinimized then
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 50, 0, 50),
-            Position = UDim2.new(0, 10, 0.5, -25),
+        TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 55, 0, 55),
+            Position = UDim2.new(0, 10, 0.5, -27),
             BackgroundTransparency = 0.3
         }):Play()
         CloseBtn.Text = "⊕"
-        CloseBtn.Size = UDim2.new(0, 40, 0, 40)
+        CloseBtn.Size = UDim2.new(0, 45, 0, 45)
         CloseBtn.Position = UDim2.new(0, 5, 0, 5)
+        CloseBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
         for _, child in pairs(MainFrame:GetChildren()) do
-            if child ~= Title and child ~= CloseBtn then
+            if child ~= TitleBar and child ~= CloseBtn then
                 child.Visible = false
             end
         end
         Title.Visible = false
     else
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 700, 0, 200),
-            Position = UDim2.new(0.5, -350, 0.5, -100),
-            BackgroundTransparency = 0.1
+        TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 520, 0, 170),
+            Position = UDim2.new(0.5, -260, 0.5, -85),
+            BackgroundTransparency = 0.2
         }):Play()
         CloseBtn.Text = "✕"
-        CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-        CloseBtn.Position = UDim2.new(1, -36, 0, 3)
+        CloseBtn.Size = UDim2.new(0, 32, 0, 32)
+        CloseBtn.Position = UDim2.new(1, -40, 0.5, -16)
+        CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
         Title.Visible = true
         for _, child in pairs(MainFrame:GetChildren()) do
-            if child ~= Title and child ~= CloseBtn then
+            if child ~= TitleBar and child ~= CloseBtn then
                 child.Visible = true
             end
         end
@@ -107,13 +131,23 @@ local function toggleMinimize()
 end
 CloseBtn.MouseButton1Click:Connect(toggleMinimize)
 
+-- خط فاصل أنيق
 local Line = Instance.new("Frame")
 Line.Parent = MainFrame
-Line.Size = UDim2.new(0.95, 0, 0, 1.5)
-Line.Position = UDim2.new(0.025, 0, 0, 38)
-Line.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Line.Size = UDim2.new(0.9, 0, 0, 1.5)
+Line.Position = UDim2.new(0.05, 0, 0, 42)
+Line.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
 Line.BackgroundTransparency = 0.5
 Line.BorderSizePixel = 0
+
+-- ============================================
+-- 📦 حاوية الأزرار (أفقية)
+-- ============================================
+local container = Instance.new("Frame")
+container.Parent = MainFrame
+container.Size = UDim2.new(1, -10, 0, 110)
+container.Position = UDim2.new(0, 5, 0, 48)
+container.BackgroundTransparency = 1
 
 -- ============================================
 -- 🔥 المتغيرات والحالات
@@ -125,19 +159,19 @@ local speedAmount = 120
 function showNotification(text, color)
     local notif = Instance.new("TextLabel")
     notif.Parent = ScreenGui
-    notif.Size = UDim2.new(0, 300, 0, 40)
-    notif.Position = UDim2.new(0.5, -150, 0.05, 0)
-    notif.BackgroundColor3 = color or Color3.fromRGB(100, 150, 255)
-    notif.BackgroundTransparency = 0.2
+    notif.Size = UDim2.new(0, 320, 0, 40)
+    notif.Position = UDim2.new(0.5, -160, 0.05, 0)
+    notif.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    notif.BackgroundTransparency = 0.3
     notif.Text = text
     notif.TextColor3 = Color3.fromRGB(255, 255, 255)
     notif.TextScaled = true
     notif.Font = Enum.Font.GothamBold
     notif.BorderSizePixel = 0
     local notifCorner = Instance.new("UICorner")
-    notifCorner.CornerRadius = UDim.new(0, 10)
+    notifCorner.CornerRadius = UDim.new(0, 12)
     notifCorner.Parent = notif
-    game:GetService("Debris"):AddItem(notif, 2.5)
+    game:GetService("Debris"):AddItem(notif, 2)
 end
 
 -- ============================================
@@ -163,7 +197,7 @@ local function toggleFly()
                 root.Velocity = Vector3.new(0, 0, 0)
             end
         end)
-        showNotification("🚀 الطيران ON!", Color3.fromRGB(0, 150, 255))
+        showNotification("🚀 الطيران ON", Color3.fromRGB(0, 150, 255))
     else
         if connections.fly then
             connections.fly:Disconnect()
@@ -190,7 +224,7 @@ local function toggleNoclip()
                 end
             end
         end)
-        showNotification("🧱 نوكليب ON!", Color3.fromRGB(150, 100, 255))
+        showNotification("🧱 نوكليب ON", Color3.fromRGB(150, 100, 255))
     else
         if connections.noclip then
             connections.noclip:Disconnect()
@@ -229,7 +263,7 @@ local function toggleInvisible()
             char.Humanoid.HealthDisplayDistance = 0
             char.Humanoid.NameDisplayDistance = 0
         end)
-        showNotification("👻 اختفاء ON!", Color3.fromRGB(200, 100, 255))
+        showNotification("👻 اختفاء ON", Color3.fromRGB(200, 100, 255))
     else
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -257,10 +291,10 @@ local function toggleSpeed()
 
     if states.speed then
         h.WalkSpeed = speedAmount
-        showNotification("⚡ سرعة " .. speedAmount .. " ON!", Color3.fromRGB(0, 255, 200))
+        showNotification("⚡ سرعة " .. speedAmount, Color3.fromRGB(0, 255, 200))
     else
         h.WalkSpeed = 16
-        showNotification("⚡ سرعة OFF", Color3.fromRGB(255, 200, 0))
+        showNotification("⏹ سرعة OFF", Color3.fromRGB(255, 200, 0))
     end
 end
 
@@ -285,7 +319,7 @@ local function decreaseSpeed()
 end
 
 -- ============================================
--- 🌐 تيليبورت للاعبين
+-- 🌐 تيليبورت للاعبين (قائمة منبثقة)
 -- ============================================
 local TeleportFrame = nil
 
@@ -298,15 +332,15 @@ local function showTeleportMenu()
     if not TeleportFrame then
         TeleportFrame = Instance.new("Frame")
         TeleportFrame.Parent = MainFrame
-        TeleportFrame.Size = UDim2.new(0.9, 0, 0, 130)
+        TeleportFrame.Size = UDim2.new(0.9, 0, 0, 120)
         TeleportFrame.Position = UDim2.new(0.05, 0, 0, 45)
-        TeleportFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        TeleportFrame.BackgroundTransparency = 0.15
+        TeleportFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        TeleportFrame.BackgroundTransparency = 0.3
         TeleportFrame.BorderSizePixel = 0
         TeleportFrame.ClipsDescendants = true
         
         local TCorner = Instance.new("UICorner")
-        TCorner.CornerRadius = UDim.new(0, 10)
+        TCorner.CornerRadius = UDim.new(0, 12)
         TCorner.Parent = TeleportFrame
         
         local TScroll = Instance.new("ScrollingFrame")
@@ -317,7 +351,7 @@ local function showTeleportMenu()
         TScroll.BorderSizePixel = 0
         TScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
         TScroll.ScrollBarThickness = 3
-        TScroll.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
+        TScroll.ScrollBarImageColor3 = Color3.fromRGB(100, 150, 255)
         
         local yOff = 0
         for _, plr in pairs(Players:GetPlayers()) do
@@ -326,12 +360,12 @@ local function showTeleportMenu()
                 btn.Parent = TScroll
                 btn.Size = UDim2.new(1, 0, 0, 28)
                 btn.Position = UDim2.new(0, 0, 0, yOff)
-                btn.Text = plr.Name
+                btn.Text = "🌐 " .. plr.Name
                 btn.TextColor3 = Color3.fromRGB(255, 255, 255)
                 btn.TextScaled = true
                 btn.Font = Enum.Font.GothamBold
                 btn.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
-                btn.BackgroundTransparency = 0.2
+                btn.BackgroundTransparency = 0.3
                 btn.BorderSizePixel = 0
                 
                 local btnCorner = Instance.new("UICorner")
@@ -342,7 +376,7 @@ local function showTeleportMenu()
                     btn.BackgroundTransparency = 0
                 end)
                 btn.MouseLeave:Connect(function()
-                    btn.BackgroundTransparency = 0.2
+                    btn.BackgroundTransparency = 0.3
                 end)
                 
                 btn.MouseButton1Click:Connect(function()
@@ -365,8 +399,8 @@ local function showTeleportMenu()
         
         local closeT = Instance.new("TextButton")
         closeT.Parent = TeleportFrame
-        closeT.Size = UDim2.new(0, 30, 0, 30)
-        closeT.Position = UDim2.new(1, -35, 0, 2)
+        closeT.Size = UDim2.new(0, 28, 0, 28)
+        closeT.Position = UDim2.new(1, -34, 0, 2)
         closeT.Text = "✕"
         closeT.TextColor3 = Color3.fromRGB(255, 255, 255)
         closeT.TextScaled = true
@@ -388,10 +422,9 @@ local function showTeleportMenu()
 end
 
 -- ============================================
--- 🗺️ تيليبورت للخريطة (اضغط على مكان)
+-- 🗺️ تيليبورت للخريطة
 -- ============================================
 local MapFrame = nil
-local MapImage = nil
 
 local function showMapTeleport()
     if MapFrame and MapFrame.Visible then
@@ -402,58 +435,35 @@ local function showMapTeleport()
     if not MapFrame then
         MapFrame = Instance.new("Frame")
         MapFrame.Parent = MainFrame
-        MapFrame.Size = UDim2.new(0.9, 0, 0, 140)
+        MapFrame.Size = UDim2.new(0.9, 0, 0, 120)
         MapFrame.Position = UDim2.new(0.05, 0, 0, 45)
-        MapFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        MapFrame.BackgroundTransparency = 0.15
+        MapFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        MapFrame.BackgroundTransparency = 0.3
         MapFrame.BorderSizePixel = 0
         MapFrame.ClipsDescendants = true
         
         local MCorner = Instance.new("UICorner")
-        MCorner.CornerRadius = UDim.new(0, 10)
+        MCorner.CornerRadius = UDim.new(0, 12)
         MCorner.Parent = MapFrame
         
-        -- صورة الخريطة (منظر علوي)
-        MapImage = Instance.new("ImageLabel")
+        -- خريطة مبسطة
+        local MapImage = Instance.new("ImageLabel")
         MapImage.Parent = MapFrame
         MapImage.Size = UDim2.new(1, -10, 1, -10)
         MapImage.Position = UDim2.new(0, 5, 0, 5)
-        MapImage.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+        MapImage.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
         MapImage.BackgroundTransparency = 0.3
-        MapImage.Image = "rbxassetid://" -- صورة خريطة مؤقتة
+        MapImage.Image = "rbxassetid://" 
         
         local MCorner2 = Instance.new("UICorner")
         MCorner2.CornerRadius = UDim.new(0, 8)
         MCorner2.Parent = MapImage
         
-        -- كشاف للماوس عشان يحدد المكان
-        local cursor = Instance.new("Frame")
-        cursor.Parent = MapImage
-        cursor.Size = UDim2.new(0, 20, 0, 20)
-        cursor.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-        cursor.BackgroundTransparency = 0.5
-        cursor.BorderSizePixel = 0
-        local cursorCorner = Instance.new("UICorner")
-        cursorCorner.CornerRadius = UDim.new(1, 0)
-        cursorCorner.Parent = cursor
-        cursor.Visible = false
-        
-        -- نص ارشادي
-        local hint = Instance.new("TextLabel")
-        hint.Parent = MapFrame
-        hint.Size = UDim2.new(1, 0, 0, 25)
-        hint.Position = UDim2.new(0, 0, 1, -30)
-        hint.BackgroundTransparency = 1
-        hint.Text = "🗺️ اضغط على أي مكان في الخريطة للانتقال"
-        hint.TextColor3 = Color3.fromRGB(255, 255, 255)
-        hint.TextScaled = true
-        hint.Font = Enum.Font.GothamBold
-        
-        -- زر إغلاق الخريطة
+        -- زر إغلاق
         local closeMap = Instance.new("TextButton")
         closeMap.Parent = MapFrame
-        closeMap.Size = UDim2.new(0, 30, 0, 30)
-        closeMap.Position = UDim2.new(1, -35, 0, 2)
+        closeMap.Size = UDim2.new(0, 28, 0, 28)
+        closeMap.Position = UDim2.new(1, -34, 0, 2)
         closeMap.Text = "✕"
         closeMap.TextColor3 = Color3.fromRGB(255, 255, 255)
         closeMap.TextScaled = true
@@ -470,28 +480,21 @@ local function showMapTeleport()
             MapFrame.Visible = false
         end)
         
-        -- 🔥 عند الضغط على الخريطة
+        -- الضغط على الخريطة
         MapImage.MouseButton1Click:Connect(function(x, y)
-            -- ناخذ موقع الضغط بالنسبة للخريطة
             local absSize = MapImage.AbsoluteSize
             local absPos = MapImage.AbsolutePosition
             
             local relX = (x - absPos.X) / absSize.X
             local relY = (y - absPos.Y) / absSize.Y
             
-            -- نضرب في أبعاد الـ Workspace عشان نحدد موقع
-            local worldSize = 200 -- حجم العالم التقريبي
-            local targetPos = Vector3.new(
-                (relX - 0.5) * worldSize,
-                5,
-                (relY - 0.5) * worldSize
-            )
+            local worldSize = 200
+            local targetPos = Vector3.new((relX - 0.5) * worldSize, 5, (relY - 0.5) * worldSize)
             
-            -- تليفورت اللاعب للمكان
             local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
             if root then
                 root.CFrame = CFrame.new(targetPos)
-                showNotification("✅ تم التليفورت للموقع المحدد!", Color3.fromRGB(0, 200, 100))
+                showNotification("✅ تم التليفورت!", Color3.fromRGB(0, 200, 100))
                 MapFrame.Visible = false
             end
         end)
@@ -501,15 +504,8 @@ local function showMapTeleport()
 end
 
 -- ============================================
--- 📋 إنشاء الأزرار (مصفوفة بشكل مستطيل)
+-- 📋 الأزرار (مصفوفة بشكل مستطيل أنيق)
 -- ============================================
-local container = Instance.new("Frame")
-container.Parent = MainFrame
-container.Size = UDim2.new(1, -10, 0, 145)
-container.Position = UDim2.new(0, 5, 0, 45)
-container.BackgroundTransparency = 1
-
--- الأزرار (3 صفوف)
 local buttons = {
     {Text = "🚀 طيران", Callback = toggleFly, Color = Color3.fromRGB(0, 150, 255)},
     {Text = "🧱 نوكليب", Callback = toggleNoclip, Color = Color3.fromRGB(150, 100, 255)},
@@ -517,9 +513,9 @@ local buttons = {
     {Text = "⚡ سرعة", Callback = toggleSpeed, Color = Color3.fromRGB(0, 255, 200)},
     {Text = "⬆️ +10", Callback = increaseSpeed, Color = Color3.fromRGB(50, 200, 100)},
     {Text = "⬇️ -10", Callback = decreaseSpeed, Color = Color3.fromRGB(200, 150, 50)},
-    {Text = "🌐 تيليبورت لاعب", Callback = showTeleportMenu, Color = Color3.fromRGB(100, 150, 255)},
-    {Text = "🗺️ تيليبورت خريطة", Callback = showMapTeleport, Color = Color3.fromRGB(255, 200, 50)},
-    {Text = "🔄 إيقاف الكل", Callback = function()
+    {Text = "🌐 لاعب", Callback = showTeleportMenu, Color = Color3.fromRGB(100, 150, 255)},
+    {Text = "🗺️ خريطة", Callback = showMapTeleport, Color = Color3.fromRGB(255, 200, 50)},
+    {Text = "🔄 إيقاف", Callback = function()
         for _, conn in pairs(connections) do
             if conn then
                 conn:Disconnect()
@@ -557,35 +553,44 @@ local buttons = {
         if MapFrame then
             MapFrame.Visible = false
         end
-        showNotification("⏹ تم إيقاف الكل!", Color3.fromRGB(255, 200, 0))
+        showNotification("⏹ تم الإيقاف", Color3.fromRGB(255, 200, 0))
     end, Color = Color3.fromRGB(200, 50, 50)},
 }
 
--- 3 أزرار في كل صف (3 صفوف)
+-- إنشاء الأزرار (3 صفوف × 3 أعمدة)
 for i, btnData in ipairs(buttons) do
     local btn = Instance.new("TextButton")
     btn.Parent = container
     local row = math.floor((i-1) / 3)
     local col = (i-1) % 3
-    btn.Size = UDim2.new(0.31, 0, 0, 40)
-    btn.Position = UDim2.new(0.01 + col * 0.33, 0, 0.02 + row * 48, 0)
+    btn.Size = UDim2.new(0.31, 0, 0, 32)
+    btn.Position = UDim2.new(0.01 + col * 0.33, 0, 0.03 + row * 37, 0)
     btn.Text = btnData.Text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.TextScaled = true
     btn.Font = Enum.Font.GothamBold
     btn.BackgroundColor3 = btnData.Color or Color3.fromRGB(40, 40, 70)
-    btn.BackgroundTransparency = 0.2
+    btn.BackgroundTransparency = 0.3
     btn.BorderSizePixel = 0
     
     local btnCorner = Instance.new("UICorner")
     btnCorner.CornerRadius = UDim.new(0, 8)
     btnCorner.Parent = btn
     
+    -- تأثير الإضاءة عند التمرير
     btn.MouseEnter:Connect(function()
         btn.BackgroundTransparency = 0
+        TweenService:Create(btn, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        }):Play()
+        btn.TextColor3 = Color3.fromRGB(0, 0, 0)
     end)
     btn.MouseLeave:Connect(function()
-        btn.BackgroundTransparency = 0.2
+        btn.BackgroundTransparency = 0.3
+        TweenService:Create(btn, TweenInfo.new(0.2), {
+            BackgroundColor3 = btnData.Color or Color3.fromRGB(40, 40, 70)
+        }):Play()
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     end)
     
     btn.MouseButton1Click:Connect(btnData.Callback)
@@ -613,9 +618,9 @@ end)
 -- ============================================
 -- 💬 رسالة ترحيب
 -- ============================================
-print("💀 BLR Mobility (Horizontal) Loaded!")
+print("💀 BLR Mobility 2026 Loaded!")
 print("📌 F1 = Toggle GUI")
 print("📌 H = Fly")
 print("📌 G = Noclip")
 print("📌 V = Invisible")
-showNotification("💀 القائمة المستطيلة جاهزة!", Color3.fromRGB(100, 150, 255))
+showNotification("💀 MOBILITY 2026 جاهزة!", Color3.fromRGB(100, 150, 255))
