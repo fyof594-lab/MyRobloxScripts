@@ -1,5 +1,6 @@
 -- ============================================
 -- 💀 BLR MOBILITY (مستطيل أفقي) 💀
+-- طيران + نوكليب + اختفاء + سرعة + تيليبورت للاعب + تيليبورت للخريطة
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -8,6 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local Mouse = Player:GetMouse()
 
 -- ============================================
 -- 🎨 الواجهة الزجاجية (مستطيل أفقي)
@@ -20,10 +22,10 @@ ScreenGui.Parent = Player.PlayerGui
 -- النافذة الرئيسية (عرضية)
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 450, 0, 180)  -- عرض 450، ارتفاع 180 (مستطيل أفقي)
-MainFrame.Position = UDim2.new(0.5, -225, 0.5, -90)
+MainFrame.Size = UDim2.new(0, 700, 0, 200)
+MainFrame.Position = UDim2.new(0.5, -350, 0.5, -100)
 MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-MainFrame.BackgroundTransparency = 0.12
+MainFrame.BackgroundTransparency = 0.1
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
 MainFrame.Active = true
@@ -88,9 +90,9 @@ local function toggleMinimize()
         Title.Visible = false
     else
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 450, 0, 180),
-            Position = UDim2.new(0.5, -225, 0.5, -90),
-            BackgroundTransparency = 0.12
+            Size = UDim2.new(0, 700, 0, 200),
+            Position = UDim2.new(0.5, -350, 0.5, -100),
+            BackgroundTransparency = 0.1
         }):Play()
         CloseBtn.Text = "✕"
         CloseBtn.Size = UDim2.new(0, 30, 0, 30)
@@ -283,7 +285,7 @@ local function decreaseSpeed()
 end
 
 -- ============================================
--- 🌐 تيليبورت
+-- 🌐 تيليبورت للاعبين
 -- ============================================
 local TeleportFrame = nil
 
@@ -386,15 +388,128 @@ local function showTeleportMenu()
 end
 
 -- ============================================
+-- 🗺️ تيليبورت للخريطة (اضغط على مكان)
+-- ============================================
+local MapFrame = nil
+local MapImage = nil
+
+local function showMapTeleport()
+    if MapFrame and MapFrame.Visible then
+        MapFrame.Visible = false
+        return
+    end
+    
+    if not MapFrame then
+        MapFrame = Instance.new("Frame")
+        MapFrame.Parent = MainFrame
+        MapFrame.Size = UDim2.new(0.9, 0, 0, 140)
+        MapFrame.Position = UDim2.new(0.05, 0, 0, 45)
+        MapFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        MapFrame.BackgroundTransparency = 0.15
+        MapFrame.BorderSizePixel = 0
+        MapFrame.ClipsDescendants = true
+        
+        local MCorner = Instance.new("UICorner")
+        MCorner.CornerRadius = UDim.new(0, 10)
+        MCorner.Parent = MapFrame
+        
+        -- صورة الخريطة (منظر علوي)
+        MapImage = Instance.new("ImageLabel")
+        MapImage.Parent = MapFrame
+        MapImage.Size = UDim2.new(1, -10, 1, -10)
+        MapImage.Position = UDim2.new(0, 5, 0, 5)
+        MapImage.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+        MapImage.BackgroundTransparency = 0.3
+        MapImage.Image = "rbxassetid://" -- صورة خريطة مؤقتة
+        
+        local MCorner2 = Instance.new("UICorner")
+        MCorner2.CornerRadius = UDim.new(0, 8)
+        MCorner2.Parent = MapImage
+        
+        -- كشاف للماوس عشان يحدد المكان
+        local cursor = Instance.new("Frame")
+        cursor.Parent = MapImage
+        cursor.Size = UDim2.new(0, 20, 0, 20)
+        cursor.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        cursor.BackgroundTransparency = 0.5
+        cursor.BorderSizePixel = 0
+        local cursorCorner = Instance.new("UICorner")
+        cursorCorner.CornerRadius = UDim.new(1, 0)
+        cursorCorner.Parent = cursor
+        cursor.Visible = false
+        
+        -- نص ارشادي
+        local hint = Instance.new("TextLabel")
+        hint.Parent = MapFrame
+        hint.Size = UDim2.new(1, 0, 0, 25)
+        hint.Position = UDim2.new(0, 0, 1, -30)
+        hint.BackgroundTransparency = 1
+        hint.Text = "🗺️ اضغط على أي مكان في الخريطة للانتقال"
+        hint.TextColor3 = Color3.fromRGB(255, 255, 255)
+        hint.TextScaled = true
+        hint.Font = Enum.Font.GothamBold
+        
+        -- زر إغلاق الخريطة
+        local closeMap = Instance.new("TextButton")
+        closeMap.Parent = MapFrame
+        closeMap.Size = UDim2.new(0, 30, 0, 30)
+        closeMap.Position = UDim2.new(1, -35, 0, 2)
+        closeMap.Text = "✕"
+        closeMap.TextColor3 = Color3.fromRGB(255, 255, 255)
+        closeMap.TextScaled = true
+        closeMap.Font = Enum.Font.GothamBold
+        closeMap.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+        closeMap.BackgroundTransparency = 0.3
+        closeMap.BorderSizePixel = 0
+        
+        local closeMapCorner = Instance.new("UICorner")
+        closeMapCorner.CornerRadius = UDim.new(1, 0)
+        closeMapCorner.Parent = closeMap
+        
+        closeMap.MouseButton1Click:Connect(function()
+            MapFrame.Visible = false
+        end)
+        
+        -- 🔥 عند الضغط على الخريطة
+        MapImage.MouseButton1Click:Connect(function(x, y)
+            -- ناخذ موقع الضغط بالنسبة للخريطة
+            local absSize = MapImage.AbsoluteSize
+            local absPos = MapImage.AbsolutePosition
+            
+            local relX = (x - absPos.X) / absSize.X
+            local relY = (y - absPos.Y) / absSize.Y
+            
+            -- نضرب في أبعاد الـ Workspace عشان نحدد موقع
+            local worldSize = 200 -- حجم العالم التقريبي
+            local targetPos = Vector3.new(
+                (relX - 0.5) * worldSize,
+                5,
+                (relY - 0.5) * worldSize
+            )
+            
+            -- تليفورت اللاعب للمكان
+            local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.CFrame = CFrame.new(targetPos)
+                showNotification("✅ تم التليفورت للموقع المحدد!", Color3.fromRGB(0, 200, 100))
+                MapFrame.Visible = false
+            end
+        end)
+    end
+    
+    MapFrame.Visible = true
+end
+
+-- ============================================
 -- 📋 إنشاء الأزرار (مصفوفة بشكل مستطيل)
 -- ============================================
 local container = Instance.new("Frame")
 container.Parent = MainFrame
-container.Size = UDim2.new(1, -10, 0, 120)
+container.Size = UDim2.new(1, -10, 0, 145)
 container.Position = UDim2.new(0, 5, 0, 45)
 container.BackgroundTransparency = 1
 
--- الأزرار (مقسومة على صفين)
+-- الأزرار (3 صفوف)
 local buttons = {
     {Text = "🚀 طيران", Callback = toggleFly, Color = Color3.fromRGB(0, 150, 255)},
     {Text = "🧱 نوكليب", Callback = toggleNoclip, Color = Color3.fromRGB(150, 100, 255)},
@@ -402,7 +517,8 @@ local buttons = {
     {Text = "⚡ سرعة", Callback = toggleSpeed, Color = Color3.fromRGB(0, 255, 200)},
     {Text = "⬆️ +10", Callback = increaseSpeed, Color = Color3.fromRGB(50, 200, 100)},
     {Text = "⬇️ -10", Callback = decreaseSpeed, Color = Color3.fromRGB(200, 150, 50)},
-    {Text = "🌐 تيليبورت", Callback = showTeleportMenu, Color = Color3.fromRGB(100, 150, 255)},
+    {Text = "🌐 تيليبورت لاعب", Callback = showTeleportMenu, Color = Color3.fromRGB(100, 150, 255)},
+    {Text = "🗺️ تيليبورت خريطة", Callback = showMapTeleport, Color = Color3.fromRGB(255, 200, 50)},
     {Text = "🔄 إيقاف الكل", Callback = function()
         for _, conn in pairs(connections) do
             if conn then
@@ -438,18 +554,21 @@ local buttons = {
         if TeleportFrame then
             TeleportFrame.Visible = false
         end
+        if MapFrame then
+            MapFrame.Visible = false
+        end
         showNotification("⏹ تم إيقاف الكل!", Color3.fromRGB(255, 200, 0))
     end, Color = Color3.fromRGB(200, 50, 50)},
 }
 
--- 4 أزرار في الصف الأول، 4 في الصف الثاني
+-- 3 أزرار في كل صف (3 صفوف)
 for i, btnData in ipairs(buttons) do
     local btn = Instance.new("TextButton")
     btn.Parent = container
-    local row = math.floor((i-1) / 4)
-    local col = (i-1) % 4
-    btn.Size = UDim2.new(0.22, 0, 0, 40)
-    btn.Position = UDim2.new(0.02 + col * 0.245, 0, 0.05 + row * 50, 0)
+    local row = math.floor((i-1) / 3)
+    local col = (i-1) % 3
+    btn.Size = UDim2.new(0.31, 0, 0, 40)
+    btn.Position = UDim2.new(0.01 + col * 0.33, 0, 0.02 + row * 48, 0)
     btn.Text = btnData.Text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.TextScaled = true
