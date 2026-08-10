@@ -1,12 +1,14 @@
 -- ============================================
 -- 💀 ROMA SENPAI HUB 💀
--- صنع من طرف ROMA SENPAI (نسخة مصححة وتعمل 100%)
+-- صنع من طرف ROMA SENPAI
 -- ============================================
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
 -- إزالة النسخة القديمة لمنع التكرار
@@ -14,19 +16,22 @@ if PlayerGui:FindFirstChild("RomaHub") then
     PlayerGui.RomaHub:Destroy()
 end
 
+-- ============================================
+-- 🎨 الواجهة الرئيسية (زي Axel Hub بالضبط)
+-- ============================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "RomaHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- النافذة الرئيسية
+-- النافذة الرئيسية (مقاس مدمج ومناسب للجوال)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
 MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.5, -210, 0.5, -140)
-MainFrame.Size = UDim2.new(0, 420, 0, 280)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -140)
+MainFrame.Size = UDim2.new(0, 400, 0, 280)
 MainFrame.ClipsDescendants = true
 
 local MainCorner = Instance.new("UICorner")
@@ -44,9 +49,9 @@ MainStroke.Thickness = 1.5
 local TopBar = Instance.new("Frame")
 TopBar.Name = "TopBar"
 TopBar.Parent = MainFrame
-TopBar.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
+TopBar.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
 TopBar.BorderSizePixel = 0
-TopBar.Size = UDim2.new(1, 0, 0, 35)
+TopBar.Size = UDim2.new(1, 0, 0, 32)
 
 local TopBarCorner = Instance.new("UICorner")
 TopBarCorner.CornerRadius = UDim.new(0, 8)
@@ -54,7 +59,7 @@ TopBarCorner.Parent = TopBar
 
 local TopBarFix = Instance.new("Frame")
 TopBarFix.Parent = TopBar
-TopBarFix.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
+TopBarFix.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
 TopBarFix.BorderSizePixel = 0
 TopBarFix.Position = UDim2.new(0, 0, 1, -5)
 TopBarFix.Size = UDim2.new(1, 0, 0, 5)
@@ -67,20 +72,20 @@ TitleText.Size = UDim2.new(0, 250, 1, 0)
 TitleText.Font = Enum.Font.GothamBold
 TitleText.Text = "💀 ROMA SENPAI HUB"
 TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleText.TextSize = 13
+TitleText.TextSize = 12
 TitleText.TextXAlignment = Enum.TextXAlignment.Left
 
 -- زر إغلاق الهب
 local CloseButton = Instance.new("TextButton")
 CloseButton.Parent = TopBar
-CloseButton.BackgroundColor3 = Color3.fromRGB(210, 50, 50)
-CloseButton.Position = UDim2.new(1, -28, 0.5, -10)
-CloseButton.Size = UDim2.new(0, 20, 0, 20)
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 45, 45)
+CloseButton.Position = UDim2.new(1, -26, 0.5, -9)
+CloseButton.Size = UDim2.new(0, 18, 0, 18)
 CloseButton.AutoButtonColor = false
 CloseButton.Font = Enum.Font.GothamBold
 CloseButton.Text = "X"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.TextSize = 10
+CloseButton.TextSize = 9
 
 local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 4)
@@ -97,10 +102,10 @@ local Sidebar = Instance.new("ScrollingFrame")
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
 Sidebar.Active = true
-Sidebar.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+Sidebar.BackgroundColor3 = Color3.fromRGB(21, 21, 26)
 Sidebar.BorderSizePixel = 0
-Sidebar.Position = UDim2.new(0, 0, 0, 35)
-Sidebar.Size = UDim2.new(0, 125, 1, -35)
+Sidebar.Position = UDim2.new(0, 0, 0, 32)
+Sidebar.Size = UDim2.new(0, 120, 1, -32)
 Sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
 Sidebar.ScrollBarThickness = 0
 Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -116,32 +121,29 @@ SidebarPadding.Parent = Sidebar
 SidebarPadding.TopPadding = UDim.new(0, 6)
 
 -- ============================================
--- 🖥️ حاوية الصفحات (Pages Container)
+-- 🖥️ حاوية الصفحات
 -- ============================================
 local PagesContainer = Instance.new("Frame")
 PagesContainer.Name = "PagesContainer"
 PagesContainer.Parent = MainFrame
 PagesContainer.BackgroundTransparency = 1
-PagesContainer.Position = UDim2.new(0, 130, 0, 40)
-PagesContainer.Size = UDim2.new(1, -135, 1, -45)
+PagesContainer.Position = UDim2.new(0, 125, 0, 36)
+PagesContainer.Size = UDim2.new(1, -128, 1, -40)
 
--- ============================================
--- ⚙️ نظام التبويبات الديناميكي
--- ============================================
 local CurrentTab = nil
 local Pages = {}
 
 local function CreateTab(name, icon)
     local TabButton = Instance.new("TextButton")
     TabButton.Parent = Sidebar
-    TabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    TabButton.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
     TabButton.BackgroundTransparency = 1
-    TabButton.Size = UDim2.new(0, 113, 0, 30)
+    TabButton.Size = UDim2.new(0, 108, 0, 28)
     TabButton.AutoButtonColor = false
     TabButton.Font = Enum.Font.GothamMedium
     TabButton.Text = "  " .. icon .. "  " .. name
-    TabButton.TextColor3 = Color3.fromRGB(150, 150, 165)
-    TabButton.TextSize = 11
+    TabButton.TextColor3 = Color3.fromRGB(150, 150, 160)
+    TabButton.TextSize = 10
     TabButton.TextXAlignment = Enum.TextXAlignment.Left
 
     local BtnCorner = Instance.new("UICorner")
@@ -156,7 +158,7 @@ local function CreateTab(name, icon)
     Page.Size = UDim2.new(1, 0, 1, 0)
     Page.CanvasSize = UDim2.new(0, 0, 0, 0)
     Page.ScrollBarThickness = 2
-    Page.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 80)
+    Page.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 75)
     Page.Visible = false
     Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
@@ -175,7 +177,7 @@ local function CreateTab(name, icon)
             if b:IsA("TextButton") then
                 TweenService:Create(b, TweenInfo.new(0.15), {
                     BackgroundTransparency = 1,
-                    TextColor3 = Color3.fromRGB(150, 150, 165)
+                    TextColor3 = Color3.fromRGB(150, 150, 160)
                 }):Play()
             end
         end
@@ -202,8 +204,8 @@ end
 local function AddToggle(parentPage, titleText, callback)
     local ToggleFrame = Instance.new("Frame")
     ToggleFrame.Parent = parentPage
-    ToggleFrame.BackgroundColor3 = Color3.fromRGB(26, 26, 35)
-    ToggleFrame.Size = UDim2.new(1, -6, 0, 32)
+    ToggleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+    ToggleFrame.Size = UDim2.new(1, -6, 0, 30)
 
     local TFCorner = Instance.new("UICorner")
     TFCorner.CornerRadius = UDim.new(0, 5)
@@ -212,23 +214,22 @@ local function AddToggle(parentPage, titleText, callback)
     local Label = Instance.new("TextLabel")
     Label.Parent = ToggleFrame
     Label.BackgroundTransparency = 1
-    Label.Position = UDim2.new(0, 10, 0, 0)
-    Label.Size = UDim2.new(1, -50, 1, 0)
+    Label.Position = UDim2.new(0, 8, 0, 0)
+    Label.Size = UDim2.new(1, -45, 1, 0)
     Label.Font = Enum.Font.GothamMedium
     Label.Text = titleText
-    Label.TextColor3 = Color3.fromRGB(210, 210, 225)
-    Label.TextSize = 11
+    Label.TextColor3 = Color3.fromRGB(200, 200, 215)
+    Label.TextSize = 10
     Label.TextXAlignment = Enum.TextXAlignment.Left
 
     local ToggleBtn = Instance.new("TextButton")
     ToggleBtn.Parent = ToggleFrame
-    ToggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
-    ToggleBtn.Position = UDim2.new(1, -40, 0.5, -8)
-    ToggleBtn.Size = UDim2.new(0, 32, 0, 16)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
+    ToggleBtn.Position = UDim2.new(1, -36, 0.5, -7)
+    ToggleBtn.Size = UDim2.new(0, 28, 0, 14)
     ToggleBtn.AutoButtonColor = false
     ToggleBtn.Text = ""
 
-    local TB siis = Instance.new("UICorner") -- (تم تصحيح الخطأ هنا)
     local TBCorner = Instance.new("UICorner")
     TBCorner.CornerRadius = UDim.new(1, 0)
     TBCorner.Parent = ToggleBtn
@@ -236,8 +237,8 @@ local function AddToggle(parentPage, titleText, callback)
     local Circle = Instance.new("Frame")
     Circle.Parent = ToggleBtn
     Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Circle.Position = UDim2.new(0, 2, 0.5, -6)
-    Circle.Size = UDim2.new(0, 12, 0, 12)
+    Circle.Position = UDim2.new(0, 2, 0.5, -5)
+    Circle.Size = UDim2.new(0, 10, 0, 10)
 
     local CC = Instance.new("UICorner")
     CC.CornerRadius = UDim.new(1, 0)
@@ -246,8 +247,8 @@ local function AddToggle(parentPage, titleText, callback)
     local toggled = false
     ToggleBtn.MouseButton1Click:Connect(function()
         toggled = not toggled
-        local goalCirclePos = toggled and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
-        local goalColor = toggled and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(45, 45, 60)
+        local goalCirclePos = toggled and UDim2.new(1, -12, 0.5, -5) or UDim2.new(0, 2, 0.5, -5)
+        local goalColor = toggled and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(40, 40, 52)
         
         TweenService:Create(Circle, TweenInfo.new(0.15), {Position = goalCirclePos}):Play()
         TweenService:Create(ToggleBtn, TweenInfo.new(0.15), {BackgroundColor3 = goalColor}):Play()
@@ -256,32 +257,16 @@ local function AddToggle(parentPage, titleText, callback)
     end)
 end
 
--- ============================================
--- 📱 بناء الأقسام (Tabs & Options)
--- ============================================
+-- بناء الأقسام والأزرار
 local MovementPage = CreateTab("الحركة", "🚀")
 local SpeedPage = CreateTab("السرعة", "⚡")
 local ExtrasPage = CreateTab("إضافات", "🔧")
 
-AddToggle(MovementPage, "الطيران (Space / Shift)", function(state)
-    print("Fly:", state)
-end)
-
-AddToggle(MovementPage, "اختراق الجدران", function(state)
-    print("Noclip:", state)
-end)
-
-AddToggle(MovementPage, "اختفاء", function(state)
-    print("Invisible:", state)
-end)
-
-AddToggle(SpeedPage, "زيادة السرعة الخارقة", function(state)
-    print("Speed Boost:", state)
-end)
-
-AddToggle(ExtrasPage, "التيليبورت العشوائي", function(state)
-    print("Teleport:", state)
-end)
+AddToggle(MovementPage, "الطيران (Space / Shift)", function(state) print(state) end)
+AddToggle(MovementPage, "اختراق الجدران", function(state) print(state) end)
+AddToggle(MovementPage, "اختفاء", function(state) print(state) end)
+AddToggle(SpeedPage, "زيادة السرعة الخارقة", function(state) print(state) end)
+AddToggle(ExtrasPage, "التيليبورت العشوائي", function(state) print(state) end)
 
 -- ============================================
 -- 🖱️ خاصية السحب للموبايل والكمبيوتر (Draggable)
