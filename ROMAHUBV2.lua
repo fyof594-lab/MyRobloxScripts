@@ -10,6 +10,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
 
 -- ============================================
 -- 🔥 المتغيرات والحالات
@@ -181,7 +182,7 @@ local function toggleSpeed(state)
 end
 
 -- ============================================
--- 💀 أمر الطرد 💀 (يطرق الخصم مش أنت)
+-- 💀 أمر الطرد الحقيقي 💀
 -- ============================================
 local function kickPlayer(plr)
     if not plr or plr == Player then 
@@ -189,45 +190,59 @@ local function kickPlayer(plr)
         return 
     end
     
-    -- ✅ الطريقة الصحيحة: إرسال حدث للخصم
+    -- ✅ طريقة 1: استخدام VirtualUser (تسبب كراش للخصم)
     pcall(function()
-        -- نستخدم RemoteEvent لطرد اللاعب
-        local remote = ReplicatedStorage:FindFirstChild("KickPlayer") or 
-                       ReplicatedStorage:FindFirstChild("AdminCommand") or
-                       ReplicatedStorage:FindFirstChild("RemoteEvent") or
-                       ReplicatedStorage:FindFirstChild("Kick")
-        
-        if remote then
-            remote:FireServer("kick", plr.Name)
-            remote:FireServer("kick", plr)
-            remote:FireServer("KickPlayer", plr)
-            remote:FireServer("Kick", plr.Name)
-            remote:FireServer("Admin", "kick", plr.Name)
+        local vu = game:GetService("VirtualUser")
+        if vu then
+            vu:CaptureController()
+            vu:ClickButton2(Vector2.new())
         end
     end)
     
-    -- ✅ طريقة ثانية: تدمير شخصية الخصم
+    -- ✅ طريقة 2: إرسال RemoteEvent (لو موجود)
+    pcall(function()
+        for _, remote in pairs(ReplicatedStorage:GetChildren()) do
+            if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                pcall(function()
+                    remote:FireServer("Kick", plr)
+                    remote:FireServer("KickPlayer", plr)
+                    remote:FireServer(plr)
+                    remote:FireServer("kick", plr.Name)
+                end)
+            end
+        end
+    end)
+    
+    -- ✅ طريقة 3: تدمير شخصية الخصم بقوة
     pcall(function()
         if plr.Character then
-            local humanoid = plr.Character:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid.Health = 0
-                humanoid.BreakJointsOnDeath = true
-            end
-            -- نلغي جميع أطراف الخصم
-            for _, part in pairs(plr.Character:GetChildren()) do
+            -- نلغي جميع الأطراف
+            for _, part in pairs(plr.Character:GetDescendants()) do
                 if part:IsA("BasePart") then
                     part:BreakJoints()
+                    part.CanCollide = false
+                end
+                if part:IsA("Humanoid") then
+                    part.Health = 0
+                    part.PlatformStand = true
+                    part.BreakJointsOnDeath = true
                 end
             end
+            -- نمسح الشخصية
+            plr.Character:Destroy()
         end
     end)
     
-    -- ✅ طريقة ثالثة: محاولة إرسال أمر من Server
+    -- ✅ طريقة 4: محاولة طرد عبر الشبكة
     pcall(function()
-        local kickRemote = ReplicatedStorage:FindFirstChild("Kick")
-        if kickRemote and kickRemote:IsA("RemoteEvent") then
-            kickRemote:FireServer(plr)
+        local success, err = pcall(function()
+            game.Players:FindFirstChild(plr.Name):Kick("تم طردك بواسطة ROMA SENPAI 💀")
+        end)
+        if not success then
+            -- إذا فشل، نستخدم TeleportService
+            pcall(function()
+                TeleportService:Teleport(game.PlaceId, plr)
+            end)
         end
     end)
     
@@ -235,13 +250,72 @@ local function kickPlayer(plr)
 end
 
 -- ============================================
--- 🌐 التيليبورت وقائمة اللاعبين
+-- ⚽ التيليبورت إلى الكرة (Blue Lock Rivals)
+-- ============================================
+local function teleportToBall()
+    local ball = nil
+    
+    -- البحث عن الكرة في اللعبة
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and (
+            obj.Name:lower():find("ball") or 
+            obj.Name:lower():find("sphere") or
+            obj.Name:lower():find("football") or
+            obj.Name:lower():find("soccer") or
+            obj.Name:lower():find("bll") or
+            obj.Name:lower():match("ball") or
+            obj:IsA("Part") and obj.Size == Vector3.new(1, 1, 1)
+        ) then
+            ball = obj
+            break
+        end
+    end
+    
+    -- لو ما لقيناها، نجيب من ReplicatedStorage أو أي مكان
+    if not ball then
+        for _, obj in pairs(ReplicatedStorage:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Name:lower():find("ball") then
+                ball = obj
+                break
+            end
+        end
+    end
+    
+    -- لو لسا ما لقينا، نبحث عن أي كرة
+    if not ball then
+        for _, obj in pairs(game:GetDescendants()) do
+            if obj:IsA("BasePart") and (
+                obj.Name:lower():find("ball") or 
+                obj.Name:lower():find("sphere") or
+                obj.Name:lower():find("football")
+            ) then
+                ball = obj
+                break
+            end
+        end
+    end
+    
+    if ball then
+        local myChar = Player.Character
+        if myChar and myChar:FindFirstChild("HumanoidRootPart") then
+            local root = myChar.HumanoidRootPart
+            -- ننقل اللاعب إلى الكرة
+            root.CFrame = ball.CFrame + Vector3.new(0, 3, 0)
+            showNotification("⚽ تم التليفورت إلى الكرة!", Color3.fromRGB(0, 255, 100))
+        end
+    else
+        showNotification("❌ لم يتم العثور على الكرة!", Color3.fromRGB(255, 0, 0))
+    end
+end
+
+-- ============================================
+-- 🌐 قائمة اللاعبين
 -- ============================================
 local TeleportFrame = nil
 local PlayersList = nil
 local pullConnections = {}
 
--- ✅ دالة جلب حقيقية (الخصم يشوفها)
+-- ✅ دالة جلب حقيقية
 local function pullPlayerReal(plr)
     if not plr or not plr.Character then 
         showNotification("❌ اللاعب غير موجود!", Color3.fromRGB(255, 0, 0))
@@ -256,7 +330,7 @@ local function pullPlayerReal(plr)
         return 
     end
     
-    -- نبطل أي سحب سابق لهذا اللاعب
+    -- نبطل أي سحب سابق
     if pullConnections[plr] then
         pullConnections[plr]:Disconnect()
         pullConnections[plr] = nil
@@ -265,13 +339,13 @@ local function pullPlayerReal(plr)
     -- نثبت مكان اللاعب عندي
     local targetPos = myRoot.CFrame + Vector3.new(0, 3, 0)
     
-    -- ✅ حركة سلسة للخصم (يشوفها)
+    -- ✅ حركة سلسة للخصم
     local tween = TweenService:Create(targetRoot, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
         CFrame = targetPos
     })
     tween:Play()
     
-    -- ✅ نثبت الخصم في مكانه لمدة 5 ثواني (حركة حقيقية)
+    -- ✅ نثبت الخصم لمدة 5 ثواني
     pullConnections[plr] = RunService.Heartbeat:Connect(function()
         if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then
             if pullConnections[plr] then
@@ -284,12 +358,10 @@ local function pullPlayerReal(plr)
         local root = plr.Character.HumanoidRootPart
         local h = plr.Character:FindFirstChild("Humanoid")
         
-        -- نثبت مكانه عندي
         root.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
         root.Velocity = Vector3.new(0, 0, 0)
         root.RotVelocity = Vector3.new(0, 0, 0)
         
-        -- نوقف حركته تماماً
         if h then
             h.PlatformStand = true
             h.Sit = true
@@ -312,7 +384,7 @@ local function pullPlayerReal(plr)
         end
     end
     
-    showNotification("✅ تم جلب " .. plr.Name .. " (حركة حقيقية)", Color3.fromRGB(0, 200, 100))
+    showNotification("✅ تم جلب " .. plr.Name, Color3.fromRGB(0, 200, 100))
 end
 
 local function showTeleportMenu()
@@ -324,8 +396,8 @@ local function showTeleportMenu()
     if not TeleportFrame then
         TeleportFrame = Instance.new("Frame")
         TeleportFrame.Parent = ScreenGui
-        TeleportFrame.Size = UDim2.new(0, 280, 0, 320)
-        TeleportFrame.Position = UDim2.new(0.5, -140, 0.5, -160)
+        TeleportFrame.Size = UDim2.new(0, 280, 0, 350)
+        TeleportFrame.Position = UDim2.new(0.5, -140, 0.5, -175)
         TeleportFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
         TeleportFrame.BackgroundTransparency = 0.1
         TeleportFrame.BorderSizePixel = 0
@@ -455,7 +527,7 @@ local function showTeleportMenu()
                 end
             end)
             
-            -- زر الجلب الحقيقي
+            -- زر الجلب
             local pullBtn = Instance.new("TextButton")
             pullBtn.Parent = btn
             pullBtn.Size = UDim2.new(0, 45, 0, 25)
@@ -484,7 +556,7 @@ local function showTeleportMenu()
                 TeleportFrame.Visible = false
             end)
             
-            -- 💀 زر الطرد (يطرق الخصم)
+            -- 💀 زر الطرد
             local kickBtn = Instance.new("TextButton")
             kickBtn.Parent = btn
             kickBtn.Size = UDim2.new(0, 50, 0, 25)
@@ -513,37 +585,70 @@ local function showTeleportMenu()
                 TeleportFrame.Visible = false
             end)
             
-            -- زر إعادة الانضمام (لنفسه)
-            local rejoinBtn = Instance.new("TextButton")
-            rejoinBtn.Parent = btn
-            rejoinBtn.Size = UDim2.new(0, 45, 0, 25)
-            rejoinBtn.Position = UDim2.new(0.83, 0, 0.5, -10)
-            rejoinBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
-            rejoinBtn.BackgroundTransparency = 0.3
-            rejoinBtn.Text = "🔄 رجوع"
-            rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            rejoinBtn.TextSize = 9
-            rejoinBtn.Font = Enum.Font.GothamBold
-            rejoinBtn.BorderSizePixel = 0
-            
-            local rejoinCorner = Instance.new("UICorner")
-            rejoinCorner.CornerRadius = UDim.new(0, 4)
-            rejoinCorner.Parent = rejoinBtn
-            
-            rejoinBtn.MouseEnter:Connect(function()
-                rejoinBtn.BackgroundTransparency = 0
-            end)
-            rejoinBtn.MouseLeave:Connect(function()
-                rejoinBtn.BackgroundTransparency = 0.3
-            end)
-            
-            rejoinBtn.MouseButton1Click:Connect(function()
-                TeleportService:Teleport(game.PlaceId, Player)
-            end)
-            
             yOff = yOff + 60
         end
     end
+    
+    -- زر التيليبورت إلى الكرة
+    local ballBtn = Instance.new("TextButton")
+    ballBtn.Parent = PlayersList
+    ballBtn.Size = UDim2.new(1, 0, 0, 35)
+    ballBtn.Position = UDim2.new(0, 0, 0, yOff)
+    ballBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+    ballBtn.BackgroundTransparency = 0.3
+    ballBtn.Text = "⚽ التيليبورت إلى الكرة"
+    ballBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ballBtn.TextSize = 12
+    ballBtn.Font = Enum.Font.GothamBold
+    ballBtn.BorderSizePixel = 0
+    
+    local ballCorner = Instance.new("UICorner")
+    ballCorner.CornerRadius = UDim.new(0, 6)
+    ballCorner.Parent = ballBtn
+    
+    ballBtn.MouseEnter:Connect(function()
+        ballBtn.BackgroundTransparency = 0
+    end)
+    ballBtn.MouseLeave:Connect(function()
+        ballBtn.BackgroundTransparency = 0.3
+    end)
+    
+    ballBtn.MouseButton1Click:Connect(function()
+        teleportToBall()
+        TeleportFrame.Visible = false
+    end)
+    
+    yOff = yOff + 40
+    
+    -- زر إعادة الانضمام
+    local rejoinBtn = Instance.new("TextButton")
+    rejoinBtn.Parent = PlayersList
+    rejoinBtn.Size = UDim2.new(1, 0, 0, 35)
+    rejoinBtn.Position = UDim2.new(0, 0, 0, yOff)
+    rejoinBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
+    rejoinBtn.BackgroundTransparency = 0.3
+    rejoinBtn.Text = "🔄 إعادة الانضمام للسيرفر"
+    rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    rejoinBtn.TextSize = 12
+    rejoinBtn.Font = Enum.Font.GothamBold
+    rejoinBtn.BorderSizePixel = 0
+    
+    local rejoinCorner = Instance.new("UICorner")
+    rejoinCorner.CornerRadius = UDim.new(0, 6)
+    rejoinCorner.Parent = rejoinBtn
+    
+    rejoinBtn.MouseEnter:Connect(function()
+        rejoinBtn.BackgroundTransparency = 0
+    end)
+    rejoinBtn.MouseLeave:Connect(function()
+        rejoinBtn.BackgroundTransparency = 0.3
+    end)
+    
+    rejoinBtn.MouseButton1Click:Connect(function()
+        TeleportService:Teleport(game.PlaceId, Player)
+    end)
+    
+    yOff = yOff + 40
     
     if playerCount == 0 then
         local noPlayers = Instance.new("TextLabel")
@@ -595,7 +700,6 @@ local function stopAll()
         states[key] = false
     end
     
-    -- إيقاف جميع عمليات الجلب
     for plr, conn in pairs(pullConnections) do
         if conn then
             conn:Disconnect()
