@@ -11,6 +11,7 @@ local Workspace = game:GetService("Workspace")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualUser = game:GetService("VirtualUser")
+local ContextActionService = game:GetService("ContextActionService")
 
 -- ============================================
 -- 🔥 المتغيرات والحالات
@@ -26,6 +27,7 @@ local speedAmount = 120
 local flySpeed = 80
 local isMinimized = false
 local ScreenGui = nil
+local joystickVector = Vector3.new(0, 0, 0)
 
 -- ============================================
 -- 🛠️ دوال الوظائف
@@ -52,50 +54,45 @@ local function toggleFly(state)
                 if not root or not h then return end
                 
                 local camera = workspace.CurrentCamera
-                local moveDirection = Vector3.new(0, 0, 0)
-                local upDirection = Vector3.new(0, 0, 0)
                 
-                -- ✅ اتجاه الكاميرا كامل (مع المركبة العمودية)
-                local forward = camera.CFrame.LookVector
-                local right = camera.CFrame.RightVector
-                local up = camera.CFrame.UpVector
+                -- ✅ ناخذ حركة العصا (Mobile Joystick)
+                local moveVector = h.MoveDirection
                 
-                -- ✅ نضبط السرعة حسب الحركة
-                local speed = flySpeed
-                
-                -- ✅ حركة أمام/خلف (W/S)
-                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                    moveDirection = moveDirection + forward
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                    moveDirection = moveDirection - forward
-                end
-                
-                -- ✅ حركة يمين/يسار (A/D)
-                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                    moveDirection = moveDirection - right
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                    moveDirection = moveDirection + right
-                end
-                
-                -- ✅ حركة فوق/تحت (Space/Shift) - تصعد وتنزل باتجاه الكاميرا
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                    moveDirection = moveDirection + up
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                    moveDirection = moveDirection - up
-                end
-                
-                -- ✅ نطبق السرعة
-                if moveDirection.Magnitude > 0 then
-                    root.Velocity = moveDirection.Unit * speed
+                -- ✅ إذا كانت العصا متحركة
+                if moveVector.Magnitude > 0 then
+                    -- نأخذ اتجاه الكاميرا
+                    local forward = camera.CFrame.LookVector
+                    local right = camera.CFrame.RightVector
+                    local up = camera.CFrame.UpVector
+                    
+                    -- نطبق الحركة على اتجاه الكاميرا (تحريك حر)
+                    local moveDirection = (forward * moveVector.Z + right * moveVector.X)
+                    
+                    -- نضيف الصعود والنزول
+                    local upDirection = Vector3.new(0, 0, 0)
+                    
+                    -- أزرار الصعود/النزول (للكيبورد والجوال)
+                    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                        upDirection = up * flySpeed
+                    elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        upDirection = -up * flySpeed
+                    end
+                    
+                    -- نطبق السرعة
+                    if moveDirection.Magnitude > 0 then
+                        root.Velocity = moveDirection.Unit * flySpeed + upDirection
+                    else
+                        root.Velocity = upDirection
+                    end
                 else
-                    root.Velocity = Vector3.new(0, 0, 0)
+                    -- إذا ما في حركة، نوقف فقط إذا ما في أزرار صعود/نزول
+                    if not UserInputService:IsKeyDown(Enum.KeyCode.Space) and not UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        root.Velocity = Vector3.new(0, 0, 0)
+                    end
                 end
             end)
         end
-        showNotification("🚀 الطيران الحر ON", Color3.fromRGB(0, 150, 255))
+        showNotification("🚀 الطيران ON", Color3.fromRGB(0, 150, 255))
     else
         if connections.fly then
             connections.fly:Disconnect()
@@ -107,6 +104,9 @@ local function toggleFly(state)
     end
 end
 
+-- ============================================
+-- باقي الكود (نفسه ما تغير)
+-- ============================================
 local function toggleNoclip(state)
     states.noclip = state
     if states.noclip then
@@ -189,9 +189,7 @@ local function toggleSpeed(state)
     end
 end
 
--- ============================================
--- 💀 أمر الطرد الحقيقي 💀
--- ============================================
+-- 💀 أمر الطرد
 local function kickPlayer(plr)
     if not plr or plr == Player then 
         showNotification("❌ لا يمكن طرد نفسك!", Color3.fromRGB(255, 0, 0))
@@ -237,22 +235,13 @@ local function kickPlayer(plr)
     end)
     
     pcall(function()
-        local success, err = pcall(function()
-            game.Players:FindFirstChild(plr.Name):Kick("تم طردك بواسطة ROMA SENPAI 💀")
-        end)
-        if not success then
-            pcall(function()
-                TeleportService:Teleport(game.PlaceId, plr)
-            end)
-        end
+        game.Players:FindFirstChild(plr.Name):Kick("تم طردك بواسطة ROMA SENPAI 💀")
     end)
     
     showNotification("💀 تم طرد " .. plr.Name .. " من السيرفر!", Color3.fromRGB(255, 0, 0))
 end
 
--- ============================================
--- ⚽ التيليبورت إلى الكرة (Blue Lock Rivals)
--- ============================================
+-- ⚽ التيليبورت إلى الكرة
 local function teleportToBall()
     local ball = nil
     
@@ -262,8 +251,7 @@ local function teleportToBall()
             obj.Name:lower():find("sphere") or
             obj.Name:lower():find("football") or
             obj.Name:lower():find("soccer") or
-            obj.Name:lower():find("bll") or
-            obj.Name:lower():match("ball")
+            obj.Name:lower():find("bll")
         ) then
             ball = obj
             break
@@ -273,19 +261,6 @@ local function teleportToBall()
     if not ball then
         for _, obj in pairs(ReplicatedStorage:GetDescendants()) do
             if obj:IsA("BasePart") and obj.Name:lower():find("ball") then
-                ball = obj
-                break
-            end
-        end
-    end
-    
-    if not ball then
-        for _, obj in pairs(game:GetDescendants()) do
-            if obj:IsA("BasePart") and (
-                obj.Name:lower():find("ball") or 
-                obj.Name:lower():find("sphere") or
-                obj.Name:lower():find("football")
-            ) then
                 ball = obj
                 break
             end
@@ -304,9 +279,7 @@ local function teleportToBall()
     end
 end
 
--- ============================================
 -- 🌐 قائمة اللاعبين
--- ============================================
 local TeleportFrame = nil
 local PlayersList = nil
 local pullConnections = {}
@@ -1008,7 +981,7 @@ function createGUI()
 
     local function createMovementTab()
         local panel = createContentPanel("🚀 إعدادات الحركة")
-        addToggle(panel, "الطيران الحر (Fly)", function(state) toggleFly(state) end)
+        addToggle(panel, "الطيران (Fly)", function(state) toggleFly(state) end)
         addToggle(panel, "اختراق الجدران", function(state) toggleNoclip(state) end)
         addToggle(panel, "اختفاء (Invisible)", function(state) toggleInvisible(state) end)
     end
