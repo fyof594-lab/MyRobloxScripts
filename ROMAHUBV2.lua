@@ -55,18 +55,23 @@ local function toggleFly(state)
                 local moveDirection = Vector3.new(0, 0, 0)
                 local upDirection = Vector3.new(0, 0, 0)
                 
+                -- ✅ اتجاه الكاميرا كامل (مع المركبة العمودية)
                 local forward = camera.CFrame.LookVector
                 local right = camera.CFrame.RightVector
+                local up = camera.CFrame.UpVector
                 
-                forward = Vector3.new(forward.X, 0, forward.Z).Unit
-                right = Vector3.new(right.X, 0, right.Z).Unit
+                -- ✅ نضبط السرعة حسب الحركة
+                local speed = flySpeed
                 
+                -- ✅ حركة أمام/خلف (W/S)
                 if UserInputService:IsKeyDown(Enum.KeyCode.W) then
                     moveDirection = moveDirection + forward
                 end
                 if UserInputService:IsKeyDown(Enum.KeyCode.S) then
                     moveDirection = moveDirection - forward
                 end
+                
+                -- ✅ حركة يمين/يسار (A/D)
                 if UserInputService:IsKeyDown(Enum.KeyCode.A) then
                     moveDirection = moveDirection - right
                 end
@@ -74,16 +79,19 @@ local function toggleFly(state)
                     moveDirection = moveDirection + right
                 end
                 
+                -- ✅ حركة فوق/تحت (Space/Shift) - تصعد وتنزل باتجاه الكاميرا
                 if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                    upDirection = Vector3.new(0, 10, 0)
-                elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                    upDirection = Vector3.new(0, -10, 0)
+                    moveDirection = moveDirection + up
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                    moveDirection = moveDirection - up
                 end
                 
+                -- ✅ نطبق السرعة
                 if moveDirection.Magnitude > 0 then
-                    root.Velocity = moveDirection.Unit * flySpeed + upDirection
+                    root.Velocity = moveDirection.Unit * speed
                 else
-                    root.Velocity = upDirection
+                    root.Velocity = Vector3.new(0, 0, 0)
                 end
             end)
         end
@@ -190,7 +198,6 @@ local function kickPlayer(plr)
         return 
     end
     
-    -- ✅ طريقة 1: استخدام VirtualUser (تسبب كراش للخصم)
     pcall(function()
         local vu = game:GetService("VirtualUser")
         if vu then
@@ -199,7 +206,6 @@ local function kickPlayer(plr)
         end
     end)
     
-    -- ✅ طريقة 2: إرسال RemoteEvent (لو موجود)
     pcall(function()
         for _, remote in pairs(ReplicatedStorage:GetChildren()) do
             if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
@@ -213,10 +219,8 @@ local function kickPlayer(plr)
         end
     end)
     
-    -- ✅ طريقة 3: تدمير شخصية الخصم بقوة
     pcall(function()
         if plr.Character then
-            -- نلغي جميع الأطراف
             for _, part in pairs(plr.Character:GetDescendants()) do
                 if part:IsA("BasePart") then
                     part:BreakJoints()
@@ -228,18 +232,15 @@ local function kickPlayer(plr)
                     part.BreakJointsOnDeath = true
                 end
             end
-            -- نمسح الشخصية
             plr.Character:Destroy()
         end
     end)
     
-    -- ✅ طريقة 4: محاولة طرد عبر الشبكة
     pcall(function()
         local success, err = pcall(function()
             game.Players:FindFirstChild(plr.Name):Kick("تم طردك بواسطة ROMA SENPAI 💀")
         end)
         if not success then
-            -- إذا فشل، نستخدم TeleportService
             pcall(function()
                 TeleportService:Teleport(game.PlaceId, plr)
             end)
@@ -255,7 +256,6 @@ end
 local function teleportToBall()
     local ball = nil
     
-    -- البحث عن الكرة في اللعبة
     for _, obj in pairs(Workspace:GetDescendants()) do
         if obj:IsA("BasePart") and (
             obj.Name:lower():find("ball") or 
@@ -263,15 +263,13 @@ local function teleportToBall()
             obj.Name:lower():find("football") or
             obj.Name:lower():find("soccer") or
             obj.Name:lower():find("bll") or
-            obj.Name:lower():match("ball") or
-            obj:IsA("Part") and obj.Size == Vector3.new(1, 1, 1)
+            obj.Name:lower():match("ball")
         ) then
             ball = obj
             break
         end
     end
     
-    -- لو ما لقيناها، نجيب من ReplicatedStorage أو أي مكان
     if not ball then
         for _, obj in pairs(ReplicatedStorage:GetDescendants()) do
             if obj:IsA("BasePart") and obj.Name:lower():find("ball") then
@@ -281,7 +279,6 @@ local function teleportToBall()
         end
     end
     
-    -- لو لسا ما لقينا، نبحث عن أي كرة
     if not ball then
         for _, obj in pairs(game:GetDescendants()) do
             if obj:IsA("BasePart") and (
@@ -299,7 +296,6 @@ local function teleportToBall()
         local myChar = Player.Character
         if myChar and myChar:FindFirstChild("HumanoidRootPart") then
             local root = myChar.HumanoidRootPart
-            -- ننقل اللاعب إلى الكرة
             root.CFrame = ball.CFrame + Vector3.new(0, 3, 0)
             showNotification("⚽ تم التليفورت إلى الكرة!", Color3.fromRGB(0, 255, 100))
         end
@@ -315,7 +311,6 @@ local TeleportFrame = nil
 local PlayersList = nil
 local pullConnections = {}
 
--- ✅ دالة جلب حقيقية
 local function pullPlayerReal(plr)
     if not plr or not plr.Character then 
         showNotification("❌ اللاعب غير موجود!", Color3.fromRGB(255, 0, 0))
@@ -330,22 +325,18 @@ local function pullPlayerReal(plr)
         return 
     end
     
-    -- نبطل أي سحب سابق
     if pullConnections[plr] then
         pullConnections[plr]:Disconnect()
         pullConnections[plr] = nil
     end
     
-    -- نثبت مكان اللاعب عندي
     local targetPos = myRoot.CFrame + Vector3.new(0, 3, 0)
     
-    -- ✅ حركة سلسة للخصم
     local tween = TweenService:Create(targetRoot, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
         CFrame = targetPos
     })
     tween:Play()
     
-    -- ✅ نثبت الخصم لمدة 5 ثواني
     pullConnections[plr] = RunService.Heartbeat:Connect(function()
         if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then
             if pullConnections[plr] then
@@ -370,7 +361,6 @@ local function pullPlayerReal(plr)
         end
     end)
     
-    -- نحرر اللاعب بعد 5 ثواني
     task.wait(5)
     if pullConnections[plr] then
         pullConnections[plr]:Disconnect()
@@ -445,7 +435,6 @@ local function showTeleportMenu()
         PlayersList.ScrollBarThickness = 3
     end
     
-    -- تحديث القائمة
     for _, child in pairs(PlayersList:GetChildren()) do
         child:Destroy()
     end
@@ -480,7 +469,6 @@ local function showTeleportMenu()
             nameLabel.Font = Enum.Font.GothamMedium
             nameLabel.TextXAlignment = Enum.TextXAlignment.Left
             
-            -- زر الانتقال
             local tpBtn = Instance.new("TextButton")
             tpBtn.Parent = btn
             tpBtn.Size = UDim2.new(0, 50, 0, 25)
@@ -527,7 +515,6 @@ local function showTeleportMenu()
                 end
             end)
             
-            -- زر الجلب
             local pullBtn = Instance.new("TextButton")
             pullBtn.Parent = btn
             pullBtn.Size = UDim2.new(0, 45, 0, 25)
@@ -556,7 +543,6 @@ local function showTeleportMenu()
                 TeleportFrame.Visible = false
             end)
             
-            -- 💀 زر الطرد
             local kickBtn = Instance.new("TextButton")
             kickBtn.Parent = btn
             kickBtn.Size = UDim2.new(0, 50, 0, 25)
@@ -589,7 +575,6 @@ local function showTeleportMenu()
         end
     end
     
-    -- زر التيليبورت إلى الكرة
     local ballBtn = Instance.new("TextButton")
     ballBtn.Parent = PlayersList
     ballBtn.Size = UDim2.new(1, 0, 0, 35)
@@ -620,7 +605,6 @@ local function showTeleportMenu()
     
     yOff = yOff + 40
     
-    -- زر إعادة الانضمام
     local rejoinBtn = Instance.new("TextButton")
     rejoinBtn.Parent = PlayersList
     rejoinBtn.Size = UDim2.new(1, 0, 0, 35)
@@ -802,7 +786,6 @@ function createGUI()
     MainStroke.Color = Color3.fromRGB(45, 45, 55)
     MainStroke.Thickness = 1
 
-    -- شريط العنوان
     local TopBar = Instance.new("Frame")
     TopBar.Parent = MainFrame
     TopBar.Size = UDim2.new(1, 0, 0, 32)
@@ -892,7 +875,6 @@ function createGUI()
         minimizeGUI()
     end)
 
-    -- القائمة الجانبية
     local Sidebar = Instance.new("ScrollingFrame")
     Sidebar.Parent = MainFrame
     Sidebar.Size = UDim2.new(0, 100, 1, -32)
@@ -912,7 +894,6 @@ function createGUI()
     SidebarPadding.PaddingLeft = UDim.new(0, 6)
     SidebarPadding.PaddingRight = UDim.new(0, 6)
 
-    -- حاوية المحتوى
     local ContentContainer = Instance.new("Frame")
     ContentContainer.Parent = MainFrame
     ContentContainer.Size = UDim2.new(1, -105, 1, -40)
@@ -1025,7 +1006,6 @@ function createGUI()
         end)
     end
 
-    -- بناء القوائم
     local function createMovementTab()
         local panel = createContentPanel("🚀 إعدادات الحركة")
         addToggle(panel, "الطيران الحر (Fly)", function(state) toggleFly(state) end)
@@ -1098,7 +1078,6 @@ function createGUI()
         end)
     end
 
-    -- الأزرار الجانبية
     local tab1 = createTabButton("الحركة", "🚀")
     tab1.MouseButton1Click:Connect(function()
         if currentTabBtn then
@@ -1139,12 +1118,8 @@ function createGUI()
         createExtrasTab()
     end)
 
-    -- فتح التاب الأول
     tab1.MouseButton1Click()
 
-    -- ============================================
-    -- ⌨️ اختصارات
-    -- ============================================
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.F1 then
