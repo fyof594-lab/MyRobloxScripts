@@ -23,7 +23,8 @@ local states = {
     speed = false,
     aimbot = false,
     aimlock = false,
-    esp = false
+    esp = false,
+    hp = false
 }
 local connections = {}
 local speedAmount = 120
@@ -33,6 +34,70 @@ local espObjects = {}
 local aimbotTarget = nil
 local aimlockTarget = nil
 local aimlockCircle = nil
+
+-- ============================================
+-- ❤️ HP FULL
+-- ============================================
+local hpActive = false
+local hpConnections = {}
+
+local function setInfiniteHealth(humanoid)
+    if not humanoid then return end
+    
+    humanoid.MaxHealth = math.huge
+    humanoid.Health = math.huge
+    humanoid.BreakJointsOnDeath = false
+    
+    local conn = humanoid.HealthChanged:Connect(function()
+        if hpActive and humanoid.Health < humanoid.MaxHealth then
+            humanoid.Health = humanoid.MaxHealth
+        end
+    end)
+    table.insert(hpConnections, conn)
+end
+
+local function onCharacterAdded(character)
+    if not hpActive then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        setInfiniteHealth(humanoid)
+    end
+end
+
+local function toggleHP(state)
+    hpActive = state
+    
+    if hpActive then
+        local char = Player.Character
+        if char then
+            local h = char:FindFirstChildOfClass("Humanoid")
+            if h then
+                setInfiniteHealth(h)
+            end
+        end
+        
+        local conn = Player.CharacterAdded:Connect(onCharacterAdded)
+        table.insert(hpConnections, conn)
+        
+        showNotification("❤️ HP FULL ON", Color3.fromRGB(0, 255, 100))
+    else
+        for _, conn in pairs(hpConnections) do
+            pcall(function() conn:Disconnect() end)
+        end
+        hpConnections = {}
+        
+        local char = Player.Character
+        if char then
+            local h = char:FindFirstChildOfClass("Humanoid")
+            if h then
+                h.MaxHealth = 100
+                h.Health = 100
+                h.BreakJointsOnDeath = true
+            end
+        end
+        showNotification("⏹ HP FULL OFF", Color3.fromRGB(255, 200, 0))
+    end
+end
 
 -- ============================================
 -- 🔥 دوال التحقق من العدو/الصديق
@@ -63,7 +128,7 @@ local function isFriend(plr)
 end
 
 -- ============================================
--- 🎯 AIMBOT (يركز على رأس العدو فقط)
+-- 🎯 AIMBOT
 -- ============================================
 local function getClosestEnemy()
     local closest = nil
@@ -107,7 +172,7 @@ local function toggleAimbot(state)
                 end
             end)
         end
-        showNotification("🎯 Aimbot ON (أعداء فقط)", Color3.fromRGB(255, 50, 50))
+        showNotification("🎯 Aimbot ON", Color3.fromRGB(255, 50, 50))
     else
         if connections.aimbot then
             connections.aimbot:Disconnect()
@@ -119,7 +184,7 @@ local function toggleAimbot(state)
 end
 
 -- ============================================
--- 🔒 AIM LOCK (دائرة + أعداء فقط)
+-- 🔒 AIM LOCK
 -- ============================================
 local function createAimlockCircle()
     if aimlockCircle then
@@ -225,7 +290,7 @@ local function toggleAimlock(state)
                 end
             end)
         end
-        showNotification("🔒 Aim Lock ON (أعداء فقط)", Color3.fromRGB(0, 200, 255))
+        showNotification("🔒 Aim Lock ON", Color3.fromRGB(0, 200, 255))
     else
         if connections.aimlock then
             connections.aimlock:Disconnect()
@@ -241,7 +306,7 @@ local function toggleAimlock(state)
 end
 
 -- ============================================
--- 👁️ ESP (أخضر للصديق - أحمر للعدو)
+-- 👁️ ESP
 -- ============================================
 local function createESP(plr)
     if not plr or plr == Player then return end
@@ -307,7 +372,7 @@ local function toggleESP(state)
         if not connections.esp then
             connections.esp = RunService.Heartbeat:Connect(updateESP)
         end
-        showNotification("👁️ ESP ON (🟢صديق 🔴عدو)", Color3.fromRGB(0, 255, 100))
+        showNotification("👁️ ESP ON", Color3.fromRGB(0, 255, 100))
     else
         if connections.esp then
             connections.esp:Disconnect()
@@ -440,7 +505,7 @@ local function kickPlayer(plr)
         plr:Kick("💀 تم طردك بواسطة ROMA SENPAI!")
     end)
     
-    showNotification("💀 تم طرد " .. plr.Name .. " من السيرفر!", Color3.fromRGB(255, 0, 0))
+    showNotification("💀 تم طرد " .. plr.Name, Color3.fromRGB(255, 0, 0))
 end
 
 local function kickAllPlayers()
@@ -448,12 +513,12 @@ local function kickAllPlayers()
     for _, plr in pairs(Players:GetPlayers()) do
         if plr ~= Player then
             pcall(function()
-                plr:Kick("💀 تم طرد الجميع بواسطة ROMA SENPAI!")
+                plr:Kick("💀 تم طرد الجميع!")
                 count = count + 1
             end)
         end
     end
-    showNotification("💀 تم طرد " .. count .. " لاعب!", Color3.fromRGB(255, 0, 0))
+    showNotification("💀 تم طرد " .. count .. " لاعب", Color3.fromRGB(255, 0, 0))
 end
 
 -- ============================================
@@ -763,7 +828,7 @@ local function showTeleportMenu()
     rejoinBtn.Position = UDim2.new(0, 0, 0, yOff)
     rejoinBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
     rejoinBtn.BackgroundTransparency = 0.3
-    rejoinBtn.Text = "🔄 إعادة الانضمام للسيرفر"
+    rejoinBtn.Text = "🔄 إعادة الانضمام"
     rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     rejoinBtn.TextSize = 12
     rejoinBtn.Font = Enum.Font.GothamBold
@@ -834,6 +899,23 @@ local function stopAll()
     connections = {}
     for key in pairs(states) do
         states[key] = false
+    end
+    
+    -- إيقاف HP FULL
+    hpActive = false
+    for _, conn in pairs(hpConnections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    hpConnections = {}
+    
+    local char = Player.Character
+    if char then
+        local h = char:FindFirstChildOfClass("Humanoid")
+        if h then
+            h.MaxHealth = 100
+            h.Health = 100
+            h.BreakJointsOnDeath = true
+        end
     end
     
     for plr, data in pairs(espObjects) do
@@ -1525,9 +1607,7 @@ function createGUI()
         end)
         
         return btn
-    end
-
-    local function createContentPanel(titleText)
+    end    local function createContentPanel(titleText)
         for _, v in pairs(ContentContainer:GetChildren()) do v:Destroy() end
         
         local panel = Instance.new("ScrollingFrame")
@@ -1639,9 +1719,10 @@ function createGUI()
     
     local function createCombatTab()
         local panel = createContentPanel("🎯 القتال")
-        addToggle(panel, "🎯 Aimbot (تركيز على الرأس)", function(state) toggleAimbot(state) end)
-        addToggle(panel, "🔒 Aim Lock (دائرة تصويب)", function(state) toggleAimlock(state) end)
-        addToggle(panel, "👁️ ESP (إطار فقط)", function(state) toggleESP(state) end)
+        addToggle(panel, "🎯 Aimbot", function(state) toggleAimbot(state) end)
+        addToggle(panel, "🔒 Aim Lock", function(state) toggleAimlock(state) end)
+        addToggle(panel, "👁️ ESP", function(state) toggleESP(state) end)
+        addToggle(panel, "❤️ HP FULL", function(state) toggleHP(state) end)
     end
 
     local function createSpeedTab()
@@ -1777,7 +1858,7 @@ function createGUI()
 
     print("💀 ROMA SENPAI HUB V2 Loaded!")
     print("📌 F1 = Toggle GUI")
-    print("🎯 Aimbot + Aim Lock + ESP Added!")
+    print("❤️ HP FULL Added!")
     showNotification("💀 ROMA HUB V2 جاهز!", Color3.fromRGB(150, 150, 255))
 end
 
