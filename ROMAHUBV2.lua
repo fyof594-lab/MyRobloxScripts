@@ -35,141 +35,35 @@ local aimlockTarget = nil
 local aimlockCircle = nil
 
 -- ============================================
--- 🤝 نظام الأصدقاء
+-- 🔥 دوال التحقق من العدو/الصديق
 -- ============================================
-local friends = {}
-local playerTimers = {}
-local friendButton = nil
-local currentTarget = nil
 
--- ✅ إنشاء زر تحت اللاعب
-local function createFriendButton(plr)
-    if not plr or not plr.Character then return end
-    if friendButton then
-        friendButton:Destroy()
-        friendButton = nil
-    end
-    
-    local root = plr.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    
-    friendButton = Instance.new("BillboardGui")
-    friendButton.Parent = root
-    friendButton.Size = UDim2.new(0, 140, 0, 35)
-    friendButton.StudsOffset = Vector3.new(0, -3.5, 0)
-    friendButton.AlwaysOnTop = true
-    friendButton.Adornee = root
-    friendButton.Visible = true
-    
-    local btn = Instance.new("TextButton")
-    btn.Parent = friendButton
-    btn.Size = UDim2.new(1, 0, 1, 0)
-    btn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
-    btn.BackgroundTransparency = 0.2
-    btn.Text = "🤝 تحديد صديق"
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextSize = 12
-    btn.Font = Enum.Font.GothamBold
-    btn.BorderSizePixel = 0
-    
-    local corner = Instance.new("UICorner")
-    corner.Parent = btn
-    corner.CornerRadius = UDim.new(0, 6)
-    
-    btn.MouseEnter:Connect(function()
-        btn.BackgroundTransparency = 0
-    end)
-    btn.MouseLeave:Connect(function()
-        btn.BackgroundTransparency = 0.2
-    end)
-    
-    btn.MouseButton1Click:Connect(function()
-        if not friends[plr] then
-            friends[plr] = true
-            showNotification("✅ " .. plr.Name .. " صديقك 🟢", Color3.fromRGB(0, 255, 0))
-            
-            if friendButton then
-                friendButton:Destroy()
-                friendButton = nil
-            end
-            playerTimers[plr] = nil
-            currentTarget = nil
-        end
-    end)
-    
-    currentTarget = plr
-end
-
--- ✅ التحقق من الصديق
-local function isFriend(plr)
-    if not plr then return false end
-    if friends[plr] then return true end
-    
-    local myTeam = Player.Team
-    local theirTeam = plr.Team
-    if myTeam and theirTeam then
-        return myTeam == theirTeam
-    end
-    return false
-end
-
--- ✅ التحقق من العدو
 local function isEnemy(plr)
-    if not plr or not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return false end
+    if not plr or plr == Player then return false end
+    if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return false end
     if not plr.Character:FindFirstChild("Humanoid") or plr.Character.Humanoid.Health <= 0 then return false end
-    if isFriend(plr) then return false end
     
     local myTeam = Player.Team
     local theirTeam = plr.Team
-    if myTeam and theirTeam then
-        return myTeam ~= theirTeam
-    end
-    return true
+    
+    if not myTeam or not theirTeam then return true end
+    return myTeam ~= theirTeam
 end
 
--- ✅ مراقبة الوقوف قدام اللاعب
-local function checkPlayerProximity()
-    if not Player.Character then return end
-    if not states.aimbot and not states.esp then
-        if friendButton then
-            friendButton:Destroy()
-            friendButton = nil
-        end
-        return
-    end
+local function isFriend(plr)
+    if not plr or plr == Player then return false end
+    if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return false end
+    if not plr.Character:FindFirstChild("Humanoid") or plr.Character.Humanoid.Health <= 0 then return false end
     
-    local myPos = Player.Character:FindFirstChild("HumanoidRootPart")
-    if not myPos then return end
+    local myTeam = Player.Team
+    local theirTeam = plr.Team
     
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= Player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local root = plr.Character.HumanoidRootPart
-            local dist = (root.Position - myPos.Position).Magnitude
-            
-            if dist < 5 and not isFriend(plr) then
-                if not playerTimers[plr] then
-                    playerTimers[plr] = tick()
-                elseif tick() - playerTimers[plr] >= 3 then
-                    if currentTarget ~= plr then
-                        createFriendButton(plr)
-                    end
-                end
-            else
-                playerTimers[plr] = nil
-                if currentTarget == plr then
-                    if friendButton then
-                        friendButton:Destroy()
-                        friendButton = nil
-                    end
-                    currentTarget = nil
-                end
-            end
-        end
-    end
+    if not myTeam or not theirTeam then return false end
+    return myTeam == theirTeam
 end
 
 -- ============================================
--- 🎯 AIMBOT
+-- 🎯 AIMBOT (يركز على رأس العدو فقط)
 -- ============================================
 local function getClosestEnemy()
     local closest = nil
@@ -205,14 +99,15 @@ local function toggleAimbot(state)
                 local target = getClosestEnemy()
                 if target and target.Character and target.Character:FindFirstChild("Head") then
                     local head = target.Character.Head
-                    Camera.CFrame = CFrame.new(Camera.CFrame.Position, head.Position)
+                    local headPos = head.Position
+                    Camera.CFrame = CFrame.new(Camera.CFrame.Position, headPos)
                     aimbotTarget = target
                 else
                     aimbotTarget = nil
                 end
             end)
         end
-        showNotification("🎯 Aimbot ON", Color3.fromRGB(255, 50, 50))
+        showNotification("🎯 Aimbot ON (أعداء فقط)", Color3.fromRGB(255, 50, 50))
     else
         if connections.aimbot then
             connections.aimbot:Disconnect()
@@ -224,7 +119,7 @@ local function toggleAimbot(state)
 end
 
 -- ============================================
--- 🔒 AIM LOCK
+-- 🔒 AIM LOCK (دائرة + أعداء فقط)
 -- ============================================
 local function createAimlockCircle()
     if aimlockCircle then
@@ -312,7 +207,8 @@ local function toggleAimlock(state)
                     
                     if closest and closest.Character and closest.Character:FindFirstChild("Head") then
                         local head = closest.Character.Head
-                        Camera.CFrame = CFrame.new(Camera.CFrame.Position, head.Position)
+                        local headPos = head.Position
+                        Camera.CFrame = CFrame.new(Camera.CFrame.Position, headPos)
                         aimlockTarget = closest
                         
                         if aimlockCircle then
@@ -329,7 +225,7 @@ local function toggleAimlock(state)
                 end
             end)
         end
-        showNotification("🔒 Aim Lock ON", Color3.fromRGB(0, 200, 255))
+        showNotification("🔒 Aim Lock ON (أعداء فقط)", Color3.fromRGB(0, 200, 255))
     else
         if connections.aimlock then
             connections.aimlock:Disconnect()
@@ -345,7 +241,7 @@ local function toggleAimlock(state)
 end
 
 -- ============================================
--- 👁️ ESP
+-- 👁️ ESP (أخضر للصديق - أحمر للعدو)
 -- ============================================
 local function createESP(plr)
     if not plr or plr == Player then return end
@@ -357,7 +253,12 @@ local function createESP(plr)
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then return end
     
-    local color = isFriend(plr) and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    local color
+    if isFriend(plr) then
+        color = Color3.fromRGB(0, 255, 0)
+    else
+        color = Color3.fromRGB(255, 0, 0)
+    end
     
     local box = Instance.new("BoxHandleAdornment")
     box.Parent = root
@@ -369,7 +270,9 @@ local function createESP(plr)
     box.AlwaysOnTop = true
     box.Visible = true
     
-    espObjects[plr] = { box = box }
+    espObjects[plr] = {
+        box = box
+    }
 end
 
 local function updateESP()
@@ -378,7 +281,13 @@ local function updateESP()
             if not espObjects[plr] then
                 createESP(plr)
             else
-                espObjects[plr].box.Color3 = isFriend(plr) and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+                local color
+                if isFriend(plr) then
+                    color = Color3.fromRGB(0, 255, 0)
+                else
+                    color = Color3.fromRGB(255, 0, 0)
+                end
+                espObjects[plr].box.Color3 = color
             end
         end
     end
@@ -398,7 +307,7 @@ local function toggleESP(state)
         if not connections.esp then
             connections.esp = RunService.Heartbeat:Connect(updateESP)
         end
-        showNotification("👁️ ESP ON", Color3.fromRGB(0, 255, 100))
+        showNotification("👁️ ESP ON (🟢صديق 🔴عدو)", Color3.fromRGB(0, 255, 100))
     else
         if connections.esp then
             connections.esp:Disconnect()
@@ -413,8 +322,9 @@ local function toggleESP(state)
 end
 
 -- ============================================
--- 🛠️ الوظائف الأساسية
+-- 🛠️ دوال الوظائف الأساسية
 -- ============================================
+
 local function toggleNoclip(state)
     states.noclip = state
     if states.noclip then
@@ -498,7 +408,7 @@ local function toggleSpeed(state)
 end
 
 -- ============================================
--- 💀 الطرد
+-- 💀 أمر الطرد
 -- ============================================
 local function kickPlayer(plr)
     if not plr or plr == Player then 
@@ -506,20 +416,31 @@ local function kickPlayer(plr)
         return 
     end
     
-    pcall(function() plr:Kick("💀 تم طردك بواسطة ROMA SENPAI!") end)
-    pcall(function() game.Players:FindFirstChild(plr.Name):Kick("💀 تم طردك بواسطة ROMA SENPAI!") end)
+    pcall(function()
+        plr:Kick("💀 تم طردك بواسطة ROMA SENPAI!")
+    end)
+    
+    pcall(function()
+        game.Players:FindFirstChild(plr.Name):Kick("💀 تم طردك بواسطة ROMA SENPAI!")
+    end)
+    
     pcall(function()
         if plr.Character then
             for _, part in pairs(plr.Character:GetDescendants()) do
-                if part:IsA("BasePart") then part:BreakJoints() end
-                if part:IsA("Humanoid") then part.Health = 0 end
+                if part:IsA("BasePart") then
+                    part:BreakJoints()
+                end
+                if part:IsA("Humanoid") then
+                    part.Health = 0
+                end
             end
             plr.Character:Destroy()
         end
         task.wait(0.5)
         plr:Kick("💀 تم طردك بواسطة ROMA SENPAI!")
     end)
-    showNotification("💀 تم طرد " .. plr.Name, Color3.fromRGB(255, 0, 0))
+    
+    showNotification("💀 تم طرد " .. plr.Name .. " من السيرفر!", Color3.fromRGB(255, 0, 0))
 end
 
 local function kickAllPlayers()
@@ -527,12 +448,12 @@ local function kickAllPlayers()
     for _, plr in pairs(Players:GetPlayers()) do
         if plr ~= Player then
             pcall(function()
-                plr:Kick("💀 تم طرد الجميع!")
+                plr:Kick("💀 تم طرد الجميع بواسطة ROMA SENPAI!")
                 count = count + 1
             end)
         end
     end
-    showNotification("💀 تم طرد " .. count .. " لاعب", Color3.fromRGB(255, 0, 0))
+    showNotification("💀 تم طرد " .. count .. " لاعب!", Color3.fromRGB(255, 0, 0))
 end
 
 -- ============================================
@@ -550,6 +471,7 @@ local function pullPlayerReal(plr)
     
     local targetRoot = plr.Character:FindFirstChild("HumanoidRootPart")
     local myRoot = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+    
     if not targetRoot or not myRoot then 
         showNotification("❌ تعذر العثور على اللاعب!", Color3.fromRGB(255, 0, 0))
         return 
@@ -561,6 +483,7 @@ local function pullPlayerReal(plr)
     end
     
     local targetPos = myRoot.CFrame + Vector3.new(0, 3, 0)
+    
     local tween = TweenService:Create(targetRoot, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
         CFrame = targetPos
     })
@@ -577,9 +500,11 @@ local function pullPlayerReal(plr)
         
         local root = plr.Character.HumanoidRootPart
         local h = plr.Character:FindFirstChild("Humanoid")
+        
         root.CFrame = myRoot.CFrame + Vector3.new(0, 3, 0)
         root.Velocity = Vector3.new(0, 0, 0)
         root.RotVelocity = Vector3.new(0, 0, 0)
+        
         if h then
             h.PlatformStand = true
             h.Sit = true
@@ -600,6 +525,7 @@ local function pullPlayerReal(plr)
             h.JumpPower = 50
         end
     end
+    
     showNotification("✅ تم جلب " .. plr.Name, Color3.fromRGB(0, 200, 100))
 end
 
@@ -837,7 +763,7 @@ local function showTeleportMenu()
     rejoinBtn.Position = UDim2.new(0, 0, 0, yOff)
     rejoinBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
     rejoinBtn.BackgroundTransparency = 0.3
-    rejoinBtn.Text = "🔄 إعادة الانضمام"
+    rejoinBtn.Text = "🔄 إعادة الانضمام للسيرفر"
     rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     rejoinBtn.TextSize = 12
     rejoinBtn.Font = Enum.Font.GothamBold
@@ -878,7 +804,7 @@ local function showTeleportMenu()
 end
 
 -- ============================================
--- 💬 الإشعارات
+-- 💬 دالة الإشعار
 -- ============================================
 function showNotification(text, color)
     if not ScreenGui then return end
@@ -901,7 +827,9 @@ end
 
 local function stopAll()
     for _, conn in pairs(connections) do
-        if conn then conn:Disconnect() end
+        if conn then
+            conn:Disconnect()
+        end
     end
     connections = {}
     for key in pairs(states) do
@@ -918,15 +846,10 @@ local function stopAll()
         aimlockCircle = nil
     end
     
-    if friendButton then
-        friendButton:Destroy()
-        friendButton = nil
-    end
-    playerTimers = {}
-    currentTarget = nil
-    
     for plr, conn in pairs(pullConnections) do
-        if conn then conn:Disconnect() end
+        if conn then
+            conn:Disconnect()
+        end
     end
     pullConnections = {}
     
@@ -1163,9 +1086,9 @@ local function createFlyGUI()
             speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
             speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
             
-            local plr = game.Players.LocalPlayer
-            local torso = plr.Character:FindFirstChild("Torso") or plr.Character:FindFirstChild("UpperTorso")
-            if torso then
+            if game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R6 then
+                local plr = game.Players.LocalPlayer
+                local torso = plr.Character.Torso
                 local ctrl = {f = 0, b = 0, l = 0, r = 0}
                 local lastctrl = {f = 0, b = 0, l = 0, r = 0}
                 local maxspeed = 50
@@ -1182,6 +1105,54 @@ local function createFlyGUI()
                 end
                 while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
                     game:GetService("RunService").RenderStepped:Wait()
+                    if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+                        speed = speed+.5+(speed/maxspeed)
+                        if speed > maxspeed then
+                            speed = maxspeed
+                        end
+                    elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+                        speed = speed-1
+                        if speed < 0 then
+                            speed = 0
+                        end
+                    end
+                    if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+                        bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+                        lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+                    elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+                        bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+                    else
+                        bv.velocity = Vector3.new(0,0,0)
+                    end
+                    bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
+                end
+                ctrl = {f = 0, b = 0, l = 0, r = 0}
+                lastctrl = {f = 0, b = 0, l = 0, r = 0}
+                speed = 0
+                bg:Destroy()
+                bv:Destroy()
+                plr.Character.Humanoid.PlatformStand = false
+                game.Players.LocalPlayer.Character.Animate.Disabled = false
+                tpwalking = false
+            else
+                local plr = game.Players.LocalPlayer
+                local UpperTorso = plr.Character.UpperTorso
+                local ctrl = {f = 0, b = 0, l = 0, r = 0}
+                local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+                local maxspeed = 50
+                local speed = 0
+                local bg = Instance.new("BodyGyro", UpperTorso)
+                bg.P = 9e4
+                bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+                bg.cframe = UpperTorso.CFrame
+                local bv = Instance.new("BodyVelocity", UpperTorso)
+                bv.velocity = Vector3.new(0,0.1,0)
+                bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+                if nowe == true then
+                    plr.Character.Humanoid.PlatformStand = true
+                end
+                while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
+                    wait()
                     if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
                         speed = speed+.5+(speed/maxspeed)
                         if speed > maxspeed then
@@ -1633,10 +1604,6 @@ function createGUI()
         end)
     end
 
-    -- ============================================
-    -- 🔥 إنشاء التبويبات
-    -- ============================================
-    
     local function createMovementTab()
         local panel = createContentPanel("🚀 إعدادات الحركة")
         addToggle(panel, "اختراق الجدران", function(state) toggleNoclip(state) end)
@@ -1672,21 +1639,9 @@ function createGUI()
     
     local function createCombatTab()
         local panel = createContentPanel("🎯 القتال")
-        addToggle(panel, "🎯 Aimbot", function(state) toggleAimbot(state) end)
-        addToggle(panel, "🔒 Aim Lock", function(state) toggleAimlock(state) end)
-        addToggle(panel, "👁️ ESP", function(state) toggleESP(state) end)
-        
-        -- ✅ شرح نظام الأصدقاء
-        local info = Instance.new("TextLabel")
-        info.Parent = panel
-        info.Size = UDim2.new(1, -5, 0, 30)
-        info.Position = UDim2.new(0, 2, 0, 5)
-        info.BackgroundTransparency = 1
-        info.Text = "🤝 قف أمام لاعب 3 ثواني لتحديد صديق"
-        info.TextColor3 = Color3.fromRGB(200, 200, 100)
-        info.TextSize = 10
-        info.Font = Enum.Font.GothamMedium
-        info.TextWrapped = true
+        addToggle(panel, "🎯 Aimbot (تركيز على الرأس)", function(state) toggleAimbot(state) end)
+        addToggle(panel, "🔒 Aim Lock (دائرة تصويب)", function(state) toggleAimlock(state) end)
+        addToggle(panel, "👁️ ESP (إطار فقط)", function(state) toggleESP(state) end)
     end
 
     local function createSpeedTab()
@@ -1754,10 +1709,6 @@ function createGUI()
         end)
     end
 
-    -- ============================================
-    -- 🎨 الأزرار الجانبية
-    -- ============================================
-    
     local tab1 = createTabButton("الحركة", "🚀")
     tab1.MouseButton1Click:Connect(function()
         if currentTabBtn then
@@ -1810,14 +1761,6 @@ function createGUI()
 
     tab1.MouseButton1Click()
 
-    -- ============================================
-    -- ⌨️ تشغيل نظام الأصدقاء
-    -- ============================================
-    connections.playerCheck = RunService.Heartbeat:Connect(checkPlayerProximity)
-
-    -- ============================================
-    -- ⌨️ اختصارات
-    -- ============================================
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.F1 then
@@ -1834,7 +1777,7 @@ function createGUI()
 
     print("💀 ROMA SENPAI HUB V2 Loaded!")
     print("📌 F1 = Toggle GUI")
-    print("🤝 قف أمام لاعب 3 ثواني لتحديد صديق")
+    print("🎯 Aimbot + Aim Lock + ESP Added!")
     showNotification("💀 ROMA HUB V2 جاهز!", Color3.fromRGB(150, 150, 255))
 end
 
