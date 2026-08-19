@@ -1,5 +1,5 @@
 -- ============================================
--- 💀 ROMA SENPAI HUB 💀
+-- 💀 ROMA SENPAI HUB V2 💀
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -36,7 +36,6 @@ local function toggleFly(state)
     states.fly = state
     
     if states.fly then
-        -- ✅ نشغل الطيران
         if not connections.fly then
             connections.fly = RunService.RenderStepped:Connect(function(delta)
                 if not states.fly then return end
@@ -46,57 +45,53 @@ local function toggleFly(state)
                 local h = Player.Character:FindFirstChild("Humanoid")
                 if not root or not h then return end
                 
-                -- ✅ نوقف الجاذبية
+                -- ✅ إيقاف الجاذبية تماماً
                 h.PlatformStand = true
+                h.Sit = false
                 
-                -- ✅ ناخذ حركة العصا (Mobile Joystick)
-                local moveVector = h.MoveDirection
+                -- ✅ اتجاهات الكاميرا
+                local camera = workspace.CurrentCamera
+                local forward = camera.CFrame.LookVector
+                local right = camera.CFrame.RightVector
+                local up = camera.CFrame.UpVector
                 
-                -- ✅ إذا كانت العصا متحركة
-                if moveVector.Magnitude > 0 then
-                    local camera = workspace.CurrentCamera
-                    local forward = camera.CFrame.LookVector
-                    local right = camera.CFrame.RightVector
-                    local up = camera.CFrame.UpVector
-                    
-                    -- نطبق الحركة على اتجاه الكاميرا
-                    local moveDirection = (forward * moveVector.Z + right * moveVector.X)
-                    
-                    -- ✅ نطبق السرعة مع delta عشان الحركة تكون سلسة
-                    if moveDirection.Magnitude > 0 then
-                        root.Velocity = moveDirection.Unit * flySpeed
-                    else
-                        root.Velocity = Vector3.new(0, 0, 0)
-                    end
-                    
-                    -- ✅ زر الصعود (P) - نرفع اللاعب للأعلى
-                    if flyKeyFlag then
-                        root.CFrame *= CFrame.new(Vector3.new(0, 10 * delta, 0))
-                        -- نضبط السرعة عشان ما ينزل
-                        root.Velocity = Vector3.new(root.Velocity.X, 10, root.Velocity.Z)
-                    end
-                    
-                    -- ✅ زر النزول (Shift) 
-                    if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                        root.Velocity = Vector3.new(root.Velocity.X, -flySpeed, root.Velocity.Z)
-                    end
+                -- ✅ متجه الحركة النهائي
+                local moveDirection = Vector3.new(0, 0, 0)
+                
+                -- ✅ حركة أمام/خلف (W/S)
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                    moveDirection = moveDirection + forward
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                    moveDirection = moveDirection - forward
+                end
+                
+                -- ✅ حركة يمين/يسار (A/D)
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                    moveDirection = moveDirection - right
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                    moveDirection = moveDirection + right
+                end
+                
+                -- ✅ حركة فوق/تحت (P / Shift)
+                if flyKeyFlag then
+                    moveDirection = moveDirection + up
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                    moveDirection = moveDirection - up
+                end
+                
+                -- ✅ تطبيق السرعة
+                if moveDirection.Magnitude > 0 then
+                    root.Velocity = moveDirection.Unit * flySpeed
                 else
-                    -- إذا ما في حركة عصا
-                    -- ✅ نطبق الصعود/النزول فقط
-                    if flyKeyFlag then
-                        root.CFrame *= CFrame.new(Vector3.new(0, 10 * delta, 0))
-                        root.Velocity = Vector3.new(root.Velocity.X, 10, root.Velocity.Z)
-                    elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                        root.Velocity = Vector3.new(0, -flySpeed, 0)
-                    else
-                        root.Velocity = Vector3.new(0, 0, 0)
-                    end
+                    root.Velocity = Vector3.new(0, 0, 0)
                 end
             end)
         end
-        showNotification("🚀 الطيران ON (P = صعود)", Color3.fromRGB(0, 150, 255))
+        showNotification("🚀 الطيران الحر ON", Color3.fromRGB(0, 150, 255))
     else
-        -- ✅ إيقاف الطيران
         if connections.fly then
             connections.fly:Disconnect()
             connections.fly = nil
@@ -108,6 +103,7 @@ local function toggleFly(state)
             local h = char:FindFirstChild("Humanoid")
             if h then
                 h.PlatformStand = false
+                h.Sit = false
             end
             if root then
                 root.Velocity = Vector3.new(0, 0, 0)
@@ -117,6 +113,30 @@ local function toggleFly(state)
     end
 end
 
+-- ============================================
+-- ⌨️ التحكم بالطيران (زر P - صعود)
+-- ============================================
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        if input.KeyCode == Enum.KeyCode.P then
+            flyKeyFlag = true
+        end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        if input.KeyCode == Enum.KeyCode.P then
+            flyKeyFlag = false
+        end
+    end
+end)
+
+-- ============================================
+-- باقي الوظائف (ما تغيرت)
+-- ============================================
 local function toggleNoclip(state)
     states.noclip = state
     if states.noclip then
@@ -199,32 +219,7 @@ local function toggleSpeed(state)
     end
 end
 
--- ============================================
--- ⌨️ التحكم بالطيران (زر P)
--- ============================================
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    
-    if input.UserInputType == Enum.UserInputType.Keyboard then
-        if input.KeyCode == Enum.KeyCode.P then
-            flyKeyFlag = true
-        end
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    
-    if input.UserInputType == Enum.UserInputType.Keyboard then
-        if input.KeyCode == Enum.KeyCode.P then
-            flyKeyFlag = false
-        end
-    end
-end)
-
--- ============================================
 -- 💀 أمر الطرد
--- ============================================
 local function kickPlayer(plr)
     if not plr or plr == Player then 
         showNotification("❌ لا يمكن طرد نفسك!", Color3.fromRGB(255, 0, 0))
@@ -276,9 +271,7 @@ local function kickPlayer(plr)
     showNotification("💀 تم طرد " .. plr.Name .. " من السيرفر!", Color3.fromRGB(255, 0, 0))
 end
 
--- ============================================
 -- ⚽ التيليبورت إلى الكرة
--- ============================================
 local function teleportToBall()
     local ball = nil
     
@@ -316,9 +309,7 @@ local function teleportToBall()
     end
 end
 
--- ============================================
 -- 🌐 قائمة اللاعبين
--- ============================================
 local TeleportFrame = nil
 local PlayersList = nil
 local pullConnections = {}
@@ -717,6 +708,7 @@ local function stopAll()
         local h = char:FindFirstChild("Humanoid")
         if h then
             h.PlatformStand = false
+            h.Sit = false
             h.WalkSpeed = 16
             h.JumpPower = 50
         end
@@ -744,7 +736,7 @@ local function showIntro()
     text.Size = UDim2.new(0, 350, 0, 70)
     text.Position = UDim2.new(0.5, -175, 0.5, -35)
     text.BackgroundTransparency = 1
-    text.Text = "💀 ROMA SENPAI\nصنع من طرف ROMA SENPAI"
+    text.Text = "💀 ROMA SENPAI V2\nصنع من طرف ROMA SENPAI"
     text.TextColor3 = Color3.fromRGB(255, 255, 255)
     text.TextScaled = true
     text.Font = Enum.Font.GothamBold
@@ -774,7 +766,7 @@ local CloseBtn = nil
 
 function createGUI()
     ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "RomaAxelHub"
+    ScreenGui.Name = "RomaSenpaiV2"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.Parent = Player.PlayerGui
 
@@ -808,7 +800,7 @@ function createGUI()
     LogoLabel.Size = UDim2.new(0, 100, 1, 0)
     LogoLabel.Position = UDim2.new(0, 8, 0, 0)
     LogoLabel.BackgroundTransparency = 1
-    LogoLabel.Text = "💀 ROMA HUB"
+    LogoLabel.Text = "💀 ROMA V2"
     LogoLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
     LogoLabel.TextSize = 12
     LogoLabel.Font = Enum.Font.GothamBold
@@ -1020,7 +1012,7 @@ function createGUI()
 
     local function createMovementTab()
         local panel = createContentPanel("🚀 إعدادات الحركة")
-        addToggle(panel, "الطيران (P = صعود)", function(state) toggleFly(state) end)
+        addToggle(panel, "الطيران الحر (3D)", function(state) toggleFly(state) end)
         addToggle(panel, "اختراق الجدران", function(state) toggleNoclip(state) end)
         addToggle(panel, "اختفاء (Invisible)", function(state) toggleInvisible(state) end)
     end
@@ -1146,10 +1138,10 @@ function createGUI()
         end
     end)
 
-    print("💀 ROMA SENPAI HUB Loaded!")
+    print("💀 ROMA SENPAI HUB V2 Loaded!")
     print("📌 F1 = Toggle GUI")
-    print("📌 P = Fly Up (اضغط واستمر)")
-    showNotification("💀 ROMA HUB جاهز!", Color3.fromRGB(150, 150, 255))
+    print("📌 P = صعود | Shift = نزول | WASD = حركة أفقية")
+    showNotification("💀 ROMA HUB V2 جاهز!", Color3.fromRGB(150, 150, 255))
 end
 
 showIntro()
