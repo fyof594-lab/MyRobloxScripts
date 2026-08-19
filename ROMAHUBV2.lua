@@ -33,25 +33,46 @@ local espObjects = {}
 local aimbotTarget = nil
 local aimlockTarget = nil
 local aimlockCircle = nil
-local aimlockActive = false
 
 -- ============================================
--- 🎯 AIMBOT (يركز على الرأس)
+-- 🔥 دوال التحقق من العدو/الصديق
 -- ============================================
-local function getClosestPlayer()
+
+local function isEnemy(plr)
+    if not plr or plr == Player then return false end
+    if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return false end
+    if not plr.Character:FindFirstChild("Humanoid") or plr.Character.Humanoid.Health <= 0 then return false end
+    
+    local myTeam = Player.Team
+    local theirTeam = plr.Team
+    
+    if not myTeam or not theirTeam then return true end
+    return myTeam ~= theirTeam
+end
+
+local function isFriend(plr)
+    if not plr or plr == Player then return false end
+    if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return false end
+    if not plr.Character:FindFirstChild("Humanoid") or plr.Character.Humanoid.Health <= 0 then return false end
+    
+    local myTeam = Player.Team
+    local theirTeam = plr.Team
+    
+    if not myTeam or not theirTeam then return false end
+    return myTeam == theirTeam
+end
+
+-- ============================================
+-- 🎯 AIMBOT (يركز على رأس العدو فقط)
+-- ============================================
+local function getClosestEnemy()
     local closest = nil
     local closestDist = math.huge
     local myPos = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
     if not myPos then return nil end
     
     for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= Player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 then
-            local myTeam = Player.Team
-            local theirTeam = plr.Team
-            if myTeam and theirTeam and myTeam == theirTeam then
-                continue
-            end
-            
+        if isEnemy(plr) then
             local root = plr.Character.HumanoidRootPart
             local dist = (root.Position - myPos.Position).Magnitude
             if dist < closestDist then
@@ -75,7 +96,7 @@ local function toggleAimbot(state)
                 if not states.aimbot then return end
                 if not Player.Character then return end
                 
-                local target = getClosestPlayer()
+                local target = getClosestEnemy()
                 if target and target.Character and target.Character:FindFirstChild("Head") then
                     local head = target.Character.Head
                     local headPos = head.Position
@@ -86,7 +107,7 @@ local function toggleAimbot(state)
                 end
             end)
         end
-        showNotification("🎯 Aimbot ON", Color3.fromRGB(255, 50, 50))
+        showNotification("🎯 Aimbot ON (أعداء فقط)", Color3.fromRGB(255, 50, 50))
     else
         if connections.aimbot then
             connections.aimbot:Disconnect()
@@ -98,7 +119,7 @@ local function toggleAimbot(state)
 end
 
 -- ============================================
--- 🔒 AIM LOCK (دائرة + تصويب تلقائي)
+-- 🔒 AIM LOCK (دائرة + أعداء فقط)
 -- ============================================
 local function createAimlockCircle()
     if aimlockCircle then
@@ -121,7 +142,6 @@ local function createAimlockCircle()
     corner.Parent = aimlockCircle
     corner.CornerRadius = UDim.new(1, 0)
     
-    -- ✅ علامة + في المنتصف
     local cross = Instance.new("Frame")
     cross.Parent = aimlockCircle
     cross.Size = UDim2.new(0, 2, 0, 30)
@@ -139,19 +159,12 @@ local function createAimlockCircle()
     cross2.BorderSizePixel = 0
 end
 
-local function getPlayersInCircle()
+local function getEnemiesInCircle()
     local targets = {}
-    local center = Camera.CFrame.Position
-    local radius = 75 -- نصف قطر الدائرة
+    local radius = 75
     
     for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= Player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 then
-            local myTeam = Player.Team
-            local theirTeam = plr.Team
-            if myTeam and theirTeam and myTeam == theirTeam then
-                continue
-            end
-            
+        if isEnemy(plr) then
             local root = plr.Character.HumanoidRootPart
             local screenPos, onScreen = Camera:WorldToViewportPoint(root.Position)
             if onScreen then
@@ -178,9 +191,8 @@ local function toggleAimlock(state)
                 if not states.aimlock then return end
                 if not Player.Character then return end
                 
-                local targets = getPlayersInCircle()
+                local targets = getEnemiesInCircle()
                 if #targets > 0 then
-                    -- ✅ نختار أقرب هدف في الدائرة
                     local closest = targets[1]
                     local closestDist = math.huge
                     local myPos = Player.Character.HumanoidRootPart.Position
@@ -199,7 +211,6 @@ local function toggleAimlock(state)
                         Camera.CFrame = CFrame.new(Camera.CFrame.Position, headPos)
                         aimlockTarget = closest
                         
-                        -- ✅ نغير لون الدائرة للأخضر (هدف موجود)
                         if aimlockCircle then
                             aimlockCircle.BorderColor3 = Color3.fromRGB(0, 255, 0)
                             aimlockCircle.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
@@ -207,7 +218,6 @@ local function toggleAimlock(state)
                     end
                 else
                     aimlockTarget = nil
-                    -- ✅ نغير لون الدائرة للأحمر (لا يوجد هدف)
                     if aimlockCircle then
                         aimlockCircle.BorderColor3 = Color3.fromRGB(255, 0, 0)
                         aimlockCircle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
@@ -215,7 +225,7 @@ local function toggleAimlock(state)
                 end
             end)
         end
-        showNotification("🔒 Aim Lock ON (دائرة حمراء)", Color3.fromRGB(0, 200, 255))
+        showNotification("🔒 Aim Lock ON (أعداء فقط)", Color3.fromRGB(0, 200, 255))
     else
         if connections.aimlock then
             connections.aimlock:Disconnect()
@@ -231,7 +241,7 @@ local function toggleAimlock(state)
 end
 
 -- ============================================
--- 👁️ ESP (Outline فقط)
+-- 👁️ ESP (أخضر للصديق - أحمر للعدو)
 -- ============================================
 local function createESP(plr)
     if not plr or plr == Player then return end
@@ -243,12 +253,13 @@ local function createESP(plr)
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then return end
     
-    local color = Color3.fromRGB(255, 0, 0)
-    if plr.Team then
-        color = plr.Team.TeamColor and plr.Team.TeamColor.Color or Color3.fromRGB(255, 0, 0)
+    local color
+    if isFriend(plr) then
+        color = Color3.fromRGB(0, 255, 0)
+    else
+        color = Color3.fromRGB(255, 0, 0)
     end
     
-    -- ✅ Box Handle Adornment (الإطار)
     local box = Instance.new("BoxHandleAdornment")
     box.Parent = root
     box.Adornee = root
@@ -269,11 +280,18 @@ local function updateESP()
         if plr ~= Player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
             if not espObjects[plr] then
                 createESP(plr)
+            else
+                local color
+                if isFriend(plr) then
+                    color = Color3.fromRGB(0, 255, 0)
+                else
+                    color = Color3.fromRGB(255, 0, 0)
+                end
+                espObjects[plr].box.Color3 = color
             end
         end
     end
     
-    -- ✅ إزالة ESP للاعبين الميتين
     for plr, data in pairs(espObjects) do
         if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") or (plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health <= 0) then
             if data.box then data.box:Destroy() end
@@ -289,7 +307,7 @@ local function toggleESP(state)
         if not connections.esp then
             connections.esp = RunService.Heartbeat:Connect(updateESP)
         end
-        showNotification("👁️ ESP ON", Color3.fromRGB(0, 255, 100))
+        showNotification("👁️ ESP ON (🟢صديق 🔴عدو)", Color3.fromRGB(0, 255, 100))
     else
         if connections.esp then
             connections.esp:Disconnect()
@@ -818,13 +836,11 @@ local function stopAll()
         states[key] = false
     end
     
-    -- إيقاف ESP
     for plr, data in pairs(espObjects) do
         if data.box then data.box:Destroy() end
     end
     espObjects = {}
     
-    -- إيقاف Aim Lock
     if aimlockCircle then
         aimlockCircle:Destroy()
         aimlockCircle = nil
