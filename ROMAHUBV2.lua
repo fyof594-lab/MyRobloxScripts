@@ -45,28 +45,22 @@ local function toggleFly(state)
                 local h = Player.Character:FindFirstChild("Humanoid")
                 if not root or not h then return end
                 
-                -- ✅ إيقاف الجاذبية تماماً
                 h.PlatformStand = true
                 h.Sit = false
                 
-                -- ✅ اتجاهات الكاميرا
                 local camera = workspace.CurrentCamera
                 local forward = camera.CFrame.LookVector
                 local right = camera.CFrame.RightVector
                 local up = camera.CFrame.UpVector
                 
-                -- ✅ متجه الحركة النهائي
                 local moveDirection = Vector3.new(0, 0, 0)
                 
-                -- ✅ حركة أمام/خلف (W/S)
                 if UserInputService:IsKeyDown(Enum.KeyCode.W) then
                     moveDirection = moveDirection + forward
                 end
                 if UserInputService:IsKeyDown(Enum.KeyCode.S) then
                     moveDirection = moveDirection - forward
                 end
-                
-                -- ✅ حركة يمين/يسار (A/D)
                 if UserInputService:IsKeyDown(Enum.KeyCode.A) then
                     moveDirection = moveDirection - right
                 end
@@ -74,7 +68,6 @@ local function toggleFly(state)
                     moveDirection = moveDirection + right
                 end
                 
-                -- ✅ حركة فوق/تحت (P / Shift)
                 if flyKeyFlag then
                     moveDirection = moveDirection + up
                 end
@@ -82,7 +75,6 @@ local function toggleFly(state)
                     moveDirection = moveDirection - up
                 end
                 
-                -- ✅ تطبيق السرعة
                 if moveDirection.Magnitude > 0 then
                     root.Velocity = moveDirection.Unit * flySpeed
                 else
@@ -113,9 +105,6 @@ local function toggleFly(state)
     end
 end
 
--- ============================================
--- ⌨️ التحكم بالطيران (زر P - صعود)
--- ============================================
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.UserInputType == Enum.UserInputType.Keyboard then
@@ -134,9 +123,6 @@ UserInputService.InputEnded:Connect(function(input, gameProcessed)
     end
 end)
 
--- ============================================
--- باقي الوظائف (ما تغيرت)
--- ============================================
 local function toggleNoclip(state)
     states.noclip = state
     if states.noclip then
@@ -219,7 +205,9 @@ local function toggleSpeed(state)
     end
 end
 
+-- ============================================
 -- 💀 أمر الطرد
+-- ============================================
 local function kickPlayer(plr)
     if not plr or plr == Player then 
         showNotification("❌ لا يمكن طرد نفسك!", Color3.fromRGB(255, 0, 0))
@@ -271,7 +259,9 @@ local function kickPlayer(plr)
     showNotification("💀 تم طرد " .. plr.Name .. " من السيرفر!", Color3.fromRGB(255, 0, 0))
 end
 
+-- ============================================
 -- ⚽ التيليبورت إلى الكرة
+-- ============================================
 local function teleportToBall()
     local ball = nil
     
@@ -309,7 +299,9 @@ local function teleportToBall()
     end
 end
 
+-- ============================================
 -- 🌐 قائمة اللاعبين
+-- ============================================
 local TeleportFrame = nil
 local PlayersList = nil
 local pullConnections = {}
@@ -721,6 +713,309 @@ local function stopAll()
 end
 
 -- ============================================
+-- 🎨 FLY GUI V3 (النافذة المنبثقة)
+-- ============================================
+local FlyGUI = nil
+local FlyFrame = nil
+local flySpeeds = 1
+local flyActive = false
+local flyConnections = {}
+
+local function createFlyGUI()
+    if FlyGUI then
+        FlyGUI:Destroy()
+        FlyGUI = nil
+        return
+    end
+    
+    FlyGUI = Instance.new("ScreenGui")
+    FlyGUI.Name = "FlyGUI"
+    FlyGUI.Parent = ScreenGui or Player.PlayerGui
+    FlyGUI.ResetOnSpawn = false
+    
+    FlyFrame = Instance.new("Frame")
+    FlyFrame.Parent = FlyGUI
+    FlyFrame.BackgroundColor3 = Color3.fromRGB(163, 255, 137)
+    FlyFrame.BorderColor3 = Color3.fromRGB(103, 221, 213)
+    FlyFrame.Position = UDim2.new(0.5, -95, 0.5, -28)
+    FlyFrame.Size = UDim2.new(0, 190, 0, 57)
+    FlyFrame.Active = true
+    FlyFrame.Draggable = true
+    
+    -- زر UP
+    local upBtn = Instance.new("TextButton")
+    upBtn.Parent = FlyFrame
+    upBtn.BackgroundColor3 = Color3.fromRGB(79, 255, 152)
+    upBtn.Size = UDim2.new(0, 44, 0, 28)
+    upBtn.Font = Enum.Font.SourceSans
+    upBtn.Text = "UP"
+    upBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    upBtn.TextSize = 14
+    
+    -- زر DOWN
+    local downBtn = Instance.new("TextButton")
+    downBtn.Parent = FlyFrame
+    downBtn.BackgroundColor3 = Color3.fromRGB(215, 255, 121)
+    downBtn.Position = UDim2.new(0, 0, 0.491228074, 0)
+    downBtn.Size = UDim2.new(0, 44, 0, 28)
+    downBtn.Font = Enum.Font.SourceSans
+    downBtn.Text = "DOWN"
+    downBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    downBtn.TextSize = 14
+    
+    -- زر ON/OFF
+    local onoffBtn = Instance.new("TextButton")
+    onoffBtn.Parent = FlyFrame
+    onoffBtn.BackgroundColor3 = Color3.fromRGB(255, 249, 74)
+    onoffBtn.Position = UDim2.new(0.702823281, 0, 0.491228074, 0)
+    onoffBtn.Size = UDim2.new(0, 56, 0, 28)
+    onoffBtn.Font = Enum.Font.SourceSans
+    onoffBtn.Text = "FLY"
+    onoffBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    onoffBtn.TextSize = 14
+    
+    -- العنوان
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Parent = FlyFrame
+    titleLabel.BackgroundColor3 = Color3.fromRGB(242, 60, 255)
+    titleLabel.Position = UDim2.new(0.469327301, 0, 0, 0)
+    titleLabel.Size = UDim2.new(0, 100, 0, 28)
+    titleLabel.Font = Enum.Font.SourceSans
+    titleLabel.Text = "FLY GUI V3"
+    titleLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+    titleLabel.TextScaled = true
+    titleLabel.TextSize = 14
+    titleLabel.TextWrapped = true
+    
+    -- زر +
+    local plusBtn = Instance.new("TextButton")
+    plusBtn.Parent = FlyFrame
+    plusBtn.BackgroundColor3 = Color3.fromRGB(133, 145, 255)
+    plusBtn.Position = UDim2.new(0.231578946, 0, 0, 0)
+    plusBtn.Size = UDim2.new(0, 45, 0, 28)
+    plusBtn.Font = Enum.Font.SourceSans
+    plusBtn.Text = "+"
+    plusBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    plusBtn.TextScaled = true
+    plusBtn.TextSize = 14
+    plusBtn.TextWrapped = true
+    
+    -- سرعة
+    local speedLabel = Instance.new("TextLabel")
+    speedLabel.Parent = FlyFrame
+    speedLabel.BackgroundColor3 = Color3.fromRGB(255, 85, 0)
+    speedLabel.Position = UDim2.new(0.468421042, 0, 0.491228074, 0)
+    speedLabel.Size = UDim2.new(0, 44, 0, 28)
+    speedLabel.Font = Enum.Font.SourceSans
+    speedLabel.Text = "1"
+    speedLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+    speedLabel.TextScaled = true
+    speedLabel.TextSize = 14
+    speedLabel.TextWrapped = true
+    
+    -- زر -
+    local minusBtn = Instance.new("TextButton")
+    minusBtn.Parent = FlyFrame
+    minusBtn.BackgroundColor3 = Color3.fromRGB(123, 255, 247)
+    minusBtn.Position = UDim2.new(0.231578946, 0, 0.491228074, 0)
+    minusBtn.Size = UDim2.new(0, 45, 0, 29)
+    minusBtn.Font = Enum.Font.SourceSans
+    minusBtn.Text = "-"
+    minusBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    minusBtn.TextScaled = true
+    minusBtn.TextSize = 14
+    minusBtn.TextWrapped = true
+    
+    -- زر إغلاق
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Parent = FlyFrame
+    closeBtn.BackgroundColor3 = Color3.fromRGB(225, 25, 0)
+    closeBtn.Font = Enum.Font.SourceSans
+    closeBtn.Size = UDim2.new(0, 45, 0, 28)
+    closeBtn.Text = "X"
+    closeBtn.TextSize = 30
+    closeBtn.Position = UDim2.new(0, 0, -1, 27)
+    
+    -- زر تصغير
+    local minBtn = Instance.new("TextButton")
+    minBtn.Parent = FlyFrame
+    minBtn.BackgroundColor3 = Color3.fromRGB(192, 150, 230)
+    minBtn.Font = Enum.Font.SourceSans
+    minBtn.Size = UDim2.new(0, 45, 0, 28)
+    minBtn.Text = "-"
+    minBtn.TextSize = 40
+    minBtn.Position = UDim2.new(0, 44, -1, 27)
+    
+    -- زر تكبير
+    local maxBtn = Instance.new("TextButton")
+    maxBtn.Parent = FlyFrame
+    maxBtn.BackgroundColor3 = Color3.fromRGB(192, 150, 230)
+    maxBtn.Font = Enum.Font.SourceSans
+    maxBtn.Size = UDim2.new(0, 45, 0, 28)
+    maxBtn.Text = "+"
+    maxBtn.TextSize = 40
+    maxBtn.Position = UDim2.new(0, 44, -1, 57)
+    maxBtn.Visible = false
+    
+    -- ========== وظائف الأزرار ==========
+    local function toggleFlyMode()
+        flyActive = not flyActive
+        
+        if flyActive then
+            onoffBtn.Text = "ON"
+            onoffBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+            
+            -- تشغيل الطيران
+            local char = Player.Character
+            if char then
+                local h = char:FindFirstChild("Humanoid")
+                if h then
+                    h.PlatformStand = true
+                end
+            end
+            
+            -- حلقة الطيران
+            flyConnections.fly = RunService.RenderStepped:Connect(function()
+                if not flyActive then return end
+                if not Player.Character then return end
+                
+                local root = Player.Character:FindFirstChild("HumanoidRootPart")
+                local h = Player.Character:FindFirstChild("Humanoid")
+                if not root or not h then return end
+                
+                h.PlatformStand = true
+                local camera = workspace.CurrentCamera
+                local moveDir = h.MoveDirection
+                
+                if moveDir.Magnitude > 0 then
+                    local forward = camera.CFrame.LookVector
+                    local right = camera.CFrame.RightVector
+                    local moveVector = (forward * moveDir.Z + right * moveDir.X)
+                    root.Velocity = moveVector.Unit * (flySpeeds * 50)
+                else
+                    root.Velocity = Vector3.new(0, 0, 0)
+                end
+            end)
+            
+            showNotification("✈️ FLY ON - Speed: " .. flySpeeds, Color3.fromRGB(0, 255, 0))
+        else
+            onoffBtn.Text = "FLY"
+            onoffBtn.BackgroundColor3 = Color3.fromRGB(255, 249, 74)
+            
+            if flyConnections.fly then
+                flyConnections.fly:Disconnect()
+                flyConnections.fly = nil
+            end
+            
+            local char = Player.Character
+            if char then
+                local h = char:FindFirstChild("Humanoid")
+                if h then
+                    h.PlatformStand = false
+                end
+                local root = char:FindFirstChild("HumanoidRootPart")
+                if root then
+                    root.Velocity = Vector3.new(0, 0, 0)
+                end
+            end
+            showNotification("⏹ FLY OFF", Color3.fromRGB(255, 200, 0))
+        end
+    end
+    
+    onoffBtn.MouseButton1Click:Connect(toggleFlyMode)
+    
+    -- UP
+    upBtn.MouseButton1Down:Connect(function()
+        flyConnections.up = RunService.RenderStepped:Connect(function()
+            if not flyActive then return end
+            local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.CFrame = root.CFrame * CFrame.new(0, 0.5, 0)
+                root.Velocity = Vector3.new(root.Velocity.X, 5, root.Velocity.Z)
+            end
+        end)
+    end)
+    upBtn.MouseLeave:Connect(function()
+        if flyConnections.up then
+            flyConnections.up:Disconnect()
+            flyConnections.up = nil
+        end
+    end)
+    
+    -- DOWN
+    downBtn.MouseButton1Down:Connect(function()
+        flyConnections.down = RunService.RenderStepped:Connect(function()
+            if not flyActive then return end
+            local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.CFrame = root.CFrame * CFrame.new(0, -0.5, 0)
+                root.Velocity = Vector3.new(root.Velocity.X, -5, root.Velocity.Z)
+            end
+        end)
+    end)
+    downBtn.MouseLeave:Connect(function()
+        if flyConnections.down then
+            flyConnections.down:Disconnect()
+            flyConnections.down = nil
+        end
+    end)
+    
+    -- + سرعة
+    plusBtn.MouseButton1Click:Connect(function()
+        flySpeeds = flySpeeds + 1
+        if flySpeeds > 10 then flySpeeds = 10 end
+        speedLabel.Text = flySpeeds
+        showNotification("⚡ Speed: " .. flySpeeds, Color3.fromRGB(255, 200, 0))
+    end)
+    
+    -- - سرعة
+    minusBtn.MouseButton1Click:Connect(function()
+        if flySpeeds > 1 then
+            flySpeeds = flySpeeds - 1
+            speedLabel.Text = flySpeeds
+            showNotification("⚡ Speed: " .. flySpeeds, Color3.fromRGB(255, 200, 0))
+        end
+    end)
+    
+    -- إغلاق
+    closeBtn.MouseButton1Click:Connect(function()
+        if flyActive then
+            toggleFlyMode()
+        end
+        FlyGUI:Destroy()
+        FlyGUI = nil
+    end)
+    
+    -- تصغير
+    minBtn.MouseButton1Click:Connect(function()
+        upBtn.Visible = false
+        downBtn.Visible = false
+        onoffBtn.Visible = false
+        plusBtn.Visible = false
+        speedLabel.Visible = false
+        minusBtn.Visible = false
+        minBtn.Visible = false
+        maxBtn.Visible = true
+        FlyFrame.BackgroundTransparency = 1
+        closeBtn.Position = UDim2.new(0, 0, -1, 57)
+    end)
+    
+    -- تكبير
+    maxBtn.MouseButton1Click:Connect(function()
+        upBtn.Visible = true
+        downBtn.Visible = true
+        onoffBtn.Visible = true
+        plusBtn.Visible = true
+        speedLabel.Visible = true
+        minusBtn.Visible = true
+        minBtn.Visible = true
+        maxBtn.Visible = false
+        FlyFrame.BackgroundTransparency = 0
+        closeBtn.Position = UDim2.new(0, 0, -1, 27)
+    end)
+end
+
+-- ============================================
 -- 🎬 شاشة Intro
 -- ============================================
 local function showIntro()
@@ -1012,9 +1307,37 @@ function createGUI()
 
     local function createMovementTab()
         local panel = createContentPanel("🚀 إعدادات الحركة")
-        addToggle(panel, "الطيران الحر (3D)", function(state) toggleFly(state) end)
+        addToggle(panel, "الطيران الحر (P)", function(state) toggleFly(state) end)
         addToggle(panel, "اختراق الجدران", function(state) toggleNoclip(state) end)
         addToggle(panel, "اختفاء (Invisible)", function(state) toggleInvisible(state) end)
+        
+        -- ✅ زر فتح FLY GUI V3
+        local flyGuiBtn = Instance.new("TextButton")
+        flyGuiBtn.Parent = panel
+        flyGuiBtn.Size = UDim2.new(1, -5, 0, 35)
+        flyGuiBtn.Position = UDim2.new(0, 2, 0, 5)
+        flyGuiBtn.Text = "🛩️ فتح FLY GUI V3"
+        flyGuiBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
+        flyGuiBtn.TextSize = 12
+        flyGuiBtn.Font = Enum.Font.GothamMedium
+        flyGuiBtn.BackgroundColor3 = Color3.fromRGB(30, 200, 100)
+        flyGuiBtn.BackgroundTransparency = 0.3
+        flyGuiBtn.BorderSizePixel = 0
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 6)
+        btnCorner.Parent = flyGuiBtn
+        
+        flyGuiBtn.MouseEnter:Connect(function()
+            flyGuiBtn.BackgroundTransparency = 0
+        end)
+        flyGuiBtn.MouseLeave:Connect(function()
+            flyGuiBtn.BackgroundTransparency = 0.3
+        end)
+        
+        flyGuiBtn.MouseButton1Click:Connect(function()
+            createFlyGUI()
+        end)
     end
 
     local function createSpeedTab()
@@ -1140,7 +1463,7 @@ function createGUI()
 
     print("💀 ROMA SENPAI HUB V2 Loaded!")
     print("📌 F1 = Toggle GUI")
-    print("📌 P = صعود | Shift = نزول | WASD = حركة أفقية")
+    print("📌 P = صعود | Shift = نزول | WASD = حركة")
     showNotification("💀 ROMA HUB V2 جاهز!", Color3.fromRGB(150, 150, 255))
 end
 
