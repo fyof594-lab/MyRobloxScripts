@@ -312,7 +312,6 @@ local function toggleBallStick(state)
                 local root = Player.Character:FindFirstChild("HumanoidRootPart")
                 if not root then return end
                 
-                -- نلصق الكرة باللاعب
                 ball.CFrame = root.CFrame + Vector3.new(0, 2, 0)
                 ball.Velocity = Vector3.new(0, 0, 0)
                 ball.RotVelocity = Vector3.new(0, 0, 0)
@@ -1108,7 +1107,6 @@ local function stopAll()
         states[key] = false
     end
     
-    -- إيقاف HP FULL
     hpActive = false
     for _, conn in pairs(hpConnections) do
         pcall(function() conn:Disconnect() end)
@@ -1125,7 +1123,6 @@ local function stopAll()
         end
     end
     
-    -- إيقاف BLUE LOCK
     if ballNoClipConnection then
         ballNoClipConnection:Disconnect()
         ballNoClipConnection = nil
@@ -1159,7 +1156,6 @@ local function stopAll()
     end
     pullConnections = {}
     
-    local char = Player.Character
     if char then
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -1621,7 +1617,7 @@ local function createFlyGUI()
 end
 
 -- ============================================
--- ⚽ BLUE LOCK RIVALS - تبويب
+-- ⚽ BLUE LOCK RIVALS - تبويب (بدل الإضافات)
 -- ============================================
 local function createBlueLockTab()
     local panel = createContentPanel("⚽ Blue Lock Rivals")
@@ -1709,6 +1705,31 @@ local function createBlueLockTab()
     
     -- 🔒 الكرة تلتصق فيك
     addToggle(panel, "🔒 الكرة تلتصق فيك (تجربة)", function(state) toggleBallStick(state) end)
+    
+    -- 🛑 إيقاف الكل
+    local stopBtn = Instance.new("TextButton")
+    stopBtn.Parent = panel
+    stopBtn.Size = UDim2.new(1, -5, 0, 35)
+    stopBtn.Position = UDim2.new(0, 2, 0, 185)
+    stopBtn.Text = "🔄 إيقاف الكل"
+    stopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    stopBtn.TextSize = 12
+    stopBtn.Font = Enum.Font.GothamBold
+    stopBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    stopBtn.BackgroundTransparency = 0.2
+    stopBtn.BorderSizePixel = 0
+    
+    local stopCorner = Instance.new("UICorner")
+    stopCorner.CornerRadius = UDim.new(0, 6)
+    stopCorner.Parent = stopBtn
+    
+    stopBtn.MouseEnter:Connect(function()
+        stopBtn.BackgroundTransparency = 0
+    end)
+    stopBtn.MouseLeave:Connect(function()
+        stopBtn.BackgroundTransparency = 0.2
+    end)
+    stopBtn.MouseButton1Click:Connect(stopAll)
 end
 
 -- ============================================
@@ -2077,34 +2098,9 @@ function createGUI()
         end)
     end
 
-    local function createExtrasTab()
-        local panel = createContentPanel("🔧 إضافات")
-        
-        local stopBtn = Instance.new("TextButton")
-        stopBtn.Parent = panel
-        stopBtn.Size = UDim2.new(1, -5, 0, 35)
-        stopBtn.Position = UDim2.new(0, 2, 0, 5)
-        stopBtn.Text = "🔄 إيقاف الكل"
-        stopBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
-        stopBtn.TextSize = 12
-        stopBtn.Font = Enum.Font.GothamMedium
-        stopBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-        stopBtn.BorderSizePixel = 0
-        
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 6)
-        btnCorner.Parent = stopBtn
-        
-        stopBtn.MouseEnter:Connect(function()
-            stopBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-        end)
-        stopBtn.MouseLeave:Connect(function()
-            stopBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-        end)
-        
-        stopBtn.MouseButton1Click:Connect(function()
-            stopAll()
-        end)
+    -- ⚽ تبويب Blue Lock Rivals (بدل الإضافات)
+    local function createBlueLockTabWrapper()
+        createBlueLockTab()
     end
 
     -- ============================================
@@ -2151,25 +2147,15 @@ function createGUI()
         createTeleportTab()
     end)
 
-    -- ⚽ تبويب Blue Lock Rivals
-    local tab5 = createTabButton("Blue Lock", "⚽")
+    -- ⚽ تبويب Blue Lock Rivals (بدل الإضافات)
+    local tab5 = createTabButton("⚽ Blue Lock", "⚽")
     tab5.MouseButton1Click:Connect(function()
         if currentTabBtn then
             currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
         end
         currentTabBtn = tab5
         tab5.TextColor3 = Color3.fromRGB(240, 240, 245)
-        createBlueLockTab()
-    end)
-
-    local tab6 = createTabButton("إضافات", "🔧")
-    tab6.MouseButton1Click:Connect(function()
-        if currentTabBtn then
-            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        end
-        currentTabBtn = tab6
-        tab6.TextColor3 = Color3.fromRGB(240, 240, 245)
-        createExtrasTab()
+        createBlueLockTabWrapper()
     end)
 
     tab1.MouseButton1Click()
