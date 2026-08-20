@@ -1,3 +1,4 @@
+
 -- ============================================
 -- 💀 ROMA SENPAI HUB V2 💀
 -- ============================================
@@ -1397,212 +1398,6 @@ local function createFlyGUI()
 end
 
 -- ============================================
--- 🗺️ المابات (MAPS)
--- ============================================
-
--- Blox Fruits Worlds
-local bloxFruitsWorlds = {
-    {name = "🌅 First Sea", id = "https://www.roblox.com/games/1234567890/FirstSea"},
-    {name = "🌊 Second Sea", id = "https://www.roblox.com/games/2345678901/SecondSea"},
-    {name = "🌌 Third Sea", id = "https://www.roblox.com/games/3456789012/ThirdSea"},
-}
-
-local mapWindow = nil
-local mapList = nil
-local infoWindow = nil
-
--- ============================================
--- ℹ️ INFO
--- ============================================
-local function createInfoTab()
-    local panel = createContentPanel("ℹ️ معلومات")
-    
-    local infoText = Instance.new("TextLabel")
-    infoText.Parent = panel
-    infoText.Size = UDim2.new(1, -10, 0, 150)
-    infoText.Position = UDim2.new(0, 5, 0, 5)
-    infoText.BackgroundTransparency = 1
-    infoText.Text = [[
-💀 ROMA SENPAI HUB V2
-
-👑 صنع من طرف: ROMA SENPAI
-📅 الإصدار: V2.0
-🔧 الميزات:
-• اختراق الجدران
-• اختفاء
-• FLY GUI V3
-• Aimbot + Aim Lock
-• ESP (أعداء/أصدقاء)
-• HP FULL
-• قائمة اللاعبين
-• المابات
-
-📌 F1 = إظهار/إخفاء القائمة
-
-💬 discord.gg/romasenpai
-    ]]
-    infoText.TextColor3 = Color3.fromRGB(200, 200, 215)
-    infoText.TextSize = 11
-    infoText.Font = Enum.Font.GothamMedium
-    infoText.TextXAlignment = Enum.TextXAlignment.Left
-    infoText.TextYAlignment = Enum.TextYAlignment.Top
-    infoText.TextWrapped = true
-    
-    local creditBtn = Instance.new("TextButton")
-    creditBtn.Parent = panel
-    creditBtn.Size = UDim2.new(1, -10, 0, 30)
-    creditBtn.Position = UDim2.new(0, 5, 0, 160)
-    creditBtn.Text = "💀 ROMA SENPAI"
-    creditBtn.TextColor3 = Color3.fromRGB(150, 100, 255)
-    creditBtn.TextSize = 12
-    creditBtn.Font = Enum.Font.GothamBold
-    creditBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
-    creditBtn.BackgroundTransparency = 0.3
-    creditBtn.BorderSizePixel = 0
-    
-    local creditCorner = Instance.new("UICorner")
-    creditCorner.CornerRadius = UDim.new(0, 6)
-    creditCorner.Parent = creditBtn
-    
-    creditBtn.MouseEnter:Connect(function()
-        creditBtn.BackgroundTransparency = 0
-    end)
-    creditBtn.MouseLeave:Connect(function()
-        creditBtn.BackgroundTransparency = 0.3
-    end)
-end
-
--- ============================================
--- 🗺️ المابات
--- ============================================
-local function createMapsTab()
-    local panel = createContentPanel("🗺️ المابات")
-    
-    -- ✅ Blox Fruits
-    local bfBtn = Instance.new("TextButton")
-    bfBtn.Parent = panel
-    bfBtn.Size = UDim2.new(1, -5, 0, 40)
-    bfBtn.Position = UDim2.new(0, 2, 0, 5)
-    bfBtn.Text = "🍎 Blox Fruits - العوالم"
-    bfBtn.TextColor3 = Color3.fromRGB(255, 200, 50)
-    bfBtn.TextSize = 13
-    bfBtn.Font = Enum.Font.GothamBold
-    bfBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
-    bfBtn.BackgroundTransparency = 0.2
-    bfBtn.BorderSizePixel = 0
-    
-    local bfCorner = Instance.new("UICorner")
-    bfCorner.CornerRadius = UDim.new(0, 8)
-    bfCorner.Parent = bfBtn
-    
-    bfBtn.MouseEnter:Connect(function()
-        bfBtn.BackgroundTransparency = 0
-    end)
-    bfBtn.MouseLeave:Connect(function()
-        bfBtn.BackgroundTransparency = 0.2
-    end)
-    
-    bfBtn.MouseButton1Click:Connect(function()
-        if mapWindow and mapWindow.Visible then
-            mapWindow.Visible = false
-            return
-        end
-        
-        if not mapWindow then
-            mapWindow = Instance.new("Frame")
-            mapWindow.Parent = ScreenGui
-            mapWindow.Size = UDim2.new(0, 250, 0, 200)
-            mapWindow.Position = UDim2.new(0.5, -125, 0.5, -100)
-            mapWindow.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-            mapWindow.BackgroundTransparency = 0.1
-            mapWindow.BorderSizePixel = 0
-            mapWindow.ClipsDescendants = true
-            
-            local wCorner = Instance.new("UICorner")
-            wCorner.CornerRadius = UDim.new(0, 12)
-            wCorner.Parent = mapWindow
-            
-            local wStroke = Instance.new("UIStroke")
-            wStroke.Parent = mapWindow
-            wStroke.Color = Color3.fromRGB(60, 40, 120)
-            wStroke.Thickness = 1
-            
-            local wTitle = Instance.new("TextLabel")
-            wTitle.Parent = mapWindow
-            wTitle.Size = UDim2.new(1, 0, 0, 35)
-            wTitle.BackgroundTransparency = 1
-            wTitle.Text = "🍎 Blox Fruits - العوالم"
-            wTitle.TextColor3 = Color3.fromRGB(240, 240, 245)
-            wTitle.TextSize = 14
-            wTitle.Font = Enum.Font.GothamBold
-            
-            local wClose = Instance.new("TextButton")
-            wClose.Parent = mapWindow
-            wClose.Size = UDim2.new(0, 30, 0, 30)
-            wClose.Position = UDim2.new(1, -35, 0, 3)
-            wClose.BackgroundTransparency = 1
-            wClose.Text = "✕"
-            wClose.TextColor3 = Color3.fromRGB(160, 160, 175)
-            wClose.TextSize = 16
-            wClose.Font = Enum.Font.GothamBold
-            
-            wClose.MouseButton1Click:Connect(function()
-                mapWindow.Visible = false
-            end)
-            
-            mapList = Instance.new("ScrollingFrame")
-            mapList.Parent = mapWindow
-            mapList.Size = UDim2.new(1, -10, 1, -45)
-            mapList.Position = UDim2.new(0, 5, 0, 40)
-            mapList.BackgroundTransparency = 1
-            mapList.BorderSizePixel = 0
-            mapList.CanvasSize = UDim2.new(0, 0, 0, 0)
-            mapList.ScrollBarThickness = 3
-        end
-        
-        for _, child in pairs(mapList:GetChildren()) do
-            child:Destroy()
-        end
-        
-        local yOff = 0
-        for _, world in pairs(bloxFruitsWorlds) do
-            local btn = Instance.new("TextButton")
-            btn.Parent = mapList
-            btn.Size = UDim2.new(1, 0, 0, 40)
-            btn.Position = UDim2.new(0, 0, 0, yOff)
-            btn.BackgroundColor3 = Color3.fromRGB(25, 20, 40)
-            btn.BackgroundTransparency = 0.3
-            btn.BorderSizePixel = 0
-            btn.Text = world.name
-            btn.TextColor3 = Color3.fromRGB(220, 200, 255)
-            btn.TextSize = 12
-            btn.Font = Enum.Font.GothamMedium
-            
-            local btnCorner = Instance.new("UICorner")
-            btnCorner.CornerRadius = UDim.new(0, 6)
-            btnCorner.Parent = btn
-            
-            btn.MouseEnter:Connect(function()
-                btn.BackgroundTransparency = 0
-            end)
-            btn.MouseLeave:Connect(function()
-                btn.BackgroundTransparency = 0.3
-            end)
-            
-            btn.MouseButton1Click:Connect(function()
-                showNotification("🚀 جاري الانتقال إلى " .. world.name, Color3.fromRGB(0, 200, 100))
-                mapWindow.Visible = false
-            end)
-            
-            yOff = yOff + 45
-        end
-        
-        mapList.CanvasSize = UDim2.new(0, 0, 0, yOff + 10)
-        mapWindow.Visible = true
-    end)
-end
-
--- ============================================
 -- 🎬 شاشة Intro
 -- ============================================
 local function showIntro()
@@ -1813,9 +1608,7 @@ function createGUI()
         end)
         
         return btn
-    end
-
-    local function createContentPanel(titleText)
+    end    local function createContentPanel(titleText)
         for _, v in pairs(ContentContainer:GetChildren()) do v:Destroy() end
         
         local panel = Instance.new("ScrollingFrame")
@@ -1968,18 +1761,36 @@ function createGUI()
         end)
     end
 
-    local function createMapsTab()
-        createMapsTab()
+    local function createExtrasTab()
+        local panel = createContentPanel("🔧 إضافات")
+        
+        local stopBtn = Instance.new("TextButton")
+        stopBtn.Parent = panel
+        stopBtn.Size = UDim2.new(1, -5, 0, 35)
+        stopBtn.Position = UDim2.new(0, 2, 0, 5)
+        stopBtn.Text = "🔄 إيقاف الكل"
+        stopBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
+        stopBtn.TextSize = 12
+        stopBtn.Font = Enum.Font.GothamMedium
+        stopBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        stopBtn.BorderSizePixel = 0
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 6)
+        btnCorner.Parent = stopBtn
+        
+        stopBtn.MouseEnter:Connect(function()
+            stopBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+        end)
+        stopBtn.MouseLeave:Connect(function()
+            stopBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+        end)
+        
+        stopBtn.MouseButton1Click:Connect(function()
+            stopAll()
+        end)
     end
 
-    local function createInfoTab()
-        createInfoTab()
-    end
-
-    -- ============================================
-    -- 🎨 الأزرار الجانبية
-    -- ============================================
-    
     local tab1 = createTabButton("الحركة", "🚀")
     tab1.MouseButton1Click:Connect(function()
         if currentTabBtn then
@@ -2020,26 +1831,14 @@ function createGUI()
         createTeleportTab()
     end)
 
-    -- ✅ المابات
-    local tab5 = createTabButton("المابات", "🗺️")
+    local tab5 = createTabButton("إضافات", "🔧")
     tab5.MouseButton1Click:Connect(function()
         if currentTabBtn then
             currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
         end
         currentTabBtn = tab5
         tab5.TextColor3 = Color3.fromRGB(240, 240, 245)
-        createMapsTab()
-    end)
-
-    -- ✅ معلومات
-    local tab6 = createTabButton("معلومات", "ℹ️")
-    tab6.MouseButton1Click:Connect(function()
-        if currentTabBtn then
-            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        end
-        currentTabBtn = tab6
-        tab6.TextColor3 = Color3.fromRGB(240, 240, 245)
-        createInfoTab()
+        createExtrasTab()
     end)
 
     tab1.MouseButton1Click()
@@ -2060,7 +1859,7 @@ function createGUI()
 
     print("💀 ROMA SENPAI HUB V2 Loaded!")
     print("📌 F1 = Toggle GUI")
-    print("🗺️ Maps Tab Added!")
+    print("❤️ HP FULL Added!")
     showNotification("💀 ROMA HUB V2 جاهز!", Color3.fromRGB(150, 150, 255))
 end
 
