@@ -1617,122 +1617,6 @@ local function createFlyGUI()
 end
 
 -- ============================================
--- ⚽ BLUE LOCK RIVALS - تبويب (بدل الإضافات)
--- ============================================
-local function createBlueLockTab()
-    local panel = createContentPanel("⚽ Blue Lock Rivals")
-    
-    -- زر جلب الكرة
-    local pullBtn = Instance.new("TextButton")
-    pullBtn.Parent = panel
-    pullBtn.Size = UDim2.new(1, -5, 0, 35)
-    pullBtn.Position = UDim2.new(0, 2, 0, 5)
-    pullBtn.Text = "⚽ جلب الكرة"
-    pullBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    pullBtn.TextSize = 12
-    pullBtn.Font = Enum.Font.GothamBold
-    pullBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-    pullBtn.BackgroundTransparency = 0.2
-    pullBtn.BorderSizePixel = 0
-    
-    local pullCorner = Instance.new("UICorner")
-    pullCorner.CornerRadius = UDim.new(0, 6)
-    pullCorner.Parent = pullBtn
-    
-    pullBtn.MouseEnter:Connect(function()
-        pullBtn.BackgroundTransparency = 0
-    end)
-    pullBtn.MouseLeave:Connect(function()
-        pullBtn.BackgroundTransparency = 0.2
-    end)
-    pullBtn.MouseButton1Click:Connect(pullBall)
-    
-    -- زر الانتقال إلى الكرة
-    local tpBallBtn = Instance.new("TextButton")
-    tpBallBtn.Parent = panel
-    tpBallBtn.Size = UDim2.new(1, -5, 0, 35)
-    tpBallBtn.Position = UDim2.new(0, 2, 0, 45)
-    tpBallBtn.Text = "🚀 الانتقال إلى الكرة"
-    tpBallBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    tpBallBtn.TextSize = 12
-    tpBallBtn.Font = Enum.Font.GothamBold
-    tpBallBtn.BackgroundColor3 = Color3.fromRGB(255, 150, 0)
-    tpBallBtn.BackgroundTransparency = 0.2
-    tpBallBtn.BorderSizePixel = 0
-    
-    local tpBallCorner = Instance.new("UICorner")
-    tpBallCorner.CornerRadius = UDim.new(0, 6)
-    tpBallCorner.Parent = tpBallBtn
-    
-    tpBallBtn.MouseEnter:Connect(function()
-        tpBallBtn.BackgroundTransparency = 0
-    end)
-    tpBallBtn.MouseLeave:Connect(function()
-        tpBallBtn.BackgroundTransparency = 0.2
-    end)
-    tpBallBtn.MouseButton1Click:Connect(teleportToBall)
-    
-    -- زر التسديد
-    local shootBtn = Instance.new("TextButton")
-    shootBtn.Parent = panel
-    shootBtn.Size = UDim2.new(1, -5, 0, 35)
-    shootBtn.Position = UDim2.new(0, 2, 0, 85)
-    shootBtn.Text = "🥅 تسديد (تخترق اللاعبين)"
-    shootBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    shootBtn.TextSize = 12
-    shootBtn.Font = Enum.Font.GothamBold
-    shootBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-    shootBtn.BackgroundTransparency = 0.2
-    shootBtn.BorderSizePixel = 0
-    
-    local shootCorner = Instance.new("UICorner")
-    shootCorner.CornerRadius = UDim.new(0, 6)
-    shootCorner.Parent = shootBtn
-    
-    shootBtn.MouseEnter:Connect(function()
-        shootBtn.BackgroundTransparency = 0
-    end)
-    shootBtn.MouseLeave:Connect(function()
-        shootBtn.BackgroundTransparency = 0.2
-    end)
-    shootBtn.MouseButton1Click:Connect(shootBall)
-    
-    -- ⚽ الكرة تخترق اللاعبين
-    addToggle(panel, "⚽ الكرة تخترق اللاعبين", function(state) toggleBallNoClip(state) end)
-    
-    -- 🎯 Aimlock على الكرة
-    addToggle(panel, "🎯 Aimlock على الكرة", function(state) toggleBallAimlock(state) end)
-    
-    -- 🔒 الكرة تلتصق فيك
-    addToggle(panel, "🔒 الكرة تلتصق فيك (تجربة)", function(state) toggleBallStick(state) end)
-    
-    -- 🛑 إيقاف الكل
-    local stopBtn = Instance.new("TextButton")
-    stopBtn.Parent = panel
-    stopBtn.Size = UDim2.new(1, -5, 0, 35)
-    stopBtn.Position = UDim2.new(0, 2, 0, 185)
-    stopBtn.Text = "🔄 إيقاف الكل"
-    stopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    stopBtn.TextSize = 12
-    stopBtn.Font = Enum.Font.GothamBold
-    stopBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-    stopBtn.BackgroundTransparency = 0.2
-    stopBtn.BorderSizePixel = 0
-    
-    local stopCorner = Instance.new("UICorner")
-    stopCorner.CornerRadius = UDim.new(0, 6)
-    stopCorner.Parent = stopBtn
-    
-    stopBtn.MouseEnter:Connect(function()
-        stopBtn.BackgroundTransparency = 0
-    end)
-    stopBtn.MouseLeave:Connect(function()
-        stopBtn.BackgroundTransparency = 0.2
-    end)
-    stopBtn.MouseButton1Click:Connect(stopAll)
-end
-
--- ============================================
 -- 🎬 شاشة Intro
 -- ============================================
 local function showIntro()
@@ -2098,9 +1982,89 @@ function createGUI()
         end)
     end
 
-    -- ⚽ تبويب Blue Lock Rivals (بدل الإضافات)
+    -- ⚽ تبويب Blue Lock Rivals (الإصلاح هنا)
     local function createBlueLockTabWrapper()
-        createBlueLockTab()
+        local panel = createContentPanel("⚽ Blue Lock Rivals")
+
+        -- زر جلب الكرة
+        local pullBtn = Instance.new("TextButton")
+        pullBtn.Parent = panel
+        pullBtn.Size = UDim2.new(1, -5, 0, 35)
+        pullBtn.Text = "⚽ جلب الكرة"
+        pullBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        pullBtn.TextSize = 12
+        pullBtn.Font = Enum.Font.GothamBold
+        pullBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        pullBtn.BackgroundTransparency = 0.2
+        pullBtn.BorderSizePixel = 0
+        local pullCorner = Instance.new("UICorner")
+        pullCorner.CornerRadius = UDim.new(0, 6)
+        pullCorner.Parent = pullBtn
+        pullBtn.MouseEnter:Connect(function() pullBtn.BackgroundTransparency = 0 end)
+        pullBtn.MouseLeave:Connect(function() pullBtn.BackgroundTransparency = 0.2 end)
+        pullBtn.MouseButton1Click:Connect(pullBall)
+
+        -- زر الانتقال إلى الكرة
+        local tpBallBtn = Instance.new("TextButton")
+        tpBallBtn.Parent = panel
+        tpBallBtn.Size = UDim2.new(1, -5, 0, 35)
+        tpBallBtn.Text = "🚀 الانتقال إلى الكرة"
+        tpBallBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tpBallBtn.TextSize = 12
+        tpBallBtn.Font = Enum.Font.GothamBold
+        tpBallBtn.BackgroundColor3 = Color3.fromRGB(255, 150, 0)
+        tpBallBtn.BackgroundTransparency = 0.2
+        tpBallBtn.BorderSizePixel = 0
+        local tpBallCorner = Instance.new("UICorner")
+        tpBallCorner.CornerRadius = UDim.new(0, 6)
+        tpBallCorner.Parent = tpBallBtn
+        tpBallBtn.MouseEnter:Connect(function() tpBallBtn.BackgroundTransparency = 0 end)
+        tpBallBtn.MouseLeave:Connect(function() tpBallBtn.BackgroundTransparency = 0.2 end)
+        tpBallBtn.MouseButton1Click:Connect(teleportToBall)
+
+        -- زر التسديد
+        local shootBtn = Instance.new("TextButton")
+        shootBtn.Parent = panel
+        shootBtn.Size = UDim2.new(1, -5, 0, 35)
+        shootBtn.Text = "🥅 تسديد (تخترق اللاعبين)"
+        shootBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        shootBtn.TextSize = 12
+        shootBtn.Font = Enum.Font.GothamBold
+        shootBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        shootBtn.BackgroundTransparency = 0.2
+        shootBtn.BorderSizePixel = 0
+        local shootCorner = Instance.new("UICorner")
+        shootCorner.CornerRadius = UDim.new(0, 6)
+        shootCorner.Parent = shootBtn
+        shootBtn.MouseEnter:Connect(function() shootBtn.BackgroundTransparency = 0 end)
+        shootBtn.MouseLeave:Connect(function() shootBtn.BackgroundTransparency = 0.2 end)
+        shootBtn.MouseButton1Click:Connect(shootBall)
+
+        -- التبديلات
+        addToggle(panel, "⚽ الكرة تخترق اللاعبين", function(state) toggleBallNoClip(state) end)
+        addToggle(panel, "🎯 Aimlock على الكرة", function(state) toggleBallAimlock(state) end)
+        addToggle(panel, "🔒 الكرة تلتصق فيك (تجربة)", function(state) toggleBallStick(state) end)
+
+        -- زر إيقاف الكل
+        local stopBtn = Instance.new("TextButton")
+        stopBtn.Parent = panel
+        stopBtn.Size = UDim2.new(1, -5, 0, 35)
+        stopBtn.Text = "🔄 إيقاف الكل"
+        stopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        stopBtn.TextSize = 12
+        stopBtn.Font = Enum.Font.GothamBold
+        stopBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+        stopBtn.BackgroundTransparency = 0.2
+        stopBtn.BorderSizePixel = 0
+        local stopCorner = Instance.new("UICorner")
+        stopCorner.CornerRadius = UDim.new(0, 6)
+        stopCorner.Parent = stopBtn
+        stopBtn.MouseEnter:Connect(function() stopBtn.BackgroundTransparency = 0 end)
+        stopBtn.MouseLeave:Connect(function() stopBtn.BackgroundTransparency = 0.2 end)
+        stopBtn.MouseButton1Click:Connect(stopAll)
+
+        -- تحديث CanvasSize لضمان ظهور جميع العناصر عند التمرير
+        panel.CanvasSize = UDim2.new(0, 0, 0, 300)
     end
 
     -- ============================================
@@ -2147,7 +2111,7 @@ function createGUI()
         createTeleportTab()
     end)
 
-    -- ⚽ تبويب Blue Lock Rivals (بدل الإضافات)
+    -- ⚽ تبويب Blue Lock Rivals
     local tab5 = createTabButton("⚽ Blue Lock", "⚽")
     tab5.MouseButton1Click:Connect(function()
         if currentTabBtn then
