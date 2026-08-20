@@ -1,4 +1,3 @@
-
 -- ============================================
 -- 💀 ROMA SENPAI HUB V2 💀
 -- ============================================
@@ -25,7 +24,10 @@ local states = {
     aimbot = false,
     aimlock = false,
     esp = false,
-    hp = false
+    hp = false,
+    ballNoClip = false,
+    ballAimlock = false,
+    ballStick = false
 }
 local connections = {}
 local speedAmount = 120
@@ -35,6 +37,17 @@ local espObjects = {}
 local aimbotTarget = nil
 local aimlockTarget = nil
 local aimlockCircle = nil
+
+-- ============================================
+-- ⚽ BLUE LOCK - المتغيرات
+-- ============================================
+local ball = nil
+local ballNoClipActive = false
+local ballAimlockActive = false
+local ballStickActive = false
+local ballAimConnection = nil
+local ballNoClipConnection = nil
+local ballStickConnection = nil
 
 -- ============================================
 -- ❤️ HP FULL
@@ -126,6 +139,199 @@ local function isFriend(plr)
     
     if not myTeam or not theirTeam then return false end
     return myTeam == theirTeam
+end
+
+-- ============================================
+-- 🔍 البحث عن الكرة
+-- ============================================
+local function findBall()
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and (
+            obj.Name:lower():find("ball") or 
+            obj.Name:lower():find("football") or
+            obj.Name:lower():find("soccer") or
+            obj.Name:lower():find("sphere") or
+            obj.Name:lower():find("bll")
+        ) then
+            ball = obj
+            return ball
+        end
+    end
+    return nil
+end
+
+-- ============================================
+-- ⚽ جلب الكرة
+-- ============================================
+local function pullBall()
+    if not ball then findBall() end
+    if not ball then 
+        showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+        return 
+    end
+    
+    local char = Player.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    ball.CFrame = root.CFrame + Vector3.new(0, 2, 0)
+    ball.Velocity = Vector3.new(0, 0, 0)
+    ball.RotVelocity = Vector3.new(0, 0, 0)
+    
+    showNotification("⚽ تم جلب الكرة!", Color3.fromRGB(0, 200, 255))
+end
+
+-- ============================================
+-- 🚀 الانتقال إلى الكرة
+-- ============================================
+local function teleportToBall()
+    if not ball then findBall() end
+    if not ball then 
+        showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+        return 
+    end
+    
+    local char = Player.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    root.CFrame = ball.CFrame + Vector3.new(0, 3, 0)
+    root.Velocity = Vector3.new(0, 0, 0)
+    
+    showNotification("🚀 تم الانتقال إلى الكرة!", Color3.fromRGB(0, 200, 100))
+end
+
+-- ============================================
+-- 🥅 تسديد (تخترق اللاعبين)
+-- ============================================
+local function shootBall()
+    if not ball then findBall() end
+    if not ball then 
+        showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+        return 
+    end
+    
+    local oldCanCollide = ball.CanCollide
+    ball.CanCollide = false
+    
+    local camera = workspace.CurrentCamera
+    local direction = camera.CFrame.LookVector
+    
+    ball.Velocity = direction * 200
+    ball.RotVelocity = Vector3.new(0, 0, 0)
+    
+    task.wait(1)
+    ball.CanCollide = oldCanCollide
+    
+    showNotification("⚽ تم التسديد!", Color3.fromRGB(255, 200, 50))
+end
+
+-- ============================================
+-- ⚽ الكرة تخترق اللاعبين (Toggle)
+-- ============================================
+local function toggleBallNoClip(state)
+    states.ballNoClip = state
+    
+    if states.ballNoClip then
+        if not ball then findBall() end
+        if not ball then
+            showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+            return
+        end
+        
+        if not ballNoClipConnection then
+            ballNoClipConnection = RunService.Heartbeat:Connect(function()
+                if not ball then return end
+                ball.CanCollide = false
+            end)
+        end
+        showNotification("⚽ الكرة تخترق اللاعبين ON", Color3.fromRGB(255, 0, 0))
+    else
+        if ballNoClipConnection then
+            ballNoClipConnection:Disconnect()
+            ballNoClipConnection = nil
+        end
+        if ball then
+            ball.CanCollide = true
+        end
+        showNotification("⏹ الكرة تخترق اللاعبين OFF", Color3.fromRGB(255, 200, 0))
+    end
+end
+
+-- ============================================
+-- 🎯 Aimlock على الكرة
+-- ============================================
+local function toggleBallAimlock(state)
+    states.ballAimlock = state
+    
+    if states.ballAimlock then
+        if not ball then findBall() end
+        if not ball then
+            showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+            return
+        end
+        
+        if not ballAimConnection then
+            ballAimConnection = RunService.RenderStepped:Connect(function()
+                if not states.ballAimlock then return end
+                if not ball then return end
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, ball.Position)
+            end)
+        end
+        showNotification("🎯 Aimlock على الكرة ON", Color3.fromRGB(0, 200, 255))
+    else
+        if ballAimConnection then
+            ballAimConnection:Disconnect()
+            ballAimConnection = nil
+        end
+        showNotification("⏹ Aimlock على الكرة OFF", Color3.fromRGB(255, 200, 0))
+    end
+end
+
+-- ============================================
+-- 🔒 الكرة تلتصق فيك (Stick Ball)
+-- ============================================
+local function toggleBallStick(state)
+    states.ballStick = state
+    
+    if states.ballStick then
+        if not ball then findBall() end
+        if not ball then
+            showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+            return
+        end
+        
+        if not ballStickConnection then
+            ballStickConnection = RunService.Heartbeat:Connect(function()
+                if not states.ballStick then return end
+                if not ball then return end
+                if not Player.Character then return end
+                
+                local root = Player.Character:FindFirstChild("HumanoidRootPart")
+                if not root then return end
+                
+                -- نلصق الكرة باللاعب
+                ball.CFrame = root.CFrame + Vector3.new(0, 2, 0)
+                ball.Velocity = Vector3.new(0, 0, 0)
+                ball.RotVelocity = Vector3.new(0, 0, 0)
+                ball.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                ball.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                ball.CanCollide = false
+            end)
+        end
+        showNotification("🔒 الكرة ملتصقة فيك ON", Color3.fromRGB(255, 200, 0))
+    else
+        if ballStickConnection then
+            ballStickConnection:Disconnect()
+            ballStickConnection = nil
+        end
+        if ball then
+            ball.CanCollide = true
+        end
+        showNotification("⏹ الكرة ملتصقة فيك OFF", Color3.fromRGB(255, 200, 0))
+    end
 end
 
 -- ============================================
@@ -919,6 +1125,23 @@ local function stopAll()
         end
     end
     
+    -- إيقاف BLUE LOCK
+    if ballNoClipConnection then
+        ballNoClipConnection:Disconnect()
+        ballNoClipConnection = nil
+    end
+    if ballAimConnection then
+        ballAimConnection:Disconnect()
+        ballAimConnection = nil
+    end
+    if ballStickConnection then
+        ballStickConnection:Disconnect()
+        ballStickConnection = nil
+    end
+    if ball then
+        ball.CanCollide = true
+    end
+    
     for plr, data in pairs(espObjects) do
         if data.box then data.box:Destroy() end
     end
@@ -1398,6 +1621,97 @@ local function createFlyGUI()
 end
 
 -- ============================================
+-- ⚽ BLUE LOCK RIVALS - تبويب
+-- ============================================
+local function createBlueLockTab()
+    local panel = createContentPanel("⚽ Blue Lock Rivals")
+    
+    -- زر جلب الكرة
+    local pullBtn = Instance.new("TextButton")
+    pullBtn.Parent = panel
+    pullBtn.Size = UDim2.new(1, -5, 0, 35)
+    pullBtn.Position = UDim2.new(0, 2, 0, 5)
+    pullBtn.Text = "⚽ جلب الكرة"
+    pullBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    pullBtn.TextSize = 12
+    pullBtn.Font = Enum.Font.GothamBold
+    pullBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    pullBtn.BackgroundTransparency = 0.2
+    pullBtn.BorderSizePixel = 0
+    
+    local pullCorner = Instance.new("UICorner")
+    pullCorner.CornerRadius = UDim.new(0, 6)
+    pullCorner.Parent = pullBtn
+    
+    pullBtn.MouseEnter:Connect(function()
+        pullBtn.BackgroundTransparency = 0
+    end)
+    pullBtn.MouseLeave:Connect(function()
+        pullBtn.BackgroundTransparency = 0.2
+    end)
+    pullBtn.MouseButton1Click:Connect(pullBall)
+    
+    -- زر الانتقال إلى الكرة
+    local tpBallBtn = Instance.new("TextButton")
+    tpBallBtn.Parent = panel
+    tpBallBtn.Size = UDim2.new(1, -5, 0, 35)
+    tpBallBtn.Position = UDim2.new(0, 2, 0, 45)
+    tpBallBtn.Text = "🚀 الانتقال إلى الكرة"
+    tpBallBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tpBallBtn.TextSize = 12
+    tpBallBtn.Font = Enum.Font.GothamBold
+    tpBallBtn.BackgroundColor3 = Color3.fromRGB(255, 150, 0)
+    tpBallBtn.BackgroundTransparency = 0.2
+    tpBallBtn.BorderSizePixel = 0
+    
+    local tpBallCorner = Instance.new("UICorner")
+    tpBallCorner.CornerRadius = UDim.new(0, 6)
+    tpBallCorner.Parent = tpBallBtn
+    
+    tpBallBtn.MouseEnter:Connect(function()
+        tpBallBtn.BackgroundTransparency = 0
+    end)
+    tpBallBtn.MouseLeave:Connect(function()
+        tpBallBtn.BackgroundTransparency = 0.2
+    end)
+    tpBallBtn.MouseButton1Click:Connect(teleportToBall)
+    
+    -- زر التسديد
+    local shootBtn = Instance.new("TextButton")
+    shootBtn.Parent = panel
+    shootBtn.Size = UDim2.new(1, -5, 0, 35)
+    shootBtn.Position = UDim2.new(0, 2, 0, 85)
+    shootBtn.Text = "🥅 تسديد (تخترق اللاعبين)"
+    shootBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    shootBtn.TextSize = 12
+    shootBtn.Font = Enum.Font.GothamBold
+    shootBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    shootBtn.BackgroundTransparency = 0.2
+    shootBtn.BorderSizePixel = 0
+    
+    local shootCorner = Instance.new("UICorner")
+    shootCorner.CornerRadius = UDim.new(0, 6)
+    shootCorner.Parent = shootBtn
+    
+    shootBtn.MouseEnter:Connect(function()
+        shootBtn.BackgroundTransparency = 0
+    end)
+    shootBtn.MouseLeave:Connect(function()
+        shootBtn.BackgroundTransparency = 0.2
+    end)
+    shootBtn.MouseButton1Click:Connect(shootBall)
+    
+    -- ⚽ الكرة تخترق اللاعبين
+    addToggle(panel, "⚽ الكرة تخترق اللاعبين", function(state) toggleBallNoClip(state) end)
+    
+    -- 🎯 Aimlock على الكرة
+    addToggle(panel, "🎯 Aimlock على الكرة", function(state) toggleBallAimlock(state) end)
+    
+    -- 🔒 الكرة تلتصق فيك
+    addToggle(panel, "🔒 الكرة تلتصق فيك (تجربة)", function(state) toggleBallStick(state) end)
+end
+
+-- ============================================
 -- 🎬 شاشة Intro
 -- ============================================
 local function showIntro()
@@ -1608,7 +1922,9 @@ function createGUI()
         end)
         
         return btn
-    end    local function createContentPanel(titleText)
+    end
+
+    local function createContentPanel(titleText)
         for _, v in pairs(ContentContainer:GetChildren()) do v:Destroy() end
         
         local panel = Instance.new("ScrollingFrame")
@@ -1760,6 +2076,11 @@ function createGUI()
             showTeleportMenu()
         end)
     end
+    
+    -- ⚽ تبويب Blue Lock
+    local function createBlueLockTab()
+        createBlueLockTab()
+    end
 
     local function createExtrasTab()
         local panel = createContentPanel("🔧 إضافات")
@@ -1791,6 +2112,10 @@ function createGUI()
         end)
     end
 
+    -- ============================================
+    -- 🎨 الأزرار الجانبية
+    -- ============================================
+    
     local tab1 = createTabButton("الحركة", "🚀")
     tab1.MouseButton1Click:Connect(function()
         if currentTabBtn then
@@ -1831,13 +2156,24 @@ function createGUI()
         createTeleportTab()
     end)
 
-    local tab5 = createTabButton("إضافات", "🔧")
+    -- ⚽ تبويب Blue Lock Rivals
+    local tab5 = createTabButton("Blue Lock", "⚽")
     tab5.MouseButton1Click:Connect(function()
         if currentTabBtn then
             currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
         end
         currentTabBtn = tab5
         tab5.TextColor3 = Color3.fromRGB(240, 240, 245)
+        createBlueLockTab()
+    end)
+
+    local tab6 = createTabButton("إضافات", "🔧")
+    tab6.MouseButton1Click:Connect(function()
+        if currentTabBtn then
+            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
+        end
+        currentTabBtn = tab6
+        tab6.TextColor3 = Color3.fromRGB(240, 240, 245)
         createExtrasTab()
     end)
 
@@ -1859,7 +2195,7 @@ function createGUI()
 
     print("💀 ROMA SENPAI HUB V2 Loaded!")
     print("📌 F1 = Toggle GUI")
-    print("❤️ HP FULL Added!")
+    print("⚽ Blue Lock Rivals Tab Added!")
     showNotification("💀 ROMA HUB V2 جاهز!", Color3.fromRGB(150, 150, 255))
 end
 
