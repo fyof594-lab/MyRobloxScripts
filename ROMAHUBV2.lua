@@ -2076,11 +2076,6 @@ function createGUI()
             showTeleportMenu()
         end)
     end
-    
-    -- ⚽ تبويب Blue Lock
-    local function createBlueLockTab()
-        createBlueLockTab()
-    end
 
     local function createExtrasTab()
         local panel = createContentPanel("🔧 إضافات")
