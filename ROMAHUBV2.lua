@@ -1,228 +1,359 @@
--- ============================================
--- 💀 Blue Lock Rivals - Full Exploit Menu
--- ============================================
+-- =====================================================
+-- BLUE LOCK RIVALS - ULTIMATE HACK MENU VIP
+-- deepseek_lua_20260810_a4573f.lua
+-- =====================================================
 
-local Player = game:GetService("Players").LocalPlayer
-local RS = game:GetService("ReplicatedStorage")
+local player = game.Players.LocalPlayer
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = replicatedStorage:FindFirstChild("RemoteEvent")
+local remoteFunction = replicatedStorage:FindFirstChild("RemoteFunction")
 
--- واجهة
-local GUI = Instance.new("ScreenGui")
-GUI.Parent = Player:WaitForChild("PlayerGui")
-
-local Main = Instance.new("Frame")
-Main.Parent = GUI
-Main.Size = UDim2.new(0, 180, 0, 350)
-Main.Position = UDim2.new(0.75, 0, 0.45, 0)
-Main.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-Main.BackgroundTransparency = 0.2
-Main.BorderSizePixel = 0
-Main.Active = true
-Main.Draggable = true
-
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 8)
-Corner.Parent = Main
-
-local Title = Instance.new("TextLabel")
-Title.Parent = Main
-Title.Size = UDim2.new(1, 0, 0, 25)
-Title.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-Title.Text = "💀 Exploit Menu"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 12
-Title.Font = Enum.Font.GothamBold
-
--- قائمة
-local BtnList = Instance.new("ScrollingFrame")
-BtnList.Parent = Main
-BtnList.Size = UDim2.new(1, -10, 0, 315)
-BtnList.Position = UDim2.new(0, 5, 0, 30)
-BtnList.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
-BtnList.BorderSizePixel = 0
-BtnList.ScrollBarThickness = 2
-
-local ListCorner = Instance.new("UICorner")
-ListCorner.CornerRadius = UDim.new(0, 5)
-ListCorner.Parent = BtnList
-
--- ============================================
--- دالة إرسال
--- ============================================
-local function fire(remoteName, ...)
-    for _, v in pairs(RS:GetDescendants()) do
-        if v.Name == remoteName then
-            pcall(function()
-                v:FireServer(...)
-            end)
-        end
-    end
+-- ===== التحقق من وجود الريمات =====
+if not remoteEvent then
+    warn("❌ RemoteEvent غير موجود!")
+    return
 end
 
--- ============================================
--- دالة إنشاء زر
--- ============================================
-local function createButton(yPos, text, callback)
+-- ===== واجهة المستخدم =====
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player.PlayerGui
+screenGui.ResetOnSpawn = false
+screenGui.Name = "BlueLockHackVIP"
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Parent = screenGui
+mainFrame.Size = UDim2.new(0, 400, 0, 650)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -325)
+mainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 30)
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+
+-- تأثير الزجاج الفخم
+local blur = Instance.new("BlurEffect")
+blur.Parent = game.Lighting
+blur.Size = 12
+
+local corner = Instance.new("UICorner")
+corner.Parent = mainFrame
+corner.CornerRadius = UDim.new(0, 30)
+
+local stroke = Instance.new("UIStroke")
+stroke.Parent = mainFrame
+stroke.Color = Color3.fromRGB(0, 150, 255)
+stroke.Thickness = 2
+stroke.Transparency = 0.3
+
+-- ===== الشريط العلوي =====
+local topBar = Instance.new("Frame")
+topBar.Parent = mainFrame
+topBar.Size = UDim2.new(1, 0, 0, 75)
+topBar.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
+topBar.BackgroundTransparency = 0.4
+topBar.BorderSizePixel = 0
+
+local topCorner = Instance.new("UICorner")
+topCorner.Parent = topBar
+topCorner.CornerRadius = UDim.new(0, 30)
+
+local title = Instance.new("TextLabel")
+title.Parent = topBar
+title.Size = UDim2.new(1, -100, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "⚡ BLUE LOCK VIP"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.TextStrokeTransparency = 0.2
+
+-- ===== زر الإغلاق =====
+local closeBtn = Instance.new("TextButton")
+closeBtn.Parent = topBar
+closeBtn.Size = UDim2.new(0, 50, 0, 50)
+closeBtn.Position = UDim2.new(1, -60, 0, 12)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+closeBtn.BackgroundTransparency = 0.2
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.BorderSizePixel = 0
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.Parent = closeBtn
+closeCorner.CornerRadius = UDim.new(0, 15)
+
+closeBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+    closeBtn.Text = mainFrame.Visible and "✕" or "⊕"
+end)
+
+-- ===== حاوية الأزرار (سكرول) =====
+local container = Instance.new("ScrollingFrame")
+container.Parent = mainFrame
+container.Size = UDim2.new(1, -20, 1, -95)
+container.Position = UDim2.new(0, 10, 0, 85)
+container.BackgroundTransparency = 1
+container.BorderSizePixel = 0
+container.CanvasSize = UDim2.new(0, 0, 0, 950)
+container.ScrollBarThickness = 5
+container.ScrollBarImageColor3 = Color3.fromRGB(0, 150, 255)
+container.Name = "Container"
+
+-- ===== دالة إنشاء زر =====
+local function createButton(text, color, position, callback)
     local btn = Instance.new("TextButton")
-    btn.Parent = BtnList
-    btn.Size = UDim2.new(1, -10, 0, 28)
-    btn.Position = UDim2.new(0, 5, 0, yPos)
-    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    btn.Parent = container
+    btn.Size = UDim2.new(1, -10, 0, 55)
+    btn.Position = UDim2.new(0, 5, 0, position)
+    btn.BackgroundColor3 = color
     btn.BackgroundTransparency = 0.3
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextSize = 9
+    btn.TextScaled = true
     btn.Font = Enum.Font.GothamBold
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 4)
-    corner.Parent = btn
-    
-    btn.MouseButton1Click:Connect(callback)
+    btn.BorderSizePixel = 0
+    btn.AutoButtonColor = false
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.Parent = btn
+    btnCorner.CornerRadius = UDim.new(0, 15)
+
+    local btnStroke = Instance.new("UIStroke")
+    btnStroke.Parent = btn
+    btnStroke.Color = Color3.fromRGB(255, 255, 255)
+    btnStroke.Thickness = 1
+    btnStroke.Transparency = 0.6
+
+    local isActive = false
+
+    btn.MouseButton1Click:Connect(function()
+        isActive = not isActive
+        if isActive then
+            btn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+            btn.BackgroundTransparency = 0.2
+            btnStroke.Color = Color3.fromRGB(0, 255, 150)
+            callback(true)
+        else
+            btn.BackgroundColor3 = color
+            btn.BackgroundTransparency = 0.3
+            btnStroke.Color = Color3.fromRGB(255, 255, 255)
+            callback(false)
+        end
+    end)
+
+    return btn
 end
 
--- ============================================
--- الأزرار
--- ============================================
-local yOff = 5
+-- ===== دالة إرسال الريمات =====
+local function fireRemote(data)
+    if remoteEvent then
+        remoteEvent:FireServer(unpack(data))
+    elseif remoteFunction then
+        remoteFunction:InvokeServer(unpack(data))
+    end
+end
 
--- No Cooldown
-createButton(yOff, "⏳ No Cooldown", function()
-    fire("AdmResetCDs", Player)
-    fire("ToggleCooldowns", true)
-    fire("UpdateDribbleCooldown", 0)
-    fire("AbCutCooldown", 0)
-end)
-yOff = yOff + 33
+-- ===== الأزرار والميزات =====
+local yPos = 0
 
--- Speed
-createButton(yOff, "⚡ Set Speed 500", function()
-    fire("SetSpeed", 500)
-    fire("ChangeSpeed", 500)
-    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-        Player.Character.Humanoid.WalkSpeed = 500
+-- 1. 🎯 Spin Style
+createButton("🎯 Spin Style", Color3.fromRGB(255, 150, 0), yPos, function(active)
+    if active then
+        fireRemote({"SpinStyle"})
+        showNotification("🔄 جاري تدوير الستايل...")
     end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Teleport
-createButton(yOff, "🚀 Teleport", function()
-    fire("Teleport", Player)
-    fire("Teleport", Player.Character.HumanoidRootPart)
-    fire("Teleport", CFrame.new(0, 100, 0))
-end)
-yOff = yOff + 33
-
--- Set Size
-createButton(yOff, "📏 Set Size 10", function()
-    fire("SetSize", 10)
-    fire("SetSize", Player, 10)
-    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-        Player.Character.HumanoidRootPart.Size = Vector3.new(10, 10, 10)
+-- 2. 🌀 Spin Flow
+createButton("🌀 Spin Flow", Color3.fromRGB(150, 0, 255), yPos, function(active)
+    if active then
+        fireRemote({"SpinFlow"})
+        showNotification("🌀 جاري تدوير الفلو...")
     end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Awakening
-createButton(yOff, "💥 Instant Awakening", function()
-    fire("InstantAwakening", Player)
-    fire("PublicInstantAwakening", Player)
-    fire("SecretAwakening", Player)
-    fire("StartAwakening", Player)
+-- 3. 📏 تغيير الحجم
+createButton("📏 تغيير الحجم", Color3.fromRGB(0, 200, 255), yPos, function(active)
+    local char = player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        local size = active and 5 or 1
+        fireRemote({"SetSize", size})
+        showNotification(active and "✅ تم التكبير!" or "✅ تم التصغير!")
+    end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Set Style
-createButton(yOff, "🎨 Set Style", function()
-    fire("SetStyle", "NEL Bachira")
-    fire("SetStyle", Player, "NEL Bachira")
+-- 4. 💨 سرعة خارقة
+createButton("💨 سرعة خارقة", Color3.fromRGB(255, 0, 100), yPos, function(active)
+    local speed = active and 100 or 16
+    fireRemote({"SetSpeed", speed})
+    showNotification(active and "⚡ تفعيل السرعة الخارقة!" or "✅ إيقاف السرعة")
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Money
-createButton(yOff, "💰 Money 9999999", function()
-    fire("Money", 9999999)
-    fire("Money", Player, 9999999)
+-- 5. ⚡ إيقاظ فوري
+createButton("⚡ إيقاظ فوري", Color3.fromRGB(255, 200, 50), yPos, function(active)
+    if active then
+        fireRemote({"InstantAwakening"})
+        showNotification("🔥 تم تفعيل الإيقاظ الفوري!")
+    end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Dribble
-createButton(yOff, "⚽ Dribble", function()
-    fire("GrabBallDribble", workspace.CurrentCamera.CFrame.LookVector)
-    fire("Dribble", workspace.CurrentCamera.CFrame.LookVector)
+-- 6. 🦋 رقصة الفراشة
+createButton("🦋 رقصة الفراشة", Color3.fromRGB(255, 100, 200), yPos, function(active)
+    local direction = active and 1 or 0
+    fireRemote({"ButterflyDanceChoiceRemote", direction})
+    showNotification(active and "🦋 تفعيل رقصة الفراشة!" or "✅ إيقاف الرقصة")
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Slide
-createButton(yOff, "🛝 Slide", function()
-    fire("Slide", Player)
-    fire("Slide", Player.Character)
+-- 7. 🎮 تغيير الستايل
+createButton("🎮 تغيير الستايل", Color3.fromRGB(0, 255, 150), yPos, function(active)
+    fireRemote({"SetStyle"})
+    showNotification("🔄 جاري تغيير الستايل...")
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Jump
-createButton(yOff, "⬆️ Jump", function()
-    fire("Jump", Player)
-    fire("Jump", Player.Character)
+-- 8. 💎 سحب كل الجوائز
+createButton("💎 سحب الكل", Color3.fromRGB(255, 215, 0), yPos, function(active)
+    if active then
+        fireRemote({"ClaimAll"})
+        showNotification("💎 تم سحب كل الجوائز!")
+    end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Shoot
-createButton(yOff, "🥅 Shoot", function()
-    fire("Shoot", workspace.CurrentCamera.CFrame.LookVector)
-    fire("Shoot", Player)
+-- 9. 🔄 إعادة ضبط الكول داون
+createButton("🔄 إعادة ضبط", Color3.fromRGB(0, 255, 255), yPos, function(active)
+    if active then
+        fireRemote({"AdmResetCDs"})
+        showNotification("🔄 تم إعادة ضبط الكول داون!")
+    end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Pass
-createButton(yOff, "📤 Pass", function()
-    fire("Pass", Player)
-    fire("Pass", workspace.CurrentCamera.CFrame.LookVector)
+-- 10. 🚀 تيليبورت
+createButton("🚀 تيليبورت", Color3.fromRGB(100, 100, 255), yPos, function(active)
+    local char = player.Character
+    if char then
+        local pos = char.HumanoidRootPart.Position
+        fireRemote({"Teleport", pos + Vector3.new(0, 50, 0)})
+        showNotification("🚀 تم التيليبورت!")
+    end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Set Flow
-createButton(yOff, "💧 Set Flow 100", function()
-    fire("SetFlow", 100)
-    fire("SetFlow", Player, 100)
+-- 11. 🛡️ No Clip
+createButton("🛡️ No Clip", Color3.fromRGB(100, 255, 100), yPos, function(active)
+    local char = player.Character
+    if char then
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = not active
+            end
+        end
+        showNotification(active and "🛡️ تفعيل No Clip!" or "✅ إيقاف No Clip")
+    end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Boost
-createButton(yOff, "🔥 Boost", function()
-    fire("Boost", Player)
-    fire("Boost", true)
+-- 12. 💰 Auto Farm
+createButton("💰 Auto Farm", Color3.fromRGB(255, 200, 100), yPos, function(active)
+    if active then
+        -- محاكاة الزراعة التلقائية
+        spawn(function()
+            while active do
+                fireRemote({"ClaimReward"})
+                wait(0.5)
+            end
+        end)
+        showNotification("💰 بدء الزراعة التلقائية!")
+    else
+        showNotification("⏹ إيقاف الزراعة")
+    end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Execute Command
-createButton(yOff, "💀 Execute Command", function()
-    fire("ExecuteCommand", "kill all")
-    fire("ExecuteCommand", "reset cds")
+-- 13. 🎁 Battlepass
+createButton("🎁 Battlepass", Color3.fromRGB(200, 100, 255), yPos, function(active)
+    if active then
+        fireRemote({"ClaimBattlepass"})
+        showNotification("🎁 تم سحب الباتل باس!")
+    end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Screen Blind
-createButton(yOff, "🌑 Screen Blind", function()
-    fire("ScreenBlind", true)
-    fire("ScreenBlind", Player)
+-- 14. 📊 تغيير المستوى
+createButton("📊 مستوى أسطوري", Color3.fromRGB(255, 100, 50), yPos, function(active)
+    if active then
+        fireRemote({"Level", 999})
+        showNotification("📊 تم رفع المستوى!")
+    end
 end)
-yOff = yOff + 33
+yPos = yPos + 65
 
--- Controls Inversed
-createButton(yOff, "🔄 Controls Inversed", function()
-    fire("ControlsInversed", true)
-    fire("ControlsInversed", Player)
+-- ===== دالة الإشعارات =====
+function showNotification(text)
+    local notif = Instance.new("TextLabel")
+    notif.Parent = screenGui
+    notif.Size = UDim2.new(0, 350, 0, 50)
+    notif.Position = UDim2.new(0.5, -175, 0.1, 0)
+    notif.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    notif.BackgroundTransparency = 0.5
+    notif.Text = text
+    notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+    notif.TextScaled = true
+    notif.Font = Enum.Font.GothamBold
+    notif.BorderSizePixel = 0
+
+    local notifCorner = Instance.new("UICorner")
+    notifCorner.Parent = notif
+    notifCorner.CornerRadius = UDim.new(0, 15)
+
+    local notifStroke = Instance.new("UIStroke")
+    notifStroke.Parent = notif
+    notifStroke.Color = Color3.fromRGB(0, 150, 255)
+    notifStroke.Thickness = 1.5
+    notifStroke.Transparency = 0.5
+
+    game:GetService("Debris"):AddItem(notif, 3)
+end
+
+-- ===== سحب النافذة =====
+local dragStart, startPos, isDragging
+
+topBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isDragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
 end)
-yOff = yOff + 33
 
--- Ability
-createButton(yOff, "⚡ Ability", function()
-    fire("Ability", Player)
-    fire("Ability", "dribble")
-    fire("Ability", "shoot")
+topBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isDragging = false
+    end
 end)
-yOff = yOff + 33
 
-BtnList.CanvasSize = UDim2.new(0, 0, 0, yOff + 10)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
 
-print("✅ القائمة جاهزة!")
+-- ===== رسالة ترحيب =====
+showNotification("🔥 تم تحميل قائمة Blue Lock VIP!")
+
+print("✅ Blue Lock Rivals Ultimate Hack Menu Loaded!")
