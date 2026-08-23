@@ -31,8 +31,6 @@ local states = {
 }
 local connections = {}
 local speedAmount = 120
-local isMinimized = false
-local ScreenGui = nil
 local espObjects = {}
 local aimbotTarget = nil
 local aimlockTarget = nil
@@ -42,18 +40,9 @@ local aimlockCircle = nil
 -- ⚽ BLUE LOCK - المتغيرات
 -- ============================================
 local ball = nil
-local ballNoClipActive = false
-local ballAimlockActive = false
-local ballStickActive = false
-local ballAimConnection = nil
 local ballNoClipConnection = nil
+local ballAimConnection = nil
 local ballStickConnection = nil
-
--- ============================================
--- 🎨 SKIN LOADER - المتغيرات
--- ============================================
-local skinFrame = nil
-local skinLoaderActive = false
 
 -- ============================================
 -- ❤️ HP FULL
@@ -61,63 +50,10 @@ local skinLoaderActive = false
 local hpActive = false
 local hpConnections = {}
 
-local function setInfiniteHealth(humanoid)
-    if not humanoid then return end
-    
-    humanoid.MaxHealth = math.huge
-    humanoid.Health = math.huge
-    humanoid.BreakJointsOnDeath = false
-    
-    local conn = humanoid.HealthChanged:Connect(function()
-        if hpActive and humanoid.Health < humanoid.MaxHealth then
-            humanoid.Health = humanoid.MaxHealth
-        end
-    end)
-    table.insert(hpConnections, conn)
-end
-
-local function onCharacterAdded(character)
-    if not hpActive then return end
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        setInfiniteHealth(humanoid)
-    end
-end
-
-local function toggleHP(state)
-    hpActive = state
-    
-    if hpActive then
-        local char = Player.Character
-        if char then
-            local h = char:FindFirstChildOfClass("Humanoid")
-            if h then
-                setInfiniteHealth(h)
-            end
-        end
-        
-        local conn = Player.CharacterAdded:Connect(onCharacterAdded)
-        table.insert(hpConnections, conn)
-        
-        showNotification("❤️ HP FULL ON", Color3.fromRGB(0, 255, 100))
-    else
-        for _, conn in pairs(hpConnections) do
-            pcall(function() conn:Disconnect() end)
-        end
-        hpConnections = {}
-        
-        local char = Player.Character
-        if char then
-            local h = char:FindFirstChildOfClass("Humanoid")
-            if h then
-                h.MaxHealth = 100
-                h.Health = 100
-                h.BreakJointsOnDeath = true
-            end
-        end
-        showNotification("⏹ HP FULL OFF", Color3.fromRGB(255, 200, 0))
-    end
-end
+-- ============================================
+-- 🎨 SKIN LOADER
+-- ============================================
+local skinLoaderActive = false
 
 -- ============================================
 -- 🔥 دوال التحقق من العدو/الصديق
@@ -172,7 +108,7 @@ end
 local function pullBall()
     if not ball then findBall() end
     if not ball then 
-        showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+        Rayfield:Notify({Title = "❌ خطأ", Content = "الكرة غير موجودة!", Duration = 3})
         return 
     end
     
@@ -185,7 +121,7 @@ local function pullBall()
     ball.Velocity = Vector3.new(0, 0, 0)
     ball.RotVelocity = Vector3.new(0, 0, 0)
     
-    showNotification("⚽ تم جلب الكرة!", Color3.fromRGB(0, 200, 255))
+    Rayfield:Notify({Title = "⚽ تم", Content = "تم جلب الكرة!", Duration = 3})
 end
 
 -- ============================================
@@ -194,7 +130,7 @@ end
 local function teleportToBall()
     if not ball then findBall() end
     if not ball then 
-        showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+        Rayfield:Notify({Title = "❌ خطأ", Content = "الكرة غير موجودة!", Duration = 3})
         return 
     end
     
@@ -206,7 +142,7 @@ local function teleportToBall()
     root.CFrame = ball.CFrame + Vector3.new(0, 3, 0)
     root.Velocity = Vector3.new(0, 0, 0)
     
-    showNotification("🚀 تم الانتقال إلى الكرة!", Color3.fromRGB(0, 200, 100))
+    Rayfield:Notify({Title = "🚀 تم", Content = "تم الانتقال إلى الكرة!", Duration = 3})
 end
 
 -- ============================================
@@ -215,7 +151,7 @@ end
 local function shootBall()
     if not ball then findBall() end
     if not ball then 
-        showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+        Rayfield:Notify({Title = "❌ خطأ", Content = "الكرة غير موجودة!", Duration = 3})
         return 
     end
     
@@ -231,7 +167,7 @@ local function shootBall()
     task.wait(1)
     ball.CanCollide = oldCanCollide
     
-    showNotification("⚽ تم التسديد!", Color3.fromRGB(255, 200, 50))
+    Rayfield:Notify({Title = "⚽ تم", Content = "تم التسديد!", Duration = 3})
 end
 
 -- ============================================
@@ -243,7 +179,7 @@ local function toggleBallNoClip(state)
     if states.ballNoClip then
         if not ball then findBall() end
         if not ball then
-            showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+            Rayfield:Notify({Title = "❌ خطأ", Content = "الكرة غير موجودة!", Duration = 3})
             return
         end
         
@@ -253,7 +189,7 @@ local function toggleBallNoClip(state)
                 ball.CanCollide = false
             end)
         end
-        showNotification("⚽ الكرة تخترق اللاعبين ON", Color3.fromRGB(255, 0, 0))
+        Rayfield:Notify({Title = "⚽ تم", Content = "الكرة تخترق اللاعبين ON", Duration = 3})
     else
         if ballNoClipConnection then
             ballNoClipConnection:Disconnect()
@@ -262,7 +198,7 @@ local function toggleBallNoClip(state)
         if ball then
             ball.CanCollide = true
         end
-        showNotification("⏹ الكرة تخترق اللاعبين OFF", Color3.fromRGB(255, 200, 0))
+        Rayfield:Notify({Title = "⏹ تم", Content = "الكرة تخترق اللاعبين OFF", Duration = 3})
     end
 end
 
@@ -275,7 +211,7 @@ local function toggleBallAimlock(state)
     if states.ballAimlock then
         if not ball then findBall() end
         if not ball then
-            showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+            Rayfield:Notify({Title = "❌ خطأ", Content = "الكرة غير موجودة!", Duration = 3})
             return
         end
         
@@ -286,13 +222,13 @@ local function toggleBallAimlock(state)
                 Camera.CFrame = CFrame.new(Camera.CFrame.Position, ball.Position)
             end)
         end
-        showNotification("🎯 Aimlock على الكرة ON", Color3.fromRGB(0, 200, 255))
+        Rayfield:Notify({Title = "🎯 تم", Content = "Aimlock على الكرة ON", Duration = 3})
     else
         if ballAimConnection then
             ballAimConnection:Disconnect()
             ballAimConnection = nil
         end
-        showNotification("⏹ Aimlock على الكرة OFF", Color3.fromRGB(255, 200, 0))
+        Rayfield:Notify({Title = "⏹ تم", Content = "Aimlock على الكرة OFF", Duration = 3})
     end
 end
 
@@ -305,7 +241,7 @@ local function toggleBallStick(state)
     if states.ballStick then
         if not ball then findBall() end
         if not ball then
-            showNotification("❌ الكرة غير موجودة!", Color3.fromRGB(255, 0, 0))
+            Rayfield:Notify({Title = "❌ خطأ", Content = "الكرة غير موجودة!", Duration = 3})
             return
         end
         
@@ -326,7 +262,7 @@ local function toggleBallStick(state)
                 ball.CanCollide = false
             end)
         end
-        showNotification("🔒 الكرة ملتصقة فيك ON", Color3.fromRGB(255, 200, 0))
+        Rayfield:Notify({Title = "🔒 تم", Content = "الكرة ملتصقة فيك ON", Duration = 3})
     else
         if ballStickConnection then
             ballStickConnection:Disconnect()
@@ -335,7 +271,7 @@ local function toggleBallStick(state)
         if ball then
             ball.CanCollide = true
         end
-        showNotification("⏹ الكرة ملتصقة فيك OFF", Color3.fromRGB(255, 200, 0))
+        Rayfield:Notify({Title = "⏹ تم", Content = "الكرة ملتصقة فيك OFF", Duration = 3})
     end
 end
 
@@ -384,58 +320,20 @@ local function toggleAimbot(state)
                 end
             end)
         end
-        showNotification("🎯 Aimbot ON", Color3.fromRGB(255, 50, 50))
+        Rayfield:Notify({Title = "🎯 تم", Content = "Aimbot ON", Duration = 3})
     else
         if connections.aimbot then
             connections.aimbot:Disconnect()
             connections.aimbot = nil
         end
         aimbotTarget = nil
-        showNotification("⏹ Aimbot OFF", Color3.fromRGB(255, 200, 0))
+        Rayfield:Notify({Title = "⏹ تم", Content = "Aimbot OFF", Duration = 3})
     end
 end
 
 -- ============================================
 -- 🔒 AIM LOCK
 -- ============================================
-local function createAimlockCircle()
-    if aimlockCircle then
-        aimlockCircle:Destroy()
-        aimlockCircle = nil
-    end
-    
-    aimlockCircle = Instance.new("Frame")
-    aimlockCircle.Parent = ScreenGui
-    aimlockCircle.Size = UDim2.new(0, 150, 0, 150)
-    aimlockCircle.Position = UDim2.new(0.5, -75, 0.5, -75)
-    aimlockCircle.BackgroundTransparency = 0.8
-    aimlockCircle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    aimlockCircle.BorderSizePixel = 2
-    aimlockCircle.BorderColor3 = Color3.fromRGB(255, 0, 0)
-    aimlockCircle.ZIndex = 999
-    aimlockCircle.Visible = true
-    
-    local corner = Instance.new("UICorner")
-    corner.Parent = aimlockCircle
-    corner.CornerRadius = UDim.new(1, 0)
-    
-    local cross = Instance.new("Frame")
-    cross.Parent = aimlockCircle
-    cross.Size = UDim2.new(0, 2, 0, 30)
-    cross.Position = UDim2.new(0.5, -1, 0.5, -15)
-    cross.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    cross.BackgroundTransparency = 0.3
-    cross.BorderSizePixel = 0
-    
-    local cross2 = Instance.new("Frame")
-    cross2.Parent = aimlockCircle
-    cross2.Size = UDim2.new(0, 30, 0, 2)
-    cross2.Position = UDim2.new(0.5, -15, 0.5, -1)
-    cross2.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    cross2.BackgroundTransparency = 0.3
-    cross2.BorderSizePixel = 0
-end
-
 local function getEnemiesInCircle()
     local targets = {}
     local radius = 75
@@ -462,7 +360,6 @@ local function toggleAimlock(state)
         if states.aimbot then
             toggleAimbot(false)
         end
-        createAimlockCircle()
         if not connections.aimlock then
             connections.aimlock = RunService.RenderStepped:Connect(function()
                 if not states.aimlock then return end
@@ -487,33 +384,20 @@ local function toggleAimlock(state)
                         local headPos = head.Position
                         Camera.CFrame = CFrame.new(Camera.CFrame.Position, headPos)
                         aimlockTarget = closest
-                        
-                        if aimlockCircle then
-                            aimlockCircle.BorderColor3 = Color3.fromRGB(0, 255, 0)
-                            aimlockCircle.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-                        end
                     end
                 else
                     aimlockTarget = nil
-                    if aimlockCircle then
-                        aimlockCircle.BorderColor3 = Color3.fromRGB(255, 0, 0)
-                        aimlockCircle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-                    end
                 end
             end)
         end
-        showNotification("🔒 Aim Lock ON", Color3.fromRGB(0, 200, 255))
+        Rayfield:Notify({Title = "🔒 تم", Content = "Aim Lock ON", Duration = 3})
     else
         if connections.aimlock then
             connections.aimlock:Disconnect()
             connections.aimlock = nil
         end
-        if aimlockCircle then
-            aimlockCircle:Destroy()
-            aimlockCircle = nil
-        end
         aimlockTarget = nil
-        showNotification("⏹ Aim Lock OFF", Color3.fromRGB(255, 200, 0))
+        Rayfield:Notify({Title = "⏹ تم", Content = "Aim Lock OFF", Duration = 3})
     end
 end
 
@@ -584,7 +468,7 @@ local function toggleESP(state)
         if not connections.esp then
             connections.esp = RunService.Heartbeat:Connect(updateESP)
         end
-        showNotification("👁️ ESP ON", Color3.fromRGB(0, 255, 100))
+        Rayfield:Notify({Title = "👁️ تم", Content = "ESP ON", Duration = 3})
     else
         if connections.esp then
             connections.esp:Disconnect()
@@ -594,7 +478,68 @@ local function toggleESP(state)
             if data.box then data.box:Destroy() end
         end
         espObjects = {}
-        showNotification("⏹ ESP OFF", Color3.fromRGB(255, 200, 0))
+        Rayfield:Notify({Title = "⏹ تم", Content = "ESP OFF", Duration = 3})
+    end
+end
+
+-- ============================================
+-- ❤️ HP FULL
+-- ============================================
+local function setInfiniteHealth(humanoid)
+    if not humanoid then return end
+    
+    humanoid.MaxHealth = math.huge
+    humanoid.Health = math.huge
+    humanoid.BreakJointsOnDeath = false
+    
+    local conn = humanoid.HealthChanged:Connect(function()
+        if hpActive and humanoid.Health < humanoid.MaxHealth then
+            humanoid.Health = humanoid.MaxHealth
+        end
+    end)
+    table.insert(hpConnections, conn)
+end
+
+local function onCharacterAdded(character)
+    if not hpActive then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        setInfiniteHealth(humanoid)
+    end
+end
+
+local function toggleHP(state)
+    hpActive = state
+    
+    if hpActive then
+        local char = Player.Character
+        if char then
+            local h = char:FindFirstChildOfClass("Humanoid")
+            if h then
+                setInfiniteHealth(h)
+            end
+        end
+        
+        local conn = Player.CharacterAdded:Connect(onCharacterAdded)
+        table.insert(hpConnections, conn)
+        
+        Rayfield:Notify({Title = "❤️ تم", Content = "HP FULL ON", Duration = 3})
+    else
+        for _, conn in pairs(hpConnections) do
+            pcall(function() conn:Disconnect() end)
+        end
+        hpConnections = {}
+        
+        local char = Player.Character
+        if char then
+            local h = char:FindFirstChildOfClass("Humanoid")
+            if h then
+                h.MaxHealth = 100
+                h.Health = 100
+                h.BreakJointsOnDeath = true
+            end
+        end
+        Rayfield:Notify({Title = "⏹ تم", Content = "HP FULL OFF", Duration = 3})
     end
 end
 
@@ -616,7 +561,7 @@ local function toggleNoclip(state)
                 end
             end)
         end
-        showNotification("🧱 اختراق الجدران ON", Color3.fromRGB(150, 100, 255))
+        Rayfield:Notify({Title = "🧱 تم", Content = "اختراق الجدران ON", Duration = 3})
     else
         if connections.noclip then
             connections.noclip:Disconnect()
@@ -630,7 +575,7 @@ local function toggleNoclip(state)
                 end
             end
         end
-        showNotification("⏹ اختراق الجدران OFF", Color3.fromRGB(255, 200, 0))
+        Rayfield:Notify({Title = "⏹ تم", Content = "اختراق الجدران OFF", Duration = 3})
     end
 end
 
@@ -652,7 +597,7 @@ local function toggleInvisible(state)
             char.Humanoid.HealthDisplayDistance = 0
             char.Humanoid.NameDisplayDistance = 0
         end)
-        showNotification("👻 اختفاء ON", Color3.fromRGB(200, 100, 255))
+        Rayfield:Notify({Title = "👻 تم", Content = "اختفاء ON", Duration = 3})
     else
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -666,7 +611,7 @@ local function toggleInvisible(state)
             char.Humanoid.HealthDisplayDistance = 50
             char.Humanoid.NameDisplayDistance = 50
         end)
-        showNotification("👁️ اختفاء OFF", Color3.fromRGB(255, 200, 0))
+        Rayfield:Notify({Title = "👁️ تم", Content = "اختفاء OFF", Duration = 3})
     end
 end
 
@@ -677,10 +622,10 @@ local function toggleSpeed(state)
 
     if states.speed then
         h.WalkSpeed = speedAmount
-        showNotification("⚡ سرعة " .. speedAmount .. " ON", Color3.fromRGB(0, 255, 200))
+        Rayfield:Notify({Title = "⚡ تم", Content = "سرعة " .. speedAmount .. " ON", Duration = 3})
     else
         h.WalkSpeed = 16
-        showNotification("⏹ سرعة OFF", Color3.fromRGB(255, 200, 0))
+        Rayfield:Notify({Title = "⏹ تم", Content = "سرعة OFF", Duration = 3})
     end
 end
 
@@ -689,7 +634,7 @@ end
 -- ============================================
 local function kickPlayer(plr)
     if not plr or plr == Player then 
-        showNotification("❌ لا يمكن طرد نفسك!", Color3.fromRGB(255, 0, 0))
+        Rayfield:Notify({Title = "❌ خطأ", Content = "لا يمكن طرد نفسك!", Duration = 3})
         return 
     end
     
@@ -717,7 +662,7 @@ local function kickPlayer(plr)
         plr:Kick("💀 تم طردك بواسطة ROMA SENPAI!")
     end)
     
-    showNotification("💀 تم طرد " .. plr.Name, Color3.fromRGB(255, 0, 0))
+    Rayfield:Notify({Title = "💀 تم", Content = "تم طرد " .. plr.Name, Duration = 3})
 end
 
 local function kickAllPlayers()
@@ -730,19 +675,15 @@ local function kickAllPlayers()
             end)
         end
     end
-    showNotification("💀 تم طرد " .. count .. " لاعب", Color3.fromRGB(255, 0, 0))
+    Rayfield:Notify({Title = "💀 تم", Content = "تم طرد " .. count .. " لاعب", Duration = 3})
 end
 
 -- ============================================
--- 🌐 قائمة اللاعبين
+-- 🚀 الانتقال إلى لاعب
 -- ============================================
-local TeleportFrame = nil
-local PlayersList = nil
-local pullConnections = {}
-
-local function pullPlayerReal(plr)
+local function teleportToPlayer(plr)
     if not plr or not plr.Character then 
-        showNotification("❌ اللاعب غير موجود!", Color3.fromRGB(255, 0, 0))
+        Rayfield:Notify({Title = "❌ خطأ", Content = "اللاعب غير موجود!", Duration = 3})
         return 
     end
     
@@ -750,7 +691,39 @@ local function pullPlayerReal(plr)
     local myRoot = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
     
     if not targetRoot or not myRoot then 
-        showNotification("❌ تعذر العثور على اللاعب!", Color3.fromRGB(255, 0, 0))
+        Rayfield:Notify({Title = "❌ خطأ", Content = "تعذر العثور على اللاعب!", Duration = 3})
+        return 
+    end
+    
+    local noclipState = states.noclip
+    if not noclipState then
+        toggleNoclip(true)
+    end
+    myRoot.CFrame = targetRoot.CFrame + Vector3.new(0, 3, 0)
+    if not noclipState then
+        task.wait(0.1)
+        toggleNoclip(false)
+    end
+    
+    Rayfield:Notify({Title = "✅ تم", Content = "تم التليفورت إلى " .. plr.Name, Duration = 3})
+end
+
+-- ============================================
+-- 📥 جلب لاعب
+-- ============================================
+local pullConnections = {}
+
+local function pullPlayer(plr)
+    if not plr or not plr.Character then 
+        Rayfield:Notify({Title = "❌ خطأ", Content = "اللاعب غير موجود!", Duration = 3})
+        return 
+    end
+    
+    local targetRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+    local myRoot = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+    
+    if not targetRoot or not myRoot then 
+        Rayfield:Notify({Title = "❌ خطأ", Content = "تعذر العثور على اللاعب!", Duration = 3})
         return 
     end
     
@@ -803,395 +776,178 @@ local function pullPlayerReal(plr)
         end
     end
     
-    showNotification("✅ تم جلب " .. plr.Name, Color3.fromRGB(0, 200, 100))
-end
-
-local function showTeleportMenu()
-    if TeleportFrame and TeleportFrame.Visible then
-        TeleportFrame.Visible = false
-        return
-    end
-    
-    if not TeleportFrame then
-        TeleportFrame = Instance.new("Frame")
-        TeleportFrame.Parent = ScreenGui
-        TeleportFrame.Size = UDim2.new(0, 280, 0, 400)
-        TeleportFrame.Position = UDim2.new(0.5, -140, 0.5, -200)
-        TeleportFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-        TeleportFrame.BackgroundTransparency = 0.1
-        TeleportFrame.BorderSizePixel = 0
-        TeleportFrame.ClipsDescendants = true
-        
-        local TCorner = Instance.new("UICorner")
-        TCorner.CornerRadius = UDim.new(0, 10)
-        TCorner.Parent = TeleportFrame
-        
-        local TStroke = Instance.new("UIStroke")
-        TStroke.Parent = TeleportFrame
-        TStroke.Color = Color3.fromRGB(45, 45, 55)
-        TStroke.Thickness = 1
-        
-        local TTitle = Instance.new("TextLabel")
-        TTitle.Parent = TeleportFrame
-        TTitle.Size = UDim2.new(1, 0, 0, 30)
-        TTitle.BackgroundTransparency = 1
-        TTitle.Text = "👥 قائمة اللاعبين"
-        TTitle.TextColor3 = Color3.fromRGB(240, 240, 245)
-        TTitle.TextSize = 13
-        TTitle.Font = Enum.Font.GothamBold
-        
-        local closeT = Instance.new("TextButton")
-        closeT.Parent = TeleportFrame
-        closeT.Size = UDim2.new(0, 25, 0, 25)
-        closeT.Position = UDim2.new(1, -30, 0, 3)
-        closeT.BackgroundTransparency = 1
-        closeT.Text = "✕"
-        closeT.TextColor3 = Color3.fromRGB(160, 160, 175)
-        closeT.TextSize = 14
-        closeT.Font = Enum.Font.GothamBold
-        
-        closeT.MouseButton1Click:Connect(function()
-            TeleportFrame.Visible = false
-        end)
-        
-        PlayersList = Instance.new("ScrollingFrame")
-        PlayersList.Parent = TeleportFrame
-        PlayersList.Size = UDim2.new(1, -10, 1, -40)
-        PlayersList.Position = UDim2.new(0, 5, 0, 35)
-        PlayersList.BackgroundTransparency = 1
-        PlayersList.BorderSizePixel = 0
-        PlayersList.CanvasSize = UDim2.new(0, 0, 0, 0)
-        PlayersList.ScrollBarThickness = 3
-    end
-    
-    for _, child in pairs(PlayersList:GetChildren()) do
-        child:Destroy()
-    end
-    
-    local yOff = 0
-    local playerCount = 0
-    
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= Player then
-            playerCount = playerCount + 1
-            
-            local btn = Instance.new("TextButton")
-            btn.Parent = PlayersList
-            btn.Size = UDim2.new(1, 0, 0, 55)
-            btn.Position = UDim2.new(0, 0, 0, yOff)
-            btn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-            btn.BorderSizePixel = 0
-            btn.ClipsDescendants = true
-            
-            local btnCorner = Instance.new("UICorner")
-            btnCorner.CornerRadius = UDim.new(0, 6)
-            btnCorner.Parent = btn
-            
-            local nameLabel = Instance.new("TextLabel")
-            nameLabel.Parent = btn
-            nameLabel.Size = UDim2.new(1, 0, 0, 20)
-            nameLabel.Position = UDim2.new(0, 8, 0, 0)
-            nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = "👤 " .. plr.Name
-            nameLabel.TextColor3 = Color3.fromRGB(200, 200, 215)
-            nameLabel.TextSize = 11
-            nameLabel.Font = Enum.Font.GothamMedium
-            nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-            
-            local tpBtn = Instance.new("TextButton")
-            tpBtn.Parent = btn
-            tpBtn.Size = UDim2.new(0, 50, 0, 25)
-            tpBtn.Position = UDim2.new(0.01, 0, 0.5, -10)
-            tpBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-            tpBtn.BackgroundTransparency = 0.3
-            tpBtn.Text = "🚀 انتقال"
-            tpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            tpBtn.TextSize = 9
-            tpBtn.Font = Enum.Font.GothamBold
-            tpBtn.BorderSizePixel = 0
-            
-            local tpCorner = Instance.new("UICorner")
-            tpCorner.CornerRadius = UDim.new(0, 4)
-            tpCorner.Parent = tpBtn
-            
-            tpBtn.MouseEnter:Connect(function()
-                tpBtn.BackgroundTransparency = 0
-            end)
-            tpBtn.MouseLeave:Connect(function()
-                tpBtn.BackgroundTransparency = 0.3
-            end)
-            
-            tpBtn.MouseButton1Click:Connect(function()
-                local targetChar = plr.Character
-                if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
-                    local myChar = Player.Character
-                    if myChar and myChar:FindFirstChild("HumanoidRootPart") then
-                        local myRoot = myChar.HumanoidRootPart
-                        local noclipState = states.noclip
-                        if not noclipState then
-                            toggleNoclip(true)
-                        end
-                        myRoot.CFrame = targetChar.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
-                        if not noclipState then
-                            task.wait(0.1)
-                            toggleNoclip(false)
-                        end
-                        showNotification("✅ تم التليفورت إلى " .. plr.Name, Color3.fromRGB(0, 200, 100))
-                        TeleportFrame.Visible = false
-                    end
-                else
-                    showNotification("❌ اللاعب غير موجود!", Color3.fromRGB(255, 0, 0))
-                end
-            end)
-            
-            local pullBtn = Instance.new("TextButton")
-            pullBtn.Parent = btn
-            pullBtn.Size = UDim2.new(0, 45, 0, 25)
-            pullBtn.Position = UDim2.new(0.25, 0, 0.5, -10)
-            pullBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
-            pullBtn.BackgroundTransparency = 0.3
-            pullBtn.Text = "📥 جلب"
-            pullBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            pullBtn.TextSize = 9
-            pullBtn.Font = Enum.Font.GothamBold
-            pullBtn.BorderSizePixel = 0
-            
-            local pullCorner = Instance.new("UICorner")
-            pullCorner.CornerRadius = UDim.new(0, 4)
-            pullCorner.Parent = pullBtn
-            
-            pullBtn.MouseEnter:Connect(function()
-                pullBtn.BackgroundTransparency = 0
-            end)
-            pullBtn.MouseLeave:Connect(function()
-                pullBtn.BackgroundTransparency = 0.3
-            end)
-            
-            pullBtn.MouseButton1Click:Connect(function()
-                pullPlayerReal(plr)
-                TeleportFrame.Visible = false
-            end)
-            
-            local kickBtn = Instance.new("TextButton")
-            kickBtn.Parent = btn
-            kickBtn.Size = UDim2.new(0, 50, 0, 25)
-            kickBtn.Position = UDim2.new(0.55, 0, 0.5, -10)
-            kickBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-            kickBtn.BackgroundTransparency = 0.3
-            kickBtn.Text = "💀 طرد"
-            kickBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            kickBtn.TextSize = 9
-            kickBtn.Font = Enum.Font.GothamBold
-            kickBtn.BorderSizePixel = 0
-            
-            local kickCorner = Instance.new("UICorner")
-            kickCorner.CornerRadius = UDim.new(0, 4)
-            kickCorner.Parent = kickBtn
-            
-            kickBtn.MouseEnter:Connect(function()
-                kickBtn.BackgroundTransparency = 0
-            end)
-            kickBtn.MouseLeave:Connect(function()
-                kickBtn.BackgroundTransparency = 0.3
-            end)
-            
-            kickBtn.MouseButton1Click:Connect(function()
-                kickPlayer(plr)
-                TeleportFrame.Visible = false
-            end)
-            
-            yOff = yOff + 60
-        end
-    end
-    
-    local kickAllBtn = Instance.new("TextButton")
-    kickAllBtn.Parent = PlayersList
-    kickAllBtn.Size = UDim2.new(1, 0, 0, 35)
-    kickAllBtn.Position = UDim2.new(0, 0, 0, yOff)
-    kickAllBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-    kickAllBtn.BackgroundTransparency = 0.3
-    kickAllBtn.Text = "💀 طرد جميع اللاعبين"
-    kickAllBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    kickAllBtn.TextSize = 12
-    kickAllBtn.Font = Enum.Font.GothamBold
-    kickAllBtn.BorderSizePixel = 0
-    
-    local kickAllCorner = Instance.new("UICorner")
-    kickAllCorner.CornerRadius = UDim.new(0, 6)
-    kickAllCorner.Parent = kickAllBtn
-    
-    kickAllBtn.MouseEnter:Connect(function()
-        kickAllBtn.BackgroundTransparency = 0
-    end)
-    kickAllBtn.MouseLeave:Connect(function()
-        kickAllBtn.BackgroundTransparency = 0.3
-    end)
-    
-    kickAllBtn.MouseButton1Click:Connect(function()
-        kickAllPlayers()
-        TeleportFrame.Visible = false
-    end)
-    
-    yOff = yOff + 40
-    
-    local rejoinBtn = Instance.new("TextButton")
-    rejoinBtn.Parent = PlayersList
-    rejoinBtn.Size = UDim2.new(1, 0, 0, 35)
-    rejoinBtn.Position = UDim2.new(0, 0, 0, yOff)
-    rejoinBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
-    rejoinBtn.BackgroundTransparency = 0.3
-    rejoinBtn.Text = "🔄 إعادة الانضمام"
-    rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    rejoinBtn.TextSize = 12
-    rejoinBtn.Font = Enum.Font.GothamBold
-    rejoinBtn.BorderSizePixel = 0
-    
-    local rejoinCorner = Instance.new("UICorner")
-    rejoinCorner.CornerRadius = UDim.new(0, 6)
-    rejoinCorner.Parent = rejoinBtn
-    
-    rejoinBtn.MouseEnter:Connect(function()
-        rejoinBtn.BackgroundTransparency = 0
-    end)
-    rejoinBtn.MouseLeave:Connect(function()
-        rejoinBtn.BackgroundTransparency = 0.3
-    end)
-    
-    rejoinBtn.MouseButton1Click:Connect(function()
-        TeleportService:Teleport(game.PlaceId, Player)
-    end)
-    
-    yOff = yOff + 40
-    
-    if playerCount == 0 then
-        local noPlayers = Instance.new("TextLabel")
-        noPlayers.Parent = PlayersList
-        noPlayers.Size = UDim2.new(1, 0, 0, 30)
-        noPlayers.Position = UDim2.new(0, 0, 0, 10)
-        noPlayers.BackgroundTransparency = 1
-        noPlayers.Text = "❌ لا يوجد لاعبين آخرين"
-        noPlayers.TextColor3 = Color3.fromRGB(160, 160, 175)
-        noPlayers.TextSize = 12
-        noPlayers.Font = Enum.Font.GothamMedium
-        yOff = 50
-    end
-    
-    PlayersList.CanvasSize = UDim2.new(0, 0, 0, yOff + 10)
-    TeleportFrame.Visible = true
+    Rayfield:Notify({Title = "✅ تم", Content = "تم جلب " .. plr.Name, Duration = 3})
 end
 
 -- ============================================
--- 💬 دالة الإشعار
--- ============================================
-function showNotification(text, color)
-    if not ScreenGui then return end
-    local notif = Instance.new("TextLabel")
-    notif.Parent = ScreenGui
-    notif.Size = UDim2.new(0, 280, 0, 35)
-    notif.Position = UDim2.new(0.5, -140, 0.05, 0)
-    notif.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    notif.BackgroundTransparency = 0.3
-    notif.Text = text
-    notif.TextColor3 = Color3.fromRGB(255, 255, 255)
-    notif.TextSize = 13
-    notif.Font = Enum.Font.GothamBold
-    notif.BorderSizePixel = 0
-    local notifCorner = Instance.new("UICorner")
-    notifCorner.CornerRadius = UDim.new(0, 12)
-    notifCorner.Parent = notif
-    game:GetService("Debris"):AddItem(notif, 2)
-end
-
-local function stopAll()
-    for _, conn in pairs(connections) do
-        if conn then
-            conn:Disconnect()
-        end
-    end
-    connections = {}
-    for key in pairs(states) do
-        states[key] = false
-    end
-    
-    hpActive = false
-    for _, conn in pairs(hpConnections) do
-        pcall(function() conn:Disconnect() end)
-    end
-    hpConnections = {}
-    
-    local char = Player.Character
-    if char then
-        local h = char:FindFirstChildOfClass("Humanoid")
-        if h then
-            h.MaxHealth = 100
-            h.Health = 100
-            h.BreakJointsOnDeath = true
-        end
-    end
-    
-    if ballNoClipConnection then
-        ballNoClipConnection:Disconnect()
-        ballNoClipConnection = nil
-    end
-    if ballAimConnection then
-        ballAimConnection:Disconnect()
-        ballAimConnection = nil
-    end
-    if ballStickConnection then
-        ballStickConnection:Disconnect()
-        ballStickConnection = nil
-    end
-    if ball then
-        ball.CanCollide = true
-    end
-    
-    for plr, data in pairs(espObjects) do
-        if data.box then data.box:Destroy() end
-    end
-    espObjects = {}
-    
-    if aimlockCircle then
-        aimlockCircle:Destroy()
-        aimlockCircle = nil
-    end
-    
-    for plr, conn in pairs(pullConnections) do
-        if conn then
-            conn:Disconnect()
-        end
-    end
-    pullConnections = {}
-    
-    if char then
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-                part.Transparency = 0
-            end
-            if part:IsA("Decal") or part:IsA("Texture") then
-                part.Transparency = 0
-            end
-        end
-        local h = char:FindFirstChild("Humanoid")
-        if h then
-            h.PlatformStand = false
-            h.Sit = false
-            h.WalkSpeed = 16
-            h.JumpPower = 50
-        end
-        local root = char:FindFirstChild("HumanoidRootPart")
-        if root then
-            root.Velocity = Vector3.new(0, 0, 0)
-        end
-    end
-    showNotification("⏹ تم إيقاف الكل!", Color3.fromRGB(255, 200, 0))
-end
-
--- ============================================
--- 🎨 FLY GUI V3
+-- 🛩️ FLY (الطيران)
 -- ============================================
 local FlyMain = nil
 local FlyFrame = nil
+local nowe = false
+local tpwalking = false
+local speeds = 1
+local flyConnections = {}
+
+local function toggleFly()
+    local speaker = Player
+    if nowe == true then
+        nowe = false
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,true)
+        speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+        game.Players.LocalPlayer.Character.Animate.Disabled = false
+        tpwalking = false
+    else
+        nowe = true
+        for i = 1, speeds do
+            spawn(function()
+                local hb = game:GetService("RunService").Heartbeat
+                tpwalking = true
+                local chr = game.Players.LocalPlayer.Character
+                local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
+                while tpwalking and hb:Wait() and chr and hum and hum.Parent do
+                    if hum.MoveDirection.Magnitude > 0 then
+                        chr:TranslateBy(hum.MoveDirection)
+                    end
+                end
+            end)
+        end
+        game.Players.LocalPlayer.Character.Animate.Disabled = true
+        local Char = game.Players.LocalPlayer.Character
+        local Hum = Char:FindFirstChildOfClass("Humanoid") or Char:FindFirstChildOfClass("AnimationController")
+        for i,v in next, Hum:GetPlayingAnimationTracks() do
+            v:AdjustSpeed(0)
+        end
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
+        speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
+        
+        if game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R6 then
+            local plr = game.Players.LocalPlayer
+            local torso = plr.Character.Torso
+            local ctrl = {f = 0, b = 0, l = 0, r = 0}
+            local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+            local maxspeed = 50
+            local speed = 0
+            local bg = Instance.new("BodyGyro", torso)
+            bg.P = 9e4
+            bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+            bg.cframe = torso.CFrame
+            local bv = Instance.new("BodyVelocity", torso)
+            bv.velocity = Vector3.new(0,0.1,0)
+            bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+            if nowe == true then
+                plr.Character.Humanoid.PlatformStand = true
+            end
+            while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
+                game:GetService("RunService").RenderStepped:Wait()
+                if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+                    speed = speed+.5+(speed/maxspeed)
+                    if speed > maxspeed then
+                        speed = maxspeed
+                    end
+                elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+                    speed = speed-1
+                    if speed < 0 then
+                        speed = 0
+                    end
+                end
+                if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+                    bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+                    lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+                elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+                    bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+                else
+                    bv.velocity = Vector3.new(0,0,0)
+                end
+                bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
+            end
+            ctrl = {f = 0, b = 0, l = 0, r = 0}
+            lastctrl = {f = 0, b = 0, l = 0, r = 0}
+            speed = 0
+            bg:Destroy()
+            bv:Destroy()
+            plr.Character.Humanoid.PlatformStand = false
+            game.Players.LocalPlayer.Character.Animate.Disabled = false
+            tpwalking = false
+        else
+            local plr = game.Players.LocalPlayer
+            local UpperTorso = plr.Character.UpperTorso
+            local ctrl = {f = 0, b = 0, l = 0, r = 0}
+            local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+            local maxspeed = 50
+            local speed = 0
+            local bg = Instance.new("BodyGyro", UpperTorso)
+            bg.P = 9e4
+            bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+            bg.cframe = UpperTorso.CFrame
+            local bv = Instance.new("BodyVelocity", UpperTorso)
+            bv.velocity = Vector3.new(0,0.1,0)
+            bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+            if nowe == true then
+                plr.Character.Humanoid.PlatformStand = true
+            end
+            while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
+                wait()
+                if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+                    speed = speed+.5+(speed/maxspeed)
+                    if speed > maxspeed then
+                        speed = maxspeed
+                    end
+                elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+                    speed = speed-1
+                    if speed < 0 then
+                        speed = 0
+                    end
+                end
+                if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+                    bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+                    lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+                elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+                    bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+                else
+                    bv.velocity = Vector3.new(0,0,0)
+                end
+                bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
+            end
+            ctrl = {f = 0, b = 0, l = 0, r = 0}
+            lastctrl = {f = 0, b = 0, l = 0, r = 0}
+            speed = 0
+            bg:Destroy()
+            bv:Destroy()
+            plr.Character.Humanoid.PlatformStand = false
+            game.Players.LocalPlayer.Character.Animate.Disabled = false
+            tpwalking = false
+        end
+    end
+end
 
 local function createFlyGUI()
     if FlyMain then
@@ -1202,7 +958,7 @@ local function createFlyGUI()
     
     FlyMain = Instance.new("ScreenGui")
     FlyMain.Name = "FlyGUI"
-    FlyMain.Parent = ScreenGui or Player.PlayerGui
+    FlyMain.Parent = Player.PlayerGui
     FlyMain.ResetOnSpawn = false
     FlyMain.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
@@ -1253,7 +1009,7 @@ local function createFlyGUI()
     titleLabel.Position = UDim2.new(0.469327301, 0, 0, 0)
     titleLabel.Size = UDim2.new(0, 100, 0, 28)
     titleLabel.Font = Enum.Font.SourceSans
-    titleLabel.Text = "FLY GUI V3"
+    titleLabel.Text = "FLY V3"
     titleLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
     titleLabel.TextScaled = true
     titleLabel.TextSize = 14
@@ -1328,178 +1084,6 @@ local function createFlyGUI()
     maxBtn.TextSize = 40
     maxBtn.Position = UDim2.new(0, 44, -1, 57)
     maxBtn.Visible = false
-    
-    local speeds = 1
-    local nowe = false
-    local tpwalking = false
-    local flyConnections = {}
-    local speaker = Player
-    
-    local function toggleFly()
-        if nowe == true then
-            nowe = false
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,true)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,true)
-            speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
-            onoffBtn.Text = "fly"
-            onoffBtn.BackgroundColor3 = Color3.fromRGB(255, 249, 74)
-        else
-            nowe = true
-            for i = 1, speeds do
-                spawn(function()
-                    local hb = game:GetService("RunService").Heartbeat
-                    tpwalking = true
-                    local chr = game.Players.LocalPlayer.Character
-                    local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-                    while tpwalking and hb:Wait() and chr and hum and hum.Parent do
-                        if hum.MoveDirection.Magnitude > 0 then
-                            chr:TranslateBy(hum.MoveDirection)
-                        end
-                    end
-                end)
-            end
-            game.Players.LocalPlayer.Character.Animate.Disabled = true
-            local Char = game.Players.LocalPlayer.Character
-            local Hum = Char:FindFirstChildOfClass("Humanoid") or Char:FindFirstChildOfClass("AnimationController")
-            for i,v in next, Hum:GetPlayingAnimationTracks() do
-                v:AdjustSpeed(0)
-            end
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,false)
-            speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
-            speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
-            
-            if game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R6 then
-                local plr = game.Players.LocalPlayer
-                local torso = plr.Character.Torso
-                local ctrl = {f = 0, b = 0, l = 0, r = 0}
-                local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-                local maxspeed = 50
-                local speed = 0
-                local bg = Instance.new("BodyGyro", torso)
-                bg.P = 9e4
-                bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-                bg.cframe = torso.CFrame
-                local bv = Instance.new("BodyVelocity", torso)
-                bv.velocity = Vector3.new(0,0.1,0)
-                bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-                if nowe == true then
-                    plr.Character.Humanoid.PlatformStand = true
-                end
-                while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
-                    game:GetService("RunService").RenderStepped:Wait()
-                    if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-                        speed = speed+.5+(speed/maxspeed)
-                        if speed > maxspeed then
-                            speed = maxspeed
-                        end
-                    elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
-                        speed = speed-1
-                        if speed < 0 then
-                            speed = 0
-                        end
-                    end
-                    if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-                        bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-                        lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-                    elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-                        bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-                    else
-                        bv.velocity = Vector3.new(0,0,0)
-                    end
-                    bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
-                end
-                ctrl = {f = 0, b = 0, l = 0, r = 0}
-                lastctrl = {f = 0, b = 0, l = 0, r = 0}
-                speed = 0
-                bg:Destroy()
-                bv:Destroy()
-                plr.Character.Humanoid.PlatformStand = false
-                game.Players.LocalPlayer.Character.Animate.Disabled = false
-                tpwalking = false
-            else
-                local plr = game.Players.LocalPlayer
-                local UpperTorso = plr.Character.UpperTorso
-                local ctrl = {f = 0, b = 0, l = 0, r = 0}
-                local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-                local maxspeed = 50
-                local speed = 0
-                local bg = Instance.new("BodyGyro", UpperTorso)
-                bg.P = 9e4
-                bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-                bg.cframe = UpperTorso.CFrame
-                local bv = Instance.new("BodyVelocity", UpperTorso)
-                bv.velocity = Vector3.new(0,0.1,0)
-                bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-                if nowe == true then
-                    plr.Character.Humanoid.PlatformStand = true
-                end
-                while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
-                    wait()
-                    if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-                        speed = speed+.5+(speed/maxspeed)
-                        if speed > maxspeed then
-                            speed = maxspeed
-                        end
-                    elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
-                        speed = speed-1
-                        if speed < 0 then
-                            speed = 0
-                        end
-                    end
-                    if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-                        bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-                        lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-                    elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-                        bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-                    else
-                        bv.velocity = Vector3.new(0,0,0)
-                    end
-                    bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
-                end
-                ctrl = {f = 0, b = 0, l = 0, r = 0}
-                lastctrl = {f = 0, b = 0, l = 0, r = 0}
-                speed = 0
-                bg:Destroy()
-                bv:Destroy()
-                plr.Character.Humanoid.PlatformStand = false
-                game.Players.LocalPlayer.Character.Animate.Disabled = false
-                tpwalking = false
-            end
-        end
-        if nowe == true then
-            onoffBtn.Text = "ON"
-            onoffBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-        else
-            onoffBtn.Text = "fly"
-            onoffBtn.BackgroundColor3 = Color3.fromRGB(255, 249, 74)
-        end
-    end
     
     onoffBtn.MouseButton1Down:Connect(toggleFly)
     
@@ -1626,686 +1210,634 @@ end
 -- 🎨 SKIN LOADER
 -- ============================================
 local function toggleSkinLoader()
-    if skinFrame then
-        skinFrame:Destroy()
-        skinFrame = nil
-        skinLoaderActive = false
-        showNotification("⏹ تم إيقاف Skin Loader", Color3.fromRGB(255, 200, 0))
+    if skinLoaderActive then
+        Rayfield:Notify({Title = "⏳ تنبيه", Content = "جاري تحميل السكنات بالفعل!", Duration = 3})
         return
     end
     
-    skinFrame = Instance.new("Frame")
-    skinFrame.Parent = ScreenGui
-    skinFrame.Size = UDim2.new(0, 300, 0, 100)
-    skinFrame.Position = UDim2.new(0.5, -150, 0.5, -50)
-    skinFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-    skinFrame.BackgroundTransparency = 0.1
-    skinFrame.BorderSizePixel = 0
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
-    corner.Parent = skinFrame
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Parent = skinFrame
-    stroke.Color = Color3.fromRGB(45, 45, 55)
-    stroke.Thickness = 1
-    
-    local title = Instance.new("TextLabel")
-    title.Parent = skinFrame
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.BackgroundTransparency = 1
-    title.Text = "🎨 تحميل السكنات..."
-    title.TextColor3 = Color3.fromRGB(240, 240, 245)
-    title.TextSize = 14
-    title.Font = Enum.Font.GothamBold    
-    local progress = Instance.new("Frame")
-    progress.Parent = skinFrame
-    progress.Size = UDim2.new(0.8, 0, 0, 6)
-    progress.Position = UDim2.new(0.1, 0, 0.5, 10)
-    progress.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-    progress.BorderSizePixel = 0
-    
-    local progressCorner = Instance.new("UICorner")
-    progressCorner.CornerRadius = UDim.new(1, 0)
-    progressCorner.Parent = progress
-    
-    local fill = Instance.new("Frame")
-    fill.Parent = progress
-    fill.Size = UDim2.new(0, 0, 1, 0)
-    fill.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-    fill.BorderSizePixel = 0
-    
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(1, 0)
-    fillCorner.Parent = fill
-    
-    local closeSkin = Instance.new("TextButton")
-    closeSkin.Parent = skinFrame
-    closeSkin.Size = UDim2.new(0, 25, 0, 25)
-    closeSkin.Position = UDim2.new(1, -30, 0, 3)
-    closeSkin.BackgroundTransparency = 1
-    closeSkin.Text = "✕"
-    closeSkin.TextColor3 = Color3.fromRGB(160, 160, 175)
-    closeSkin.TextSize = 14
-    closeSkin.Font = Enum.Font.GothamBold
-    
-    closeSkin.MouseButton1Click:Connect(function()
-        skinFrame:Destroy()
-        skinFrame = nil
-        skinLoaderActive = false
-        showNotification("⏹ تم إيقاف Skin Loader", Color3.fromRGB(255, 200, 0))
-    end)
-    
     skinLoaderActive = true
-    showNotification("🎨 جاري تحميل السكنات...", Color3.fromRGB(100, 200, 255))
+    Rayfield:Notify({Title = "🎨 تم", Content = "جاري تحميل السكنات...", Duration = 3})
     
-    -- تحميل الـ Loadstring
     pcall(function()
         local success, result = pcall(function()
             return loadstring(game:HttpGet("https://loaderxzuyax.vercel.app/Csmtc%20only"))()
         end)
         
         if success then
-            fill:TweenSize(UDim2.new(1, 0, 1, 0), "Out", "Linear", 0.5)
-            task.wait(0.5)
-            showNotification("✅ تم تحميل السكنات بنجاح!", Color3.fromRGB(0, 255, 100))
-            skinFrame:Destroy()
-            skinFrame = nil
-            skinLoaderActive = false
+            Rayfield:Notify({Title = "✅ تم", Content = "تم تحميل السكنات بنجاح!", Duration = 3})
         else
-            showNotification("❌ فشل تحميل السكنات!", Color3.fromRGB(255, 0, 0))
-            skinFrame:Destroy()
-            skinFrame = nil
-            skinLoaderActive = false
+            Rayfield:Notify({Title = "❌ خطأ", Content = "فشل تحميل السكنات!", Duration = 3})
         end
+        skinLoaderActive = false
     end)
 end
 
 -- ============================================
--- 🎬 شاشة Intro
+-- 🎮 الجرافيك الخيالي (RTX)
 -- ============================================
-local function showIntro()
-    local intro = Instance.new("Frame")
-    intro.Parent = Player.PlayerGui
-    intro.Size = UDim2.new(1, 0, 1, 0)
-    intro.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    intro.BackgroundTransparency = 0.2
-    intro.BorderSizePixel = 0
+local rtxActive = false
+local rtxObjects = {}
+
+local function toggleRTX(state)
+    rtxActive = state
     
-    local text = Instance.new("TextLabel")
-    text.Parent = intro
-    text.Size = UDim2.new(0, 350, 0, 70)
-    text.Position = UDim2.new(0.5, -175, 0.5, -35)
-    text.BackgroundTransparency = 1
-    text.Text = "💀 ROMA SENPAI V2\nصنع من طرف ROMA SENPAI"
-    text.TextColor3 = Color3.fromRGB(255, 255, 255)
-    text.TextScaled = true
-    text.Font = Enum.Font.GothamBold
-    text.TextStrokeTransparency = 0.5
-    
-    local subText = Instance.new("TextLabel")
-    subText.Parent = intro
-    subText.Size = UDim2.new(0, 250, 0, 25)
-    subText.Position = UDim2.new(0.5, -125, 0.5, 50)
-    subText.BackgroundTransparency = 1
-    subText.Text = "جاري التحميل..."
-    subText.TextColor3 = Color3.fromRGB(150, 150, 255)
-    subText.TextScaled = true
-    subText.Font = Enum.Font.GothamSemibold
-    
-    task.wait(1.5)
-    intro:Destroy()
-    createGUI()
+    if rtxActive then
+        local Lighting = game:GetService("Lighting")
+        local StarterGui = game:GetService("StarterGui")
+        
+        -- تنظيف الاضافات القديمة
+        for i, v in pairs(rtxObjects) do
+            pcall(function() v:Destroy() end)
+        end
+        rtxObjects = {}
+        
+        -- تنظيف الـ Lighting من الاضافات القديمة
+        for i, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("ColorCorrectionEffect") or 
+               v:IsA("SunRaysEffect") or v:IsA("Sky") or v:IsA("Atmosphere") then
+                v:Destroy()
+            end
+        end
+        
+        -- انشاء المؤثرات
+        local Bloom = Instance.new("BloomEffect")
+        Bloom.Parent = Lighting
+        table.insert(rtxObjects, Bloom)
+        
+        local Blur = Instance.new("BlurEffect")
+        Blur.Parent = Lighting
+        table.insert(rtxObjects, Blur)
+        
+        local ColorCor = Instance.new("ColorCorrectionEffect")
+        ColorCor.Parent = Lighting
+        table.insert(rtxObjects, ColorCor)
+        
+        local SunRays = Instance.new("SunRaysEffect")
+        SunRays.Parent = Lighting
+        table.insert(rtxObjects, SunRays)
+        
+        local Sky = Instance.new("Sky")
+        Sky.Parent = Lighting
+        table.insert(rtxObjects, Sky)
+        
+        local Atm = Instance.new("Atmosphere")
+        Atm.Parent = Lighting
+        table.insert(rtxObjects, Atm)
+        
+        -- اضافة الظل (Vignette)
+        local Gui = Instance.new("ScreenGui")
+        Gui.Parent = StarterGui
+        Gui.IgnoreGuiInset = true
+        table.insert(rtxObjects, Gui)
+        
+        local ShadowFrame = Instance.new("ImageLabel")
+        ShadowFrame.Parent = Gui
+        ShadowFrame.AnchorPoint = Vector2.new(0.5,1)
+        ShadowFrame.Position = UDim2.new(0.5,0,1,0)
+        ShadowFrame.Size = UDim2.new(1,0,1.05,0)
+        ShadowFrame.BackgroundTransparency = 1
+        ShadowFrame.Image = "rbxassetid://4576475446"
+        ShadowFrame.ImageTransparency = 0.3
+        ShadowFrame.ZIndex = 10
+        table.insert(rtxObjects, ShadowFrame)
+        
+        -- ضبط المؤثرات
+        Bloom.Intensity = 0.3
+        Bloom.Size = 10
+        Bloom.Threshold = 0.8
+        
+        Blur.Size = 5
+        
+        ColorCor.Brightness = 0.1
+        ColorCor.Contrast = 0.5
+        ColorCor.Saturation = -0.3
+        ColorCor.TintColor = Color3.fromRGB(255, 235, 203)
+        
+        SunRays.Intensity = 0.075
+        SunRays.Spread = 0.727
+        
+        Sky.SkyboxBk = "http://www.roblox.com/asset/?id=151165214"
+        Sky.SkyboxDn = "http://www.roblox.com/asset/?id=151165197"
+        Sky.SkyboxFt = "http://www.roblox.com/asset/?id=151165224"
+        Sky.SkyboxLf = "http://www.roblox.com/asset/?id=151165191"
+        Sky.SkyboxRt = "http://www.roblox.com/asset/?id=151165206"
+        Sky.SkyboxUp = "http://www.roblox.com/asset/?id=151165227"
+        Sky.SunAngularSize = 10
+        
+        Lighting.Ambient = Color3.fromRGB(2,2,2)
+        Lighting.Brightness = 2.25
+        Lighting.ColorShift_Bottom = Color3.fromRGB(0,0,0)
+        Lighting.ColorShift_Top = Color3.fromRGB(0,0,0)
+        Lighting.EnvironmentDiffuseScale = 0.2
+        Lighting.EnvironmentSpecularScale = 0.2
+        Lighting.GlobalShadows = true
+        Lighting.OutdoorAmbient = Color3.fromRGB(0,0,0)
+        Lighting.ShadowSoftness = 0.2
+        Lighting.ClockTime = 17
+        Lighting.GeographicLatitude = 45
+        Lighting.ExposureCompensation = 0.5
+        Lighting.Technology = Enum.Technology.ShadowMap
+        
+        Atm.Density = 0.364
+        Atm.Offset = 0.556
+        Atm.Color = Color3.fromRGB(199, 175, 166)
+        Atm.Decay = Color3.fromRGB(44, 39, 33)
+        Atm.Glare = 0.36
+        Atm.Haze = 1.72
+        
+        Rayfield:Notify({Title = "🎮 تم", Content = "تم تفعيل الجرافيك الخيالي (RTX)!", Duration = 3})
+    else
+        -- إزالة المؤثرات
+        for i, v in pairs(rtxObjects) do
+            pcall(function() v:Destroy() end)
+        end
+        rtxObjects = {}
+        
+        -- إعادة ضبط الـ Lighting
+        local Lighting = game:GetService("Lighting")
+        Lighting.Ambient = Color3.fromRGB(0,0,0)
+        Lighting.Brightness = 1
+        Lighting.ColorShift_Bottom = Color3.fromRGB(0,0,0)
+        Lighting.ColorShift_Top = Color3.fromRGB(0,0,0)
+        Lighting.EnvironmentDiffuseScale = 1
+        Lighting.EnvironmentSpecularScale = 1
+        Lighting.GlobalShadows = true
+        Lighting.OutdoorAmbient = Color3.fromRGB(0,0,0)
+        Lighting.ShadowSoftness = 0.3
+        Lighting.ClockTime = 14
+        Lighting.GeographicLatitude = 45
+        Lighting.ExposureCompensation = 0
+        Lighting.Technology = Enum.Technology.ShadowMap
+        
+        Rayfield:Notify({Title = "⏹ تم", Content = "تم إيقاف الجرافيك الخيالي", Duration = 3})
+    end
 end
 
 -- ============================================
--- 🎨 الواجهة الرئيسية
+-- 🔄 إيقاف الكل
 -- ============================================
-local MainFrame = nil
-local MinBtn = nil
-local CloseBtn = nil
-
-function createGUI()
-    ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "RomaSenpaiV2"
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.Parent = Player.PlayerGui
-
-    MainFrame = Instance.new("Frame")
-    MainFrame.Parent = ScreenGui
-    MainFrame.Size = UDim2.new(0, 260, 0, 230)
-    MainFrame.Position = UDim2.new(0.5, -130, 0.5, -115)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-    MainFrame.BackgroundTransparency = 0.1
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Active = true
-    MainFrame.Draggable = true
-    MainFrame.Visible = true
-
-    local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 10)
-    MainCorner.Parent = MainFrame
-
-    local MainStroke = Instance.new("UIStroke")
-    MainStroke.Parent = MainFrame
-    MainStroke.Color = Color3.fromRGB(45, 45, 55)
-    MainStroke.Thickness = 1
-
-    local TopBar = Instance.new("Frame")
-    TopBar.Parent = MainFrame
-    TopBar.Size = UDim2.new(1, 0, 0, 32)
-    TopBar.BackgroundTransparency = 1
-
-    local LogoLabel = Instance.new("TextLabel")
-    LogoLabel.Parent = TopBar
-    LogoLabel.Size = UDim2.new(0, 100, 1, 0)
-    LogoLabel.Position = UDim2.new(0, 8, 0, 0)
-    LogoLabel.BackgroundTransparency = 1
-    LogoLabel.Text = "💀 ROMA V2"
-    LogoLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
-    LogoLabel.TextSize = 12
-    LogoLabel.Font = Enum.Font.GothamBold
-    LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-    MinBtn = Instance.new("TextButton")
-    MinBtn.Parent = TopBar
-    MinBtn.Size = UDim2.new(0, 22, 0, 22)
-    MinBtn.Position = UDim2.new(1, -50, 0.5, -11)
-    MinBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    MinBtn.BackgroundTransparency = 0.3
-    MinBtn.Text = "−"
-    MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    MinBtn.TextSize = 16
-    MinBtn.Font = Enum.Font.GothamBold
-    MinBtn.BorderSizePixel = 0
-    
-    local MinCorner = Instance.new("UICorner")
-    MinCorner.CornerRadius = UDim.new(1, 0)
-    MinCorner.Parent = MinBtn
-
-    CloseBtn = Instance.new("TextButton")
-    CloseBtn.Parent = TopBar
-    CloseBtn.Size = UDim2.new(0, 22, 0, 22)
-    CloseBtn.Position = UDim2.new(1, -26, 0.5, -11)
-    CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-    CloseBtn.BackgroundTransparency = 0.3
-    CloseBtn.Text = "✕"
-    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseBtn.TextSize = 12
-    CloseBtn.Font = Enum.Font.GothamBold
-    CloseBtn.BorderSizePixel = 0
-    
-    local CloseCorner = Instance.new("UICorner")
-    CloseCorner.CornerRadius = UDim.new(1, 0)
-    CloseCorner.Parent = CloseBtn
-
-    local function minimizeGUI()
-        isMinimized = true
-        MainFrame.Visible = false
-        
-        local miniButton = Instance.new("TextButton")
-        miniButton.Name = "MiniButton"
-        miniButton.Parent = ScreenGui
-        miniButton.Size = UDim2.new(0, 40, 0, 40)
-        miniButton.Position = UDim2.new(0, 10, 0.5, -20)
-        miniButton.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-        miniButton.BackgroundTransparency = 0.1
-        miniButton.Text = "💀"
-        miniButton.TextColor3 = Color3.fromRGB(240, 240, 245)
-        miniButton.TextSize = 20
-        miniButton.Font = Enum.Font.GothamBold
-        miniButton.BorderSizePixel = 0
-        
-        local miniCorner = Instance.new("UICorner")
-        miniCorner.CornerRadius = UDim.new(1, 0)
-        miniCorner.Parent = miniButton
-        
-        local miniStroke = Instance.new("UIStroke")
-        miniStroke.Parent = miniButton
-        miniStroke.Color = Color3.fromRGB(45, 45, 55)
-        miniStroke.Thickness = 1
-        
-        miniButton.MouseButton1Click:Connect(function()
-            isMinimized = false
-            MainFrame.Visible = true
-            miniButton:Destroy()
-        end)
+local function stopAll()
+    for _, conn in pairs(connections) do
+        if conn then
+            conn:Disconnect()
+        end
     end
-
-    MinBtn.MouseButton1Click:Connect(function()
-        minimizeGUI()
-    end)
-
-    CloseBtn.MouseButton1Click:Connect(function()
-        minimizeGUI()
-    end)
-
-    local Sidebar = Instance.new("ScrollingFrame")
-    Sidebar.Parent = MainFrame
-    Sidebar.Size = UDim2.new(0, 100, 1, -32)
-    Sidebar.Position = UDim2.new(0, 0, 0, 32)
-    Sidebar.BackgroundTransparency = 1
-    Sidebar.BorderSizePixel = 0
-    Sidebar.ScrollBarThickness = 0
-    Sidebar.CanvasSize = UDim2.new(0, 0, 0, 200)
-
-    local SidebarLayout = Instance.new("UIListLayout")
-    SidebarLayout.Parent = Sidebar
-    SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SidebarLayout.Padding = UDim.new(0, 4)
-
-    local SidebarPadding = Instance.new("UIPadding")
-    SidebarPadding.Parent = Sidebar
-    SidebarPadding.PaddingLeft = UDim.new(0, 6)
-    SidebarPadding.PaddingRight = UDim.new(0, 6)
-
-    local ContentContainer = Instance.new("Frame")
-    ContentContainer.Parent = MainFrame
-    ContentContainer.Size = UDim2.new(1, -105, 1, -40)
-    ContentContainer.Position = UDim2.new(0, 105, 0, 36)
-    ContentContainer.BackgroundTransparency = 1
-
-    local currentTabBtn = nil
-
-    local function createTabButton(name, icon)
-        local btn = Instance.new("TextButton")
-        btn.Parent = Sidebar
-        btn.Size = UDim2.new(1, 0, 0, 26)
-        btn.BackgroundTransparency = 1
-        btn.Text = "   " .. icon .. "  " .. name
-        btn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        btn.TextSize = 10
-        btn.Font = Enum.Font.GothamSemibold
-        btn.TextXAlignment = Enum.TextXAlignment.Left
-        
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 6)
-        corner.Parent = btn
-        
-        btn.MouseEnter:Connect(function()
-            btn.TextColor3 = Color3.fromRGB(240, 240, 245)
-        end)
-        btn.MouseLeave:Connect(function()
-            if currentTabBtn ~= btn then
-                btn.TextColor3 = Color3.fromRGB(140, 140, 160)
+    connections = {}
+    for key in pairs(states) do
+        states[key] = false
+    end
+    
+    hpActive = false
+    for _, conn in pairs(hpConnections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    hpConnections = {}
+    
+    local char = Player.Character
+    if char then
+        local h = char:FindFirstChildOfClass("Humanoid")
+        if h then
+            h.MaxHealth = 100
+            h.Health = 100
+            h.BreakJointsOnDeath = true
+        end
+    end
+    
+    if ballNoClipConnection then
+        ballNoClipConnection:Disconnect()
+        ballNoClipConnection = nil
+    end
+    if ballAimConnection then
+        ballAimConnection:Disconnect()
+        ballAimConnection = nil
+    end
+    if ballStickConnection then
+        ballStickConnection:Disconnect()
+        ballStickConnection = nil
+    end
+    if ball then
+        ball.CanCollide = true
+    end
+    
+    for plr, data in pairs(espObjects) do
+        if data.box then data.box:Destroy() end
+    end
+    espObjects = {}
+    
+    if aimlockCircle then
+        aimlockCircle:Destroy()
+        aimlockCircle = nil
+    end
+    
+    for plr, conn in pairs(pullConnections) do
+        if conn then
+            conn:Disconnect()
+        end
+    end
+    pullConnections = {}
+    
+    if char then
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+                part.Transparency = 0
             end
-        end)
-        
-        return btn
-    end
-
-    local function createContentPanel(titleText)
-        for _, v in pairs(ContentContainer:GetChildren()) do v:Destroy() end
-        
-        local panel = Instance.new("ScrollingFrame")
-        panel.Parent = ContentContainer
-        panel.Size = UDim2.new(1, 0, 1, 0)
-        panel.BackgroundTransparency = 1
-        panel.BorderSizePixel = 0
-        panel.ScrollBarThickness = 2
-        panel.CanvasSize = UDim2.new(0, 0, 0, 200)
-        
-        local layout = Instance.new("UIListLayout")
-        layout.Parent = panel
-        layout.SortOrder = Enum.SortOrder.LayoutOrder
-        layout.Padding = UDim.new(0, 5)
-        
-        local title = Instance.new("TextLabel")
-        title.Parent = panel
-        title.Size = UDim2.new(1, 0, 0, 20)
-        title.BackgroundTransparency = 1
-        title.Text = titleText
-        title.TextColor3 = Color3.fromRGB(240, 240, 250)
-        title.TextSize = 12
-        title.Font = Enum.Font.GothamBold
-        title.TextXAlignment = Enum.TextXAlignment.Left
-        
-        return panel
-    end
-
-    local function addToggle(parent, titleText, callback)
-        local toggle = Instance.new("Frame")
-        toggle.Parent = parent
-        toggle.Size = UDim2.new(1, -5, 0, 28)
-        toggle.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-        toggle.BorderSizePixel = 0
-        
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 6)
-        corner.Parent = toggle
-        
-        local label = Instance.new("TextLabel")
-        label.Parent = toggle
-        label.Size = UDim2.new(1, -42, 1, 0)
-        label.Position = UDim2.new(0, 8, 0, 0)
-        label.BackgroundTransparency = 1
-        label.Text = titleText
-        label.TextColor3 = Color3.fromRGB(200, 200, 215)
-        label.TextSize = 10
-        label.Font = Enum.Font.GothamMedium
-        label.TextXAlignment = Enum.TextXAlignment.Left
-        
-        local btn = Instance.new("TextButton")
-        btn.Parent = toggle
-        btn.Size = UDim2.new(1, 0, 1, 0)
-        btn.BackgroundTransparency = 1
-        btn.Text = ""
-        
-        local active = false
-        local indicator = Instance.new("Frame")
-        indicator.Parent = toggle
-        indicator.Size = UDim2.new(0, 12, 0, 12)
-        indicator.Position = UDim2.new(1, -18, 0.5, -6)
-        indicator.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-        
-        local indCorner = Instance.new("UICorner")
-        indCorner.CornerRadius = UDim.new(0, 4)
-        indCorner.Parent = indicator
-        
-        btn.MouseButton1Click:Connect(function()
-            active = not active
-            TweenService:Create(indicator, TweenInfo.new(0.2), {
-                BackgroundColor3 = active and Color3.fromRGB(80, 140, 255) or Color3.fromRGB(40, 40, 50)
-            }):Play()
-            callback(active)
-        end)
-    end
-
-    local function createMovementTab()
-        local panel = createContentPanel("🚀 إعدادات الحركة")
-        addToggle(panel, "اختراق الجدران", function(state) toggleNoclip(state) end)
-        addToggle(panel, "اختفاء (Invisible)", function(state) toggleInvisible(state) end)
-        
-        local flyGuiBtn = Instance.new("TextButton")
-        flyGuiBtn.Parent = panel
-        flyGuiBtn.Size = UDim2.new(1, -5, 0, 35)
-        flyGuiBtn.Position = UDim2.new(0, 2, 0, 5)
-        flyGuiBtn.Text = "🛩️ فتح FLY GUI V3"
-        flyGuiBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        flyGuiBtn.TextSize = 12
-        flyGuiBtn.Font = Enum.Font.GothamBold
-        flyGuiBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-        flyGuiBtn.BackgroundTransparency = 0.2
-        flyGuiBtn.BorderSizePixel = 0
-        
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 6)
-        btnCorner.Parent = flyGuiBtn
-        
-        flyGuiBtn.MouseEnter:Connect(function()
-            flyGuiBtn.BackgroundTransparency = 0
-        end)
-        flyGuiBtn.MouseLeave:Connect(function()
-            flyGuiBtn.BackgroundTransparency = 0.2
-        end)
-        
-        flyGuiBtn.MouseButton1Click:Connect(function()
-            createFlyGUI()
-        end)
-    end
-    
-    local function createCombatTab()
-        local panel = createContentPanel("🎯 القتال")
-        addToggle(panel, "🎯 Aimbot", function(state) toggleAimbot(state) end)
-        addToggle(panel, "🔒 Aim Lock", function(state) toggleAimlock(state) end)
-        addToggle(panel, "👁️ ESP", function(state) toggleESP(state) end)
-        addToggle(panel, "❤️ HP FULL", function(state) toggleHP(state) end)
-    end
-
-    local function createSpeedTab()
-        local panel = createContentPanel("⚡ إعدادات السرعة")
-        addToggle(panel, "تفعيل السرعة العالية", function(state) toggleSpeed(state) end)
-    end
-
-    local function createTeleportTab()
-        local panel = createContentPanel("👥 قائمة اللاعبين")
-        
-        local teleportBtn = Instance.new("TextButton")
-        teleportBtn.Parent = panel
-        teleportBtn.Size = UDim2.new(1, -5, 0, 35)
-        teleportBtn.Position = UDim2.new(0, 2, 0, 5)
-        teleportBtn.Text = "👥 فتح قائمة اللاعبين"
-        teleportBtn.TextColor3 = Color3.fromRGB(200, 200, 215)
-        teleportBtn.TextSize = 12
-        teleportBtn.Font = Enum.Font.GothamMedium
-        teleportBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-        teleportBtn.BorderSizePixel = 0
-        
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 6)
-        btnCorner.Parent = teleportBtn
-        
-        teleportBtn.MouseEnter:Connect(function()
-            teleportBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-        end)
-        teleportBtn.MouseLeave:Connect(function()
-            teleportBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-        end)
-        
-        teleportBtn.MouseButton1Click:Connect(function()
-            showTeleportMenu()
-        end)
-    end
-
-    -- 🎨 تبويب السكنات
-    local function createSkinTab()
-        local panel = createContentPanel("🎨 السكنات")
-        
-        local desc = Instance.new("TextLabel")
-        desc.Parent = panel
-        desc.Size = UDim2.new(1, -5, 0, 40)
-        desc.BackgroundTransparency = 1
-        desc.Text = "اضغط على الزر لتحميل السكنات\n(قد يستغرق بضع ثواني)"
-        desc.TextColor3 = Color3.fromRGB(160, 160, 175)
-        desc.TextSize = 10
-        desc.Font = Enum.Font.GothamMedium
-        desc.TextWrapped = true
-        
-        local skinBtn = Instance.new("TextButton")
-        skinBtn.Parent = panel
-        skinBtn.Size = UDim2.new(1, -5, 0, 40)
-        skinBtn.Text = "🎨 تحميل السكنات"
-        skinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        skinBtn.TextSize = 13
-        skinBtn.Font = Enum.Font.GothamBold
-        skinBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 200)
-        skinBtn.BackgroundTransparency = 0.2
-        skinBtn.BorderSizePixel = 0
-        
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 8)
-        btnCorner.Parent = skinBtn
-        
-        skinBtn.MouseEnter:Connect(function()
-            skinBtn.BackgroundTransparency = 0
-        end)
-        skinBtn.MouseLeave:Connect(function()
-            skinBtn.BackgroundTransparency = 0.2
-        end)
-        
-        skinBtn.MouseButton1Click:Connect(function()
-            if skinLoaderActive then
-                showNotification("⏳ جاري تحميل السكنات بالفعل!", Color3.fromRGB(255, 200, 0))
-                return
-            end
-            toggleSkinLoader()
-        end)
-        
-        panel.CanvasSize = UDim2.new(0, 0, 0, 120)
-    end
-
-    -- ⚽ تبويب Blue Lock Rivals
-    local function createBlueLockTabWrapper()
-        local panel = createContentPanel("⚽ Blue Lock Rivals")
-
-        -- زر جلب الكرة
-        local pullBtn = Instance.new("TextButton")
-        pullBtn.Parent = panel
-        pullBtn.Size = UDim2.new(1, -5, 0, 35)
-        pullBtn.Text = "⚽ جلب الكرة"
-        pullBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        pullBtn.TextSize = 12
-        pullBtn.Font = Enum.Font.GothamBold
-        pullBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-        pullBtn.BackgroundTransparency = 0.2
-        pullBtn.BorderSizePixel = 0
-        local pullCorner = Instance.new("UICorner")
-        pullCorner.CornerRadius = UDim.new(0, 6)
-        pullCorner.Parent = pullBtn
-        pullBtn.MouseEnter:Connect(function() pullBtn.BackgroundTransparency = 0 end)
-        pullBtn.MouseLeave:Connect(function() pullBtn.BackgroundTransparency = 0.2 end)
-        pullBtn.MouseButton1Click:Connect(pullBall)
-
-        -- زر الانتقال إلى الكرة
-        local tpBallBtn = Instance.new("TextButton")
-        tpBallBtn.Parent = panel
-        tpBallBtn.Size = UDim2.new(1, -5, 0, 35)
-        tpBallBtn.Text = "🚀 الانتقال إلى الكرة"
-        tpBallBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        tpBallBtn.TextSize = 12
-        tpBallBtn.Font = Enum.Font.GothamBold
-        tpBallBtn.BackgroundColor3 = Color3.fromRGB(255, 150, 0)
-        tpBallBtn.BackgroundTransparency = 0.2
-        tpBallBtn.BorderSizePixel = 0
-        local tpBallCorner = Instance.new("UICorner")
-        tpBallCorner.CornerRadius = UDim.new(0, 6)
-        tpBallCorner.Parent = tpBallBtn
-        tpBallBtn.MouseEnter:Connect(function() tpBallBtn.BackgroundTransparency = 0 end)
-        tpBallBtn.MouseLeave:Connect(function() tpBallBtn.BackgroundTransparency = 0.2 end)
-        tpBallBtn.MouseButton1Click:Connect(teleportToBall)
-
-        -- زر التسديد
-        local shootBtn = Instance.new("TextButton")
-        shootBtn.Parent = panel
-        shootBtn.Size = UDim2.new(1, -5, 0, 35)
-        shootBtn.Text = "🥅 تسديد (تخترق اللاعبين)"
-        shootBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        shootBtn.TextSize = 12
-        shootBtn.Font = Enum.Font.GothamBold
-        shootBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-        shootBtn.BackgroundTransparency = 0.2
-        shootBtn.BorderSizePixel = 0
-        local shootCorner = Instance.new("UICorner")
-        shootCorner.CornerRadius = UDim.new(0, 6)
-        shootCorner.Parent = shootBtn
-        shootBtn.MouseEnter:Connect(function() shootBtn.BackgroundTransparency = 0 end)
-        shootBtn.MouseLeave:Connect(function() shootBtn.BackgroundTransparency = 0.2 end)
-        shootBtn.MouseButton1Click:Connect(shootBall)
-
-        -- التبديلات
-        addToggle(panel, "⚽ الكرة تخترق اللاعبين", function(state) toggleBallNoClip(state) end)
-        addToggle(panel, "🎯 Aimlock على الكرة", function(state) toggleBallAimlock(state) end)
-        addToggle(panel, "🔒 الكرة تلتصق فيك (تجربة)", function(state) toggleBallStick(state) end)
-
-        -- زر إيقاف الكل
-        local stopBtn = Instance.new("TextButton")
-        stopBtn.Parent = panel
-        stopBtn.Size = UDim2.new(1, -5, 0, 35)
-        stopBtn.Text = "🔄 إيقاف الكل"
-        stopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        stopBtn.TextSize = 12
-        stopBtn.Font = Enum.Font.GothamBold
-        stopBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-        stopBtn.BackgroundTransparency = 0.2
-        stopBtn.BorderSizePixel = 0
-        local stopCorner = Instance.new("UICorner")
-        stopCorner.CornerRadius = UDim.new(0, 6)
-        stopCorner.Parent = stopBtn
-        stopBtn.MouseEnter:Connect(function() stopBtn.BackgroundTransparency = 0 end)
-        stopBtn.MouseLeave:Connect(function() stopBtn.BackgroundTransparency = 0.2 end)
-        stopBtn.MouseButton1Click:Connect(stopAll)
-
-        panel.CanvasSize = UDim2.new(0, 0, 0, 300)
-    end
-
-    -- ============================================
-    -- 🎨 الأزرار الجانبية
-    -- ============================================
-    
-    local tab1 = createTabButton("الحركة", "🚀")
-    tab1.MouseButton1Click:Connect(function()
-        if currentTabBtn then
-            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        end
-        currentTabBtn = tab1
-        tab1.TextColor3 = Color3.fromRGB(240, 240, 245)
-        createMovementTab()
-    end)
-
-    local tab2 = createTabButton("القتال", "🎯")
-    tab2.MouseButton1Click:Connect(function()
-        if currentTabBtn then
-            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        end
-        currentTabBtn = tab2
-        tab2.TextColor3 = Color3.fromRGB(240, 240, 245)
-        createCombatTab()
-    end)
-
-    local tab3 = createTabButton("السرعة", "⚡")
-    tab3.MouseButton1Click:Connect(function()
-        if currentTabBtn then
-            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        end
-        currentTabBtn = tab3
-        tab3.TextColor3 = Color3.fromRGB(240, 240, 245)
-        createSpeedTab()
-    end)
-
-    local tab4 = createTabButton("اللاعبين", "👥")
-    tab4.MouseButton1Click:Connect(function()
-        if currentTabBtn then
-            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        end
-        currentTabBtn = tab4
-        tab4.TextColor3 = Color3.fromRGB(240, 240, 245)
-        createTeleportTab()
-    end)
-
-    -- 🎨 تبويب السكنات (جديد - قبل تبويب Blue Lock)
-    local tab5 = createTabButton("السكنات", "🎨")
-    tab5.MouseButton1Click:Connect(function()
-        if currentTabBtn then
-            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        end
-        currentTabBtn = tab5
-        tab5.TextColor3 = Color3.fromRGB(240, 240, 245)
-        createSkinTab()
-    end)
-
-    -- ⚽ تبويب Blue Lock Rivals
-    local tab6 = createTabButton("⚽ Blue Lock", "⚽")
-    tab6.MouseButton1Click:Connect(function()
-        if currentTabBtn then
-            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
-        end
-        currentTabBtn = tab6
-        tab6.TextColor3 = Color3.fromRGB(240, 240, 245)
-        createBlueLockTabWrapper()
-    end)
-
-    tab1.MouseButton1Click()
-
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == Enum.KeyCode.F1 then
-            if isMinimized then
-                isMinimized = false
-                MainFrame.Visible = true
-                local miniBtn = ScreenGui:FindFirstChild("MiniButton")
-                if miniBtn then miniBtn:Destroy() end
-            else
-                MainFrame.Visible = not MainFrame.Visible
+            if part:IsA("Decal") or part:IsA("Texture") then
+                part.Transparency = 0
             end
         end
-    end)
-
-    print("💀 ROMA SENPAI HUB V2 Loaded!")
-    print("📌 F1 = Toggle GUI")
-    print("🎨 Skin Loader Tab Added!")
-    print("⚽ Blue Lock Rivals Tab Added!")
-    showNotification("💀 ROMA HUB V2 جاهز!", Color3.fromRGB(150, 150, 255))
+        local h = char:FindFirstChild("Humanoid")
+        if h then
+            h.PlatformStand = false
+            h.Sit = false
+            h.WalkSpeed = 16
+            h.JumpPower = 50
+        end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if root then
+            root.Velocity = Vector3.new(0, 0, 0)
+        end
+    end
+    
+    -- إيقاف RTX
+    if rtxActive then
+        toggleRTX(false)
+    end
+    
+    Rayfield:Notify({Title = "⏹ تم", Content = "تم إيقاف الكل!", Duration = 3})
 end
 
-showIntro()
+-- ============================================
+-- 📦 تحميل Rayfield
+-- ============================================
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "💀 ROMA SENPAI V2",
+    LoadingTitle = "💀 ROMA SENPAI HUB",
+    LoadingSubtitle = "صنع من طرف ROMA SENPAI",
+    ConfigurationSaving = { Enabled = false }
+})
+
+-- ============================================
+-- 📂 التاب: الحركة 🚀
+-- ============================================
+local MovementTab = Window:CreateTab("🚀 الحركة")
+
+MovementTab:CreateToggle({
+    Name = "🧱 اختراق الجدران",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleNoclip(Value)
+    end
+})
+
+MovementTab:CreateToggle({
+    Name = "👻 اختفاء (Invisible)",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleInvisible(Value)
+    end
+})
+
+MovementTab:CreateButton({
+    Name = "🛩️ فتح الطيران",
+    Callback = function()
+        createFlyGUI()
+        Rayfield:Notify({
+            Title = "✅ تم",
+            Content = "تم فتح الطيران",
+            Duration = 3
+        })
+    end
+})
+
+-- ============================================
+-- 📂 التاب: القتال 🎯
+-- ============================================
+local CombatTab = Window:CreateTab("🎯 القتال")
+
+CombatTab:CreateToggle({
+    Name = "🎯 Aimbot",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleAimbot(Value)
+    end
+})
+
+CombatTab:CreateToggle({
+    Name = "🔒 Aim Lock",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleAimlock(Value)
+    end
+})
+
+CombatTab:CreateToggle({
+    Name = "👁️ ESP",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleESP(Value)
+    end
+})
+
+CombatTab:CreateToggle({
+    Name = "❤️ HP FULL",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleHP(Value)
+    end
+})
+
+-- ============================================
+-- 📂 التاب: السرعة ⚡
+-- ============================================
+local SpeedTab = Window:CreateTab("⚡ السرعة")
+
+SpeedTab:CreateToggle({
+    Name = "⚡ تفعيل السرعة العالية",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleSpeed(Value)
+    end
+})
+
+SpeedTab:CreateInput({
+    Name = "📝 تعديل قيمة السرعة",
+    PlaceholderText = "أدخل قيمة السرعة (افتراضي: 120)",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(text)
+        local num = tonumber(text)
+        if num and num > 0 then
+            speedAmount = num
+            if states.speed then
+                local h = Player.Character and Player.Character:FindFirstChild("Humanoid")
+                if h then
+                    h.WalkSpeed = speedAmount
+                end
+            end
+            Rayfield:Notify({
+                Title = "✅ تم",
+                Content = "تم ضبط السرعة إلى: " .. speedAmount,
+                Duration = 3
+            })
+        else
+            Rayfield:Notify({
+                Title = "❌ خطأ",
+                Content = "يرجى إدخال رقم صحيح!",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- ============================================
+-- 📂 التاب: اللاعبين 👥
+-- ============================================
+local PlayersTab = Window:CreateTab("👥 اللاعبين")
+
+-- قائمة اللاعبين ديناميكية (زر)
+PlayersTab:CreateButton({
+    Name = "🔄 تحديث قائمة اللاعبين",
+    Callback = function()
+        local playerList = "👥 اللاعبين:\n"
+        local count = 0
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= Player then
+                count = count + 1
+                playerList = playerList .. "• " .. plr.Name .. " (ID: " .. plr.UserId .. ")\n"
+            end
+        end
+        if count == 0 then
+            playerList = playerList .. "❌ لا يوجد لاعبين آخرين"
+        end
+        Rayfield:Notify({
+            Title = "📋 قائمة اللاعبين",
+            Content = playerList,
+            Duration = 8
+        })
+    end
+})
+
+-- اختيار لاعب (إدخال اسم)
+local selectedPlayerName = ""
+
+PlayersTab:CreateInput({
+    Name = "📝 اسم اللاعب",
+    PlaceholderText = "أدخل اسم اللاعب",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(text)
+        selectedPlayerName = text
+    end
+})
+
+-- الانتقال إلى لاعب
+PlayersTab:CreateButton({
+    Name = "🚀 انتقال إلى لاعب",
+    Callback = function()
+        if selectedPlayerName == "" then
+            Rayfield:Notify({
+                Title = "⚠️ تنبيه",
+                Content = "يرجى إدخال اسم اللاعب أولاً!",
+                Duration = 3
+            })
+            return
+        end
+        local target = Players:FindFirstChild(selectedPlayerName)
+        if target then
+            teleportToPlayer(target)
+        else
+            Rayfield:Notify({
+                Title = "❌ خطأ",
+                Content = "اللاعب غير موجود!",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- جلب لاعب
+PlayersTab:CreateButton({
+    Name = "📥 جلب لاعب",
+    Callback = function()
+        if selectedPlayerName == "" then
+            Rayfield:Notify({
+                Title = "⚠️ تنبيه",
+                Content = "يرجى إدخال اسم اللاعب أولاً!",
+                Duration = 3
+            })
+            return
+        end
+        local target = Players:FindFirstChild(selectedPlayerName)
+        if target then
+            pullPlayer(target)
+        else
+            Rayfield:Notify({
+                Title = "❌ خطأ",
+                Content = "اللاعب غير موجود!",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- طرد لاعب
+PlayersTab:CreateButton({
+    Name = "💀 طرد لاعب",
+    Callback = function()
+        if selectedPlayerName == "" then
+            Rayfield:Notify({
+                Title = "⚠️ تنبيه",
+                Content = "يرجى إدخال اسم اللاعب أولاً!",
+                Duration = 3
+            })
+            return
+        end
+        local target = Players:FindFirstChild(selectedPlayerName)
+        if target then
+            kickPlayer(target)
+        else
+            Rayfield:Notify({
+                Title = "❌ خطأ",
+                Content = "اللاعب غير موجود!",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- طرد الجميع
+PlayersTab:CreateButton({
+    Name = "💀 طرد جميع اللاعبين",
+    Callback = function()
+        kickAllPlayers()
+    end
+})
+
+-- إعادة الانضمام
+PlayersTab:CreateButton({
+    Name = "🔄 إعادة الانضمام",
+    Callback = function()
+        TeleportService:Teleport(game.PlaceId, Player)
+        Rayfield:Notify({
+            Title = "✅ تم",
+            Content = "جاري إعادة الانضمام...",
+            Duration = 3
+        })
+    end
+})
+
+-- ============================================
+-- 📂 التاب: الاضافات 🎨
+-- ============================================
+local AddonsTab = Window:CreateTab("🎨 الاضافات")
+
+AddonsTab:CreateButton({
+    Name = "🎨 تحميل السكنات",
+    Callback = function()
+        toggleSkinLoader()
+    end
+})
+
+AddonsTab:CreateToggle({
+    Name = "🎮 الجرافيك الخيالي (RTX)",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleRTX(Value)
+    end
+})
+
+-- ============================================
+-- 📂 التاب: Blue Lock ⚽
+-- ============================================
+local BlueLockTab = Window:CreateTab("⚽ Blue Lock")
+
+BlueLockTab:CreateLabel("📌 قد يستغرق التحميل بضع ثواني")
+
+-- جلب الكرة
+BlueLockTab:CreateButton({
+    Name = "⚽ جلب الكرة",
+    Callback = function()
+        pullBall()
+    end
+})
+
+-- الانتقال إلى الكرة
+BlueLockTab:CreateButton({
+    Name = "🚀 الانتقال إلى الكرة",
+    Callback = function()
+        teleportToBall()
+    end
+})
+
+-- تسديد
+BlueLockTab:CreateButton({
+    Name = "🥅 تسديد (تخترق اللاعبين)",
+    Callback = function()
+        shootBall()
+    end
+})
+
+-- الكرة تخترق اللاعبين
+BlueLockTab:CreateToggle({
+    Name = "⚽ الكرة تخترق اللاعبين",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleBallNoClip(Value)
+    end
+})
+
+-- Aimlock على الكرة
+BlueLockTab:CreateToggle({
+    Name = "🎯 Aimlock على الكرة",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleBallAimlock(Value)
+    end
+})
+
+-- الكرة تلتصق فيك
+BlueLockTab:CreateToggle({
+    Name = "🔒 الكرة تلتصق فيك",
+    CurrentValue = false,
+    Callback = function(Value)
+        toggleBallStick(Value)
+    end
+})
+
+-- إيقاف الكل
+BlueLockTab:CreateButton({
+    Name = "🔄 إيقاف الكل",
+    Callback = function()
+        stopAll()
+    end
+})
+
+-- ============================================
+-- 📂 التاب: معلومات ℹ️
+-- ============================================
+local InfoTab = Window:CreateTab("ℹ️ معلومات")
+
+InfoTab:CreateLabel("💀 ROMA SENPAI HUB V2")
+InfoTab:CreateLabel("صنع من طرف ROMA SENPAI")
+InfoTab:CreateLabel("📌 F1 = Toggle GUI")
+InfoTab:CreateLabel("⚽ يدعم Blue Lock Rivals")
+InfoTab:CreateLabel("🎨 يدعم الاضافات والجرافيك الخيالي")
+
+InfoTab:CreateButton({
+    Name = "🔄 إعادة تعيين الكل",
+    Callback = function()
+        stopAll()
+        Rayfield:Notify({
+            Title = "✅ تم",
+            Content = "تم إعادة تعيين جميع الإعدادات",
+            Duration = 3
+        })
+    end
+})
+
+print("💀 ROMA SENPAI HUB V2 Loaded!")
+print("📌 F1 = Toggle GUI")
+print("⚽ Blue Lock Rivals Tab Added!")
+print("🎨 Addons Tab Added (Skin Loader + RTX)!")
+print("🎮 RTX Graphics Added!")
