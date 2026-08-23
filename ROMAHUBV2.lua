@@ -50,6 +50,12 @@ local ballNoClipConnection = nil
 local ballStickConnection = nil
 
 -- ============================================
+-- 🎨 SKIN LOADER - المتغيرات
+-- ============================================
+local skinFrame = nil
+local skinLoaderActive = false
+
+-- ============================================
 -- ❤️ HP FULL
 -- ============================================
 local hpActive = false
@@ -1617,6 +1623,106 @@ local function createFlyGUI()
 end
 
 -- ============================================
+-- 🎨 SKIN LOADER
+-- ============================================
+local function toggleSkinLoader()
+    if skinFrame then
+        skinFrame:Destroy()
+        skinFrame = nil
+        skinLoaderActive = false
+        showNotification("⏹ تم إيقاف Skin Loader", Color3.fromRGB(255, 200, 0))
+        return
+    end
+    
+    skinFrame = Instance.new("Frame")
+    skinFrame.Parent = ScreenGui
+    skinFrame.Size = UDim2.new(0, 300, 0, 100)
+    skinFrame.Position = UDim2.new(0.5, -150, 0.5, -50)
+    skinFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+    skinFrame.BackgroundTransparency = 0.1
+    skinFrame.BorderSizePixel = 0
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = skinFrame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = skinFrame
+    stroke.Color = Color3.fromRGB(45, 45, 55)
+    stroke.Thickness = 1
+    
+    local title = Instance.new("TextLabel")
+    title.Parent = skinFrame
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.BackgroundTransparency = 1
+    title.Text = "🎨 تحميل السكنات..."
+    title.TextColor3 = Color3.fromRGB(240, 240, 245)
+    title.TextSize = 14
+    title.Font = Enum.Font.GothamBold    
+    local progress = Instance.new("Frame")
+    progress.Parent = skinFrame
+    progress.Size = UDim2.new(0.8, 0, 0, 6)
+    progress.Position = UDim2.new(0.1, 0, 0.5, 10)
+    progress.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    progress.BorderSizePixel = 0
+    
+    local progressCorner = Instance.new("UICorner")
+    progressCorner.CornerRadius = UDim.new(1, 0)
+    progressCorner.Parent = progress
+    
+    local fill = Instance.new("Frame")
+    fill.Parent = progress
+    fill.Size = UDim2.new(0, 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+    fill.BorderSizePixel = 0
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(1, 0)
+    fillCorner.Parent = fill
+    
+    local closeSkin = Instance.new("TextButton")
+    closeSkin.Parent = skinFrame
+    closeSkin.Size = UDim2.new(0, 25, 0, 25)
+    closeSkin.Position = UDim2.new(1, -30, 0, 3)
+    closeSkin.BackgroundTransparency = 1
+    closeSkin.Text = "✕"
+    closeSkin.TextColor3 = Color3.fromRGB(160, 160, 175)
+    closeSkin.TextSize = 14
+    closeSkin.Font = Enum.Font.GothamBold
+    
+    closeSkin.MouseButton1Click:Connect(function()
+        skinFrame:Destroy()
+        skinFrame = nil
+        skinLoaderActive = false
+        showNotification("⏹ تم إيقاف Skin Loader", Color3.fromRGB(255, 200, 0))
+    end)
+    
+    skinLoaderActive = true
+    showNotification("🎨 جاري تحميل السكنات...", Color3.fromRGB(100, 200, 255))
+    
+    -- تحميل الـ Loadstring
+    pcall(function()
+        local success, result = pcall(function()
+            return loadstring(game:HttpGet("https://loaderxzuyax.vercel.app/Csmtc%20only"))()
+        end)
+        
+        if success then
+            fill:TweenSize(UDim2.new(1, 0, 1, 0), "Out", "Linear", 0.5)
+            task.wait(0.5)
+            showNotification("✅ تم تحميل السكنات بنجاح!", Color3.fromRGB(0, 255, 100))
+            skinFrame:Destroy()
+            skinFrame = nil
+            skinLoaderActive = false
+        else
+            showNotification("❌ فشل تحميل السكنات!", Color3.fromRGB(255, 0, 0))
+            skinFrame:Destroy()
+            skinFrame = nil
+            skinLoaderActive = false
+        end
+    end)
+end
+
+-- ============================================
 -- 🎬 شاشة Intro
 -- ============================================
 local function showIntro()
@@ -1982,7 +2088,54 @@ function createGUI()
         end)
     end
 
-    -- ⚽ تبويب Blue Lock Rivals (الإصلاح هنا)
+    -- 🎨 تبويب السكنات
+    local function createSkinTab()
+        local panel = createContentPanel("🎨 السكنات")
+        
+        local desc = Instance.new("TextLabel")
+        desc.Parent = panel
+        desc.Size = UDim2.new(1, -5, 0, 40)
+        desc.BackgroundTransparency = 1
+        desc.Text = "اضغط على الزر لتحميل السكنات\n(قد يستغرق بضع ثواني)"
+        desc.TextColor3 = Color3.fromRGB(160, 160, 175)
+        desc.TextSize = 10
+        desc.Font = Enum.Font.GothamMedium
+        desc.TextWrapped = true
+        
+        local skinBtn = Instance.new("TextButton")
+        skinBtn.Parent = panel
+        skinBtn.Size = UDim2.new(1, -5, 0, 40)
+        skinBtn.Text = "🎨 تحميل السكنات"
+        skinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        skinBtn.TextSize = 13
+        skinBtn.Font = Enum.Font.GothamBold
+        skinBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 200)
+        skinBtn.BackgroundTransparency = 0.2
+        skinBtn.BorderSizePixel = 0
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 8)
+        btnCorner.Parent = skinBtn
+        
+        skinBtn.MouseEnter:Connect(function()
+            skinBtn.BackgroundTransparency = 0
+        end)
+        skinBtn.MouseLeave:Connect(function()
+            skinBtn.BackgroundTransparency = 0.2
+        end)
+        
+        skinBtn.MouseButton1Click:Connect(function()
+            if skinLoaderActive then
+                showNotification("⏳ جاري تحميل السكنات بالفعل!", Color3.fromRGB(255, 200, 0))
+                return
+            end
+            toggleSkinLoader()
+        end)
+        
+        panel.CanvasSize = UDim2.new(0, 0, 0, 120)
+    end
+
+    -- ⚽ تبويب Blue Lock Rivals
     local function createBlueLockTabWrapper()
         local panel = createContentPanel("⚽ Blue Lock Rivals")
 
@@ -2063,7 +2216,6 @@ function createGUI()
         stopBtn.MouseLeave:Connect(function() stopBtn.BackgroundTransparency = 0.2 end)
         stopBtn.MouseButton1Click:Connect(stopAll)
 
-        -- تحديث CanvasSize لضمان ظهور جميع العناصر عند التمرير
         panel.CanvasSize = UDim2.new(0, 0, 0, 300)
     end
 
@@ -2111,14 +2263,25 @@ function createGUI()
         createTeleportTab()
     end)
 
-    -- ⚽ تبويب Blue Lock Rivals
-    local tab5 = createTabButton("⚽ Blue Lock", "⚽")
+    -- 🎨 تبويب السكنات (جديد - قبل تبويب Blue Lock)
+    local tab5 = createTabButton("السكنات", "🎨")
     tab5.MouseButton1Click:Connect(function()
         if currentTabBtn then
             currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
         end
         currentTabBtn = tab5
         tab5.TextColor3 = Color3.fromRGB(240, 240, 245)
+        createSkinTab()
+    end)
+
+    -- ⚽ تبويب Blue Lock Rivals
+    local tab6 = createTabButton("⚽ Blue Lock", "⚽")
+    tab6.MouseButton1Click:Connect(function()
+        if currentTabBtn then
+            currentTabBtn.TextColor3 = Color3.fromRGB(140, 140, 160)
+        end
+        currentTabBtn = tab6
+        tab6.TextColor3 = Color3.fromRGB(240, 240, 245)
         createBlueLockTabWrapper()
     end)
 
@@ -2140,6 +2303,7 @@ function createGUI()
 
     print("💀 ROMA SENPAI HUB V2 Loaded!")
     print("📌 F1 = Toggle GUI")
+    print("🎨 Skin Loader Tab Added!")
     print("⚽ Blue Lock Rivals Tab Added!")
     showNotification("💀 ROMA HUB V2 جاهز!", Color3.fromRGB(150, 150, 255))
 end
